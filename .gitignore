@@ -1,0 +1,84 @@
+# ============================================================
+# XAUUSD Pro Scalper — .gitignore
+# Safe for public GitHub exposure — NO secrets committed
+# ============================================================
+
+# ── Virtual Environments ─────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+.env.local
+
+# ── Environment / Secrets ────────────────────────────────────
+.env
+*.env
+.env.*
+!.env.example
+
+# ── Python Cache ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# ── Test Cache ───────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+*.coveragerc
+
+# ── Database ─────────────────────────────────────────────────
+database/*.db
+database/*.db-journal
+database/*.db-shm
+database/*.db-wal
+database/backups/
+
+# ── Logs ─────────────────────────────────────────────────────
+logs/
+*.log
+*.log.*
+
+# ── Generated Reports ────────────────────────────────────────
+reports/*.csv
+reports/*.json
+reports/mt5_cache_backup_*/
+
+# ── ML Model Snapshots (auto-generated) ──────────────────────
+ml/*.pkl
+ml/*.joblib
+ml/*.model
+
+# ── IDE & Editor ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Build Artifacts ──────────────────────────────────────────
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+
+# ── Jupyter Notebooks ────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── Temp / Scratch ───────────────────────────────────────────
+scratch/
+*.tmp
+*.bak
+*.orig
+
+# ── Windows ──────────────────────────────────────────────────
+desktop.ini
+$RECYCLE.BIN/
