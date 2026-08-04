@@ -137,7 +137,7 @@ _DEFAULT_SYMBOLS: Dict[str, SymbolConfig] = {
         preferred_sessions=["NEW_YORK"],
     ),
     "BTCUSD": SymbolConfig(
-        enabled=False,           # Enabled via BTCUSD_ENABLED=true in .env
+        enabled=_b("BTCUSD_ENABLED", True),   # 24/7 Crypto asset
         max_spread_pts=3000,
         min_atr=50.0,
         preferred_sessions=[],   # 24/7 — no session preference

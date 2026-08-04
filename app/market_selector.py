@@ -253,7 +253,7 @@ class MarketSelector:
                 skip_reason=f"atr_too_low({atr:.5f}<{sym_cfg.min_atr})",
             )
 
-        if vol.regime == "EXPLOSIVE":
+        if vol.regime == "EXPLOSIVE" and canonical != "BTCUSD":
             return SymbolRanking(
                 symbol=canonical, score=10.0, direction="NEUTRAL",
                 atr=atr, spread=spread, vol_regime=vol.regime,

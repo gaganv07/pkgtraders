@@ -577,7 +577,7 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Deque, Dict, List, Optional
+from typing import Any, Deque, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -751,13 +751,41 @@ class _BarBuffer:
         self.tf = tf
         self._buf: Deque[Bar] = deque(maxlen=maxlen)
 
-    def push_dict(self, d: Dict) -> None:
+    def push_dict(self, d: Any) -> None:
+        if isinstance(d, dict):
+            tv = d.get("tick_volume", 0)
+            sp = d.get("spread", 0)
+            rv = d.get("real_volume", 0)
+            t_val = d["time"]
+            o_val = d["open"]
+            h_val = d["high"]
+            l_val = d["low"]
+            c_val = d["close"]
+        else:
+            # numpy structured array item
+            names = d.dtype.names if hasattr(d, "dtype") and d.dtype and d.dtype.names else ()
+            tv = int(d["tick_volume"]) if "tick_volume" in names else 0
+            sp = float(d["spread"]) if "spread" in names else 0.0
+            rv = int(d["real_volume"]) if "real_volume" in names else 0
+            t_val = d["time"]
+            o_val = float(d["open"])
+            h_val = float(d["high"])
+            l_val = float(d["low"])
+            c_val = float(d["close"])
+
+        if isinstance(t_val, (int, float)):
+            t_dt = datetime.fromtimestamp(t_val, tz=timezone.utc)
+        elif isinstance(t_val, datetime):
+            t_dt = t_val
+        else:
+            t_dt = datetime.now(timezone.utc)
+
         b = Bar(
-            time=d["time"], open=d["open"], high=d["high"],
-            low=d["low"], close=d["close"],
-            tick_vol=d.get("tick_volume", 0),
-            spread=d.get("spread", 0),
-            real_vol=d.get("real_volume", 0),
+            time=t_dt, open=o_val, high=h_val,
+            low=l_val, close=c_val,
+            tick_vol=tv,
+            spread=sp,
+            real_vol=rv,
             timeframe=self.tf,
         )
         if self._buf and self._buf[-1].time == b.time:
@@ -858,9 +886,17 @@ class MarketData:
 
     def ingest_tick(self, raw: Dict) -> Optional[Tick]:
         try:
+            t_val = raw["time"]
+            if isinstance(t_val, (int, float)):
+                t_dt = datetime.fromtimestamp(t_val, tz=timezone.utc)
+            elif isinstance(t_val, datetime):
+                t_dt = t_val
+            else:
+                t_dt = datetime.now(timezone.utc)
+
             tick = Tick(
-                time=raw["time"], bid=raw["bid"], ask=raw["ask"],
-                last=raw.get("last", raw["bid"]),
+                time=t_dt, bid=float(raw["bid"]), ask=float(raw["ask"]),
+                last=float(raw.get("last", raw["bid"])),
                 volume=int(raw.get("volume", 1)),
                 flags=int(raw.get("flags", 0)),
             )

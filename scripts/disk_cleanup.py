@@ -68,7 +68,7 @@ def run():
     print(f"D: Free: {gb(d_free)}")
 
     if c_free > 2e9:
-        print("\n✅ C: drive has enough space (> 2 GB). No cleanup needed.")
+        print("\n[OK] C: drive has enough space (> 2 GB). No cleanup needed.")
         print(f"   Free: {gb(c_free)}")
         return
 
@@ -92,7 +92,7 @@ def run():
 
         for bd in broker_dirs:
             sz = folder_size(str(bd))
-            marker = " ← ACTIVE" if bd.name in active_brokers else ""
+            marker = " [ACTIVE]" if bd.name in active_brokers else ""
             print(f"  {bd.name}: {mb(sz)}{marker}")
             if bd.name not in active_brokers and sz > 50e6:
                 stale.append((bd, sz))
@@ -109,15 +109,15 @@ def run():
                     print(f"\n  Moving {bd.name} ({gb(sz)}) to {dst}...")
                     dst_base.mkdir(parents=True, exist_ok=True)
                     if dst.exists():
-                        print(f"  Backup already exists at {dst} — skipping move, removing source.")
+                        print(f"  Backup already exists at {dst} -- skipping move, removing source.")
                         shutil.rmtree(str(bd), ignore_errors=True)
                     else:
                         shutil.move(str(bd), str(dst_base))
                     moved = folder_size(str(dst)) if dst.exists() else 0
                     total_freed += sz
-                    print(f"  ✅ Moved. Backup: {gb(moved)} at {dst}")
+                    print(f"  [OK] Moved. Backup: {gb(moved)} at {dst}")
             else:
-                print("  ⚠️  D: drive has < 10 GB free. Cannot safely move broker data.")
+                print("  [WARN] D: drive has < 10 GB free. Cannot safely move broker data.")
 
     # ── Clean MT5 Logs ────────────────────────────────────────────────────────
     for terminal in mt5_terminals:
@@ -155,7 +155,7 @@ def run():
             try:
                 subprocess.run(["npm", "cache", "clean", "--force"], timeout=60, capture_output=True)
                 total_freed += npm_sz
-                print("  ✅ npm cache cleaned")
+                print("  [OK] npm cache cleaned")
             except Exception as e:
                 print(f"  npm cache clean failed: {e}")
 
@@ -168,19 +168,19 @@ def run():
             shutil.rmtree(temp, ignore_errors=True)
             os.makedirs(temp, exist_ok=True)
             total_freed += tmp_sz
-            print(f"  ✅ Temp cleaned")
+            print(f"  [OK] Temp cleaned")
 
     # ── Final Report ──────────────────────────────────────────────────────────
     c_free_after = drive_free("C:\\")
     print(f"\n{'='*65}")
     print(f"CLEANUP COMPLETE")
     print(f"  Freed: ~{gb(total_freed)}")
-    print(f"  C: Before: {gb(c_free)}  →  After: {gb(c_free_after)}")
+    print(f"  C: Before: {gb(c_free)}  ->  After: {gb(c_free_after)}")
     if c_free_after > 2e9:
-        print("  ✅ C: drive now has adequate free space.")
-        print("  ✅ MT5 tick write errors [112] should not recur.")
+        print("  [OK] C: drive now has adequate free space.")
+        print("  [OK] MT5 tick write errors [112] should not recur.")
     else:
-        print("  ⚠️  C: drive still low. Consider:")
+        print("  [WARN] C: drive still low. Consider:")
         print("     1. Move more application data to D: drive")
         print("     2. Use Windows Disk Cleanup (cleanmgr.exe)")
         print("     3. Check C:\\Windows\\WinSxS for component bloat (DISM cleanup)")

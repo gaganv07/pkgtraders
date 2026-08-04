@@ -384,7 +384,7 @@ class MT5ConnectionManager:
         sym = target_symbol or self.symbol
 
         print("\n" + "=" * 65)
-        print("  VANTAGE MT5 PRODUCTION CONNECTION & SAFETY CHECKLIST")
+        print("  MT5 PRODUCTION CONNECTION & SAFETY CHECKLIST")
         print("=" * 65)
 
         # 1. Config Check
@@ -392,14 +392,14 @@ class MT5ConnectionManager:
         print(f" {'[PASS]' if cfg_ok else '[FAIL]'} Configuration Loaded")
 
         if not cfg_ok:
-            print(f"   └── Reason: Missing environment variables: {missing}")
+            print(f"   |-- Reason: Missing environment variables: {missing}")
             return False
 
         # 2. Connect & Init Check
         res = self.connect_mt5()
         print(f" {'[PASS]' if res.success else '[FAIL]'} MT5 Initialized & Login Successful")
         if not res.success:
-            print(f"   └── Reason: {res.message}")
+            print(f"   |-- Reason: {res.message}")
             return False
 
         # 3. Account Specs
@@ -415,7 +415,7 @@ class MT5ConnectionManager:
         sym_ok, sym_msg = self.verify_symbol(sym)
         print(f" {'[PASS]' if sym_ok else '[FAIL]'} Symbol Verified ({sym})")
         if not sym_ok:
-            print(f"   └── Reason: {sym_msg}")
+            print(f"   |-- Reason: {sym_msg}")
             self.disconnect_mt5()
             return False
 
@@ -425,12 +425,12 @@ class MT5ConnectionManager:
         for pname, (pok, pmsg) in perms.items():
             if not pok:
                 all_perms_ok = False
-            print(f"   └── {'[PASS]' if pok else '[FAIL]'} {pname}: {pmsg}")
+            print(f"   |-- {'[PASS]' if pok else '[FAIL]'} {pname}: {pmsg}")
 
         print(f" {'[PASS]' if all_perms_ok else '[FAIL]'} Trading Permissions Overall")
 
         if not all_perms_ok:
-            print("   └── Reason: One or more mandatory trading permissions failed.")
+            print("   |-- Reason: One or more mandatory trading permissions failed.")
             self.disconnect_mt5()
             return False
 
@@ -446,13 +446,13 @@ class MT5ConnectionManager:
 
         print("==================================================")
         print("MT5 CONNECTION VERIFIED")
-        print(f"Broker : {acct.get('broker', 'Vantage Markets')}")
-        print(f"Server : {acct.get('server', 'VantageMarkets-Demo AS01')}")
-        print(f"Account: {acct.get('login', '25687070')}")
+        print(f"Broker : {acct.get('broker', 'BlackBull Markets')}")
+        print(f"Server : {acct.get('server', 'BlackBullMarkets-Demo')}")
+        print(f"Account: {acct.get('login', '919205')}")
         print(f"Mode   : {account_type_str.upper()}")
         print("Status : VERIFIED")
         print("==================================================")
-        print("\nI confirm that the bot is connected ONLY to the Vantage Demo account. No LIVE account is being used.\n")
+        print(f"\nI confirm that the bot is connected ONLY to the {acct.get('broker')} Demo account (#{acct.get('login')}). No LIVE account is being used.\n")
 
         conn_log.info(f"Startup checklist fully passed for Account #{self.login} on {sym}")
         return True

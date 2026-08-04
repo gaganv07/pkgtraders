@@ -174,10 +174,15 @@ class MLLayer:
         self._pending[ctx.trade_id] = ctx
 
     def record_outcome(self, trade_id: str, realized_pnl: float) -> None:
-        """Attach outcome to pending context and move to history."""
+        """Attach outcome to pending context, move to history, and retrain."""
         ctx = self._pending.pop(trade_id, None)
         if ctx is None:
-            return
+            # Create synthetic context if not pending
+            ctx = TradeContext(
+                trade_id=trade_id,
+                direction="UNKNOWN",
+                entry_time=datetime.now(timezone.utc).isoformat(),
+            )
         ctx.realized_pnl = realized_pnl
         ctx.win = realized_pnl > 0
         self._history.append(ctx)
@@ -187,18 +192,20 @@ class MLLayer:
         if len(self._history) > 1000:
             self._history = self._history[-800:]
 
-        logger.debug(
-            f"ML outcome: {trade_id} pnl={realized_pnl:.2f} "
-            f"win={ctx.win} history={len(self._history)}"
+        logger.info(
+            f"[ML LEARNING] Trade {trade_id} outcome recorded: PnL=${realized_pnl:.2f} "
+            f"({'WIN' if ctx.win else 'LOSS'}). Total historical trades={len(self._history)}"
         )
+        
+        # Trigger immediate online training on every trade outcome if history >= 5
+        if len(self._history) >= 5:
+            self._retrain()
 
     def maybe_retrain(self) -> bool:
-        """Retrain if enough new trades have accumulated. Returns True if retrained."""
+        """Retrain if new trades have accumulated. Returns True if retrained."""
         if not self._enabled:
             return False
-        if len(self._history) < self._min_samples:
-            return False
-        if self._trades_since_train < self._retrain_n:
+        if len(self._history) < 5:
             return False
 
         self._retrain()
@@ -207,7 +214,7 @@ class MLLayer:
 
     def _retrain(self) -> None:
         closed = [c for c in self._history if c.win is not None]
-        if len(closed) < self._min_samples:
+        if len(closed) < 5:
             return
 
         samples = [(c.to_features(), int(c.win)) for c in closed]
@@ -217,8 +224,8 @@ class MLLayer:
         imp = self._model.feature_importances()
         top5 = sorted(imp.items(), key=lambda x: -x[1])[:5]
         logger.info(
-            f"ML retrained on {len(samples)} trades. "
-            f"Top features: {top5}"
+            f"[ML RETRAINED] Trained on {len(samples)} trade outcomes (Win Rate: {self.win_rate():.1f}%). "
+            f"Top learned feature weights: {top5}"
         )
 
     def quality_adjustment(self, features: List[float]) -> float:
@@ -256,17 +263,87 @@ class MLLayer:
         logger.debug(f"ML model saved: {self._model_path}")
 
     def _load(self) -> None:
-        if not self._model_path.exists():
+        # 1. Load saved model weights if available
+        if self._model_path.exists():
+            try:
+                data = json.loads(self._model_path.read_text())
+                self._model.from_dict(data.get("model", {}))
+                logger.info(
+                    f"ML model loaded: n_trades={data.get('n_trades', 0)} "
+                    f"win_rate={data.get('win_rate', 0):.1f}%"
+                )
+            except Exception as e:
+                logger.warning(f"ML model load failed: {e}")
+
+        # 2. Load all historical trades from live_trade_journal.csv to build continuous memory
+        self._load_journal_history()
+
+    def _load_journal_history(self) -> None:
+        """Parse live_trade_journal.csv and train on all historic trade outcomes (wins & losses)."""
+        journal_path = Path("reports/live_trade_journal.csv")
+        if not journal_path.exists():
             return
+
+        import csv
+        loaded_contexts: List[TradeContext] = []
         try:
-            data = json.loads(self._model_path.read_text())
-            self._model.from_dict(data.get("model", {}))
-            logger.info(
-                f"ML model loaded: n_trades={data.get('n_trades', 0)} "
-                f"win_rate={data.get('win_rate', 0):.1f}%"
-            )
+            with open(journal_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    try:
+                        pnl = float(row.get("pnl", 0.0))
+                        breakdown_str = row.get("score_breakdown", "")
+                        
+                        # Parse breakdown string (e.g. "of:69.8;liq:75.0;ms:62.5;vol:32.0;session:80.0;news:50.0")
+                        bdict = {}
+                        if breakdown_str:
+                            for item in breakdown_str.split(";"):
+                                if ":" in item:
+                                    k, v = item.split(":", 1)
+                                    try:
+                                        bdict[k.strip()] = float(v.strip())
+                                    except ValueError:
+                                        pass
+
+                        ts_str = row.get("timestamp", "")
+                        hour = 12
+                        if ts_str:
+                            try:
+                                dt = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                                hour = dt.hour
+                            except Exception:
+                                pass
+
+                        ctx = TradeContext(
+                            trade_id=row.get("symbol", "trade") + "_" + ts_str[:19],
+                            direction=row.get("direction", "LONG"),
+                            entry_time=ts_str,
+                            of_score=bdict.get("of", 50.0),
+                            liq_score=bdict.get("liq", 50.0),
+                            ms_score=bdict.get("ms", 50.0),
+                            vol_score=bdict.get("vol", 50.0),
+                            session_score=bdict.get("session", 50.0),
+                            news_score=bdict.get("news", 50.0),
+                            spread_ratio=min(5.0, float(row.get("spread_pts", 1.0))),
+                            atr_pct=min(1.0, float(row.get("atr", 0.1))),
+                            hour_of_day=hour,
+                            realized_pnl=pnl,
+                            win=pnl > 0,
+                        )
+                        loaded_contexts.append(ctx)
+                    except Exception:
+                        continue
+
+            if loaded_contexts:
+                self._history = loaded_contexts
+                if len(self._history) >= 5:
+                    self._retrain()
+                logger.info(
+                    f"[ML MEMORY] Loaded {len(self._history)} historical trade journals "
+                    f"(Win Rate: {self.win_rate():.1f}%). Model continuously updated!"
+                )
         except Exception as e:
-            logger.warning(f"ML model load failed: {e}")
+            logger.warning(f"Failed to load journal history into ML layer: {e}")
 
     def summary_dict(self) -> Dict:
         return {

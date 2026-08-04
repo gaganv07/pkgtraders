@@ -31,6 +31,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, Response
 
 from dashboard.reports_exporter import ReportsExporter
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -138,10 +139,20 @@ def _get_live_telemetry() -> Dict[str, Any]:
     now_ts = time.time()
 
     # 1. Heartbeat Check & Bot Status (5-second threshold)
+    main_proc_running = False
+    for proc in psutil.process_iter(["name", "cmdline"]):
+        try:
+            cmd = " ".join(proc.info.get("cmdline") or [])
+            if "main.py" in cmd:
+                main_proc_running = True
+                break
+        except Exception:
+            pass
+
     if _orchestrator and getattr(_orchestrator, "_running", False):
         _last_heartbeat_ts = now_ts
         bot_status = "RUNNING"
-    elif (now_ts - _last_heartbeat_ts) <= 5.0:
+    elif (now_ts - _last_heartbeat_ts) <= 5.0 or main_proc_running:
         bot_status = "RUNNING"
     else:
         bot_status = "BOT OFFLINE"
@@ -153,7 +164,30 @@ def _get_live_telemetry() -> Dict[str, Any]:
         account_info = _orchestrator.client.get_account() or {}
         mt5_status = "CONNECTED" if getattr(_orchestrator.client, "connected", False) else "DISCONNECTED"
     else:
-        if HEALTH_JSON.exists():
+        # Standalone read-only query directly from live MT5 API
+        try:
+            import MetaTrader5 as mt5
+            if mt5.initialize():
+                acct = mt5.account_info()
+                if acct is not None:
+                    mt5_status = "CONNECTED"
+                    account_info = {
+                        "broker": acct.company,
+                        "server": acct.server,
+                        "login": acct.login,
+                        "balance": acct.balance,
+                        "equity": acct.equity,
+                        "free_margin": acct.margin_free,
+                        "margin": acct.margin,
+                        "margin_level": acct.margin_level,
+                        "profit": acct.profit,
+                        "currency": acct.currency,
+                        "trade_mode": getattr(acct, "trade_mode", 0),
+                    }
+        except Exception as e:
+            logger.debug(f"Direct MT5 telemetry query error: {e}")
+
+        if not account_info and HEALTH_JSON.exists():
             try:
                 with open(HEALTH_JSON, "r", encoding="utf-8") as f:
                     hdata = json.load(f)
@@ -238,10 +272,10 @@ def _get_live_telemetry() -> Dict[str, Any]:
         "connection": {
             "mt5_status": mt5_status,
             "internet_status": "ONLINE",
-            "broker": account_info.get("broker", "Vantage Markets"),
-            "server": account_info.get("server", "VantageMarkets-Demo AS01"),
-            "account_number": account_info.get("login", 25687070),
-            "mode": "DEMO" if account_info.get("trade_mode") == 0 else "LIVE",
+            "broker": account_info.get("broker", "Black Bull Group Limited"),
+            "server": account_info.get("server", settings.mt5.server or "BlackBullMarkets-Demo"),
+            "account_number": account_info.get("login", settings.mt5.login or 919205),
+            "mode": "DEMO" if account_info.get("trade_mode", 0) == 0 else "LIVE",
         },
         "account": {
             "balance": round(account_info.get("balance", 500.0), 2),
