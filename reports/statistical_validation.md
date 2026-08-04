@@ -7,15 +7,15 @@
 
 | Parameter | Value |
 |:---|---:|
-| **Sample Size (N)** | 241 |
-| **Mean Expectancy** | -0.2924 R |
-| **Standard Deviation** | 2.2560 |
-| **Standard Error (SE)** | 0.1453 |
-| **t-Statistic** | -2.0118 |
-| **p-value (One-tailed t-test)** | 0.977321 |
-| **95% Confidence Interval (t-dist)** | -0.5786 to -0.0061 |
-| **Bootstrap 95% Confidence Interval** | -0.5699 to +0.0207 |
-| **Probability Expectancy > 0** | 3.20% |
+| **Sample Size (N)** | 29 |
+| **Mean Expectancy** | -0.8892 R |
+| **Standard Deviation** | 0.8689 |
+| **Standard Error (SE)** | 0.1614 |
+| **t-Statistic** | -5.5109 |
+| **p-value (One-tailed t-test)** | 0.999997 |
+| **95% Confidence Interval (t-dist)** | -1.2197 to -0.5587 |
+| **Bootstrap 95% Confidence Interval** | -1.0835 to -0.5451 |
+| **Probability Expectancy > 0** | 0.00% |
 
 ---
 

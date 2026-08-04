@@ -560,14 +560,16 @@ class Orchestrator:
 
     async def _dashboard(self) -> None:
         cfg = settings.dashboard
-        server = uvicorn.Server(uvicorn.Config(
-            dash_app, host=cfg.host, port=cfg.port,
-            log_level="warning", loop="none",
-        ))
         try:
+            server = uvicorn.Server(uvicorn.Config(
+                dash_app, host=cfg.host, port=cfg.port,
+                log_level="warning", loop="none",
+            ))
             await server.serve()
-        except asyncio.CancelledError:
+        except (asyncio.CancelledError, KeyboardInterrupt):
             pass
+        except BaseException as e:
+            logger.warning(f"Embedded dashboard server disabled (port collision or external launcher active): {e}")
 
     # ── Daily report ──────────────────────────────────────────────────────────
 

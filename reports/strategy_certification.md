@@ -5,15 +5,15 @@
 
 | Requirement | Threshold | Value | Status |
 |:---|:---|:---:|:---:|
-| **Positive Expectancy** | Expectancy > 0.0 | -0.2924 R | ❌ Fail |
-| **Profit Factor** | PF $\ge$ 1.30 | 0.70 | ❌ Fail |
-| **Drawdown Control** | Max DD < 10% | 30.78% | ❌ Fail |
-| **Minimum Sample Size** | N $\ge$ 100 | 241 | ✅ Pass |
-| **Monte Carlo Risk** | Prob. of Ruin < 5% | 46.10% | ❌ Fail |
+| **Positive Expectancy** | Expectancy > 0.0 | -0.8892 R | ❌ Fail |
+| **Profit Factor** | PF $\ge$ 1.30 | 0.41 | ❌ Fail |
+| **Drawdown Control** | Max DD < 10% | 244.6% | ❌ Fail |
+| **Minimum Sample Size** | N $\ge$ 100 | 29 | ❌ Fail |
+| **Monte Carlo Risk** | Prob. of Ruin < 5% | 99.98% | ❌ Fail |
 
 ## Final Certification Decision
 
-> **Production Readiness Score**: **20/100**
+> **Production Readiness Score**: **0/100**
 > **Final Recommendation**: **Continue Research**
 
 ---
@@ -21,7 +21,7 @@
 ## Risk Assessment
 
 ### 🔴 Critical Risks
-- None identified.
+- **Insufficient Sample Size**: The total trade sample size is under the 100 trade minimum, indicating high parameter sensitivity.
 
 ### ⚠️ High Risks
 - **Expectancy Stability**: Expectancy fluctuated into negative zones during walk-forward validation splits.
