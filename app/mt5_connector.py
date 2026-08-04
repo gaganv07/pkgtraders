@@ -68,6 +68,20 @@ class MT5Connector:
         self.timeout_ms = timeout_ms
         self._connected = False
         self._terminal_launched = False
+        # ── Disk Guard (infrastructure only, no strategy impact) ──────────────
+        self._disk_guard: Optional[Any] = None
+        self._disk_guard_initialized = False
+
+    def _get_disk_guard(self) -> Any:
+        """Lazily initialize DiskGuard to avoid circular imports."""
+        if not self._disk_guard_initialized:
+            try:
+                from app.disk_guard import DiskGuard
+                self._disk_guard = DiskGuard()
+            except Exception:
+                self._disk_guard = None
+            self._disk_guard_initialized = True
+        return self._disk_guard
 
     @property
     def is_connected(self) -> bool:
@@ -79,7 +93,24 @@ class MT5Connector:
     def connect(self) -> ConnectionResult:
         """
         Connect to MT5 terminal using MT5ConnectionManager, verify login, and check safety.
+        Also checks disk space before connecting to prevent write errors [112].
         """
+        # ── Phase 0: Disk space pre-check ─────────────────────────────────────
+        dg = self._get_disk_guard()
+        if dg:
+            status, free_mb, msg = dg.check()
+            if status == "CRITICAL":
+                logger.critical(
+                    f"[MT5Connector] DISK CRITICAL ({free_mb:.0f} MB free). "
+                    "MT5 tick errors [112] likely. Run scripts/disk_cleanup.py"
+                )
+            elif status == "WARNING":
+                logger.warning(f"[MT5Connector] DISK WARNING: {free_mb:.0f} MB free")
+
+            # Repair XAUUSD.crp if corrupt
+            if dg.repair_xauusd_crp():
+                logger.info("[MT5Connector] XAUUSD.crp corruption repaired before connect.")
+
         from app.mt5_connection import MT5ConnectionManager
 
         manager = MT5ConnectionManager(
@@ -149,6 +180,7 @@ class MT5Connector:
         Verify safety constraints:
           - Terminal AutoTrading / Algo Trading enabled
           - Account trading permission enabled
+          - Detects 'account has been changed' condition and waits for re-enable
         """
         if not MT5_AVAILABLE or not self._connected:
             return False, "MT5 not connected"
@@ -158,7 +190,16 @@ class MT5Connector:
             return False, "Unable to fetch MT5 terminal_info()"
 
         if not term_info.trade_allowed:
-            return False, "AutoTrading / Algo Trading is DISABLED in MT5 terminal settings"
+            # 'automated trading is disabled because the account has been changed'
+            # MT5 auto-disables algo trading on account switch. Wait and re-check.
+            logger.warning(
+                "[MT5Connector] AutoTrading disabled (possible account switch). "
+                "Waiting 5s for MT5 to re-enable..."
+            )
+            time.sleep(5.0)
+            term_info = mt5.terminal_info()
+            if not term_info or not term_info.trade_allowed:
+                return False, "AutoTrading / Algo Trading is DISABLED in MT5 terminal settings"
 
         acct_info = mt5.account_info()
         if acct_info is None:
@@ -171,6 +212,18 @@ class MT5Connector:
             return False, "Automated Expert Advisor trading disabled for account"
 
         return True, "All account safety checks passed"
+
+    def check_disk_health(self) -> Tuple[str, float]:
+        """
+        Check disk health. Returns (status, free_mb).
+        Call this from the main loop to prevent MT5 write errors [112].
+        INFRASTRUCTURE ONLY — does not affect trading logic.
+        """
+        dg = self._get_disk_guard()
+        if dg:
+            status, free_mb, msg = dg.check()
+            return status, free_mb
+        return "UNKNOWN", -1.0
 
     def disconnect(self) -> None:
         """Gracefully shutdown MT5 connection."""
