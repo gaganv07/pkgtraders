@@ -42,10 +42,10 @@ def test_data_validator():
     import pandas as pd
     validator = DataValidator()
     df = pd.DataFrame({
-        "open": [100.0, 101.0],
-        "high": [102.0, 103.0],
-        "low": [99.0, 100.0],
-        "close": [101.0, 102.0],
+        "open": [100.0 + i for i in range(12)],
+        "high": [102.0 + i for i in range(12)],
+        "low": [99.0 + i for i in range(12)],
+        "close": [101.0 + i for i in range(12)],
     })
     report = validator.validate_dataframe(df, "EURUSD", "M15")
     assert report.is_valid is True
