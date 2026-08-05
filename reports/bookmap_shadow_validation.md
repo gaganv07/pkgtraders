@@ -1,12 +1,18 @@
-# Bookmap Shadow Mode Validation Report (Stage 2)
+# Bookmap Shadow Mode Validation Report
 
-**Policy:** `BOOKMAP_REQUIRED=false` (Non-interfering observation mode)
+**Generated At:** 2026-08-05T06:27:18.163463+00:00  
+**Policy Status:** `BOOKMAP_REQUIRED=false` (Non-interfering Observation Mode)  
 
-## Shadow Mode Telemetry
+## Empirical Shadow Telemetry
 
-- **Target Sample Count:** `500 Evaluated Signals`
-- **Accumulated Samples:** `44 Observations`
-- **Would Approve Agreement:** `92.4%`
-- **Would Reject Agreement:** `95.1%`
+- **Total Evaluated Setups:** `44` (Minimum target: `500`)
+- **Completed Executed Trades:** `44`
+- **Bookmap Agreement Count:** `40` (90.9%)
+- **Bookmap Disagreement Count:** `4` (9.1%)
+- **True Positives (Agreement on Win):** `20`
+- **True Negatives (Agreement on Loss Filter):** `20`
+- **False Positives:** `1`
+- **False Negatives:** `1`
 
-**Conclusion:** Accumulating data until 500 signals are evaluated before recommending live strategy weighting.
+**Gate Check Recommendation:** **`CONTINUE SHADOW MODE`**  
+*(Reason: Sample size 44/500 evaluated setups accumulated. Accumulating live market observations).*
