@@ -196,7 +196,7 @@ class RiskConfig:
     # ── Circuit breaker ───────────────────────────────────────────────────────
     circuit_loss_streak: int   = 5
     circuit_exec_fails:  int   = 3
-    cooldown_after_loss_m: float = 15.0
+    cooldown_after_loss_m: float = 3.0
     # ── Consecutive-loss risk reduction ───────────────────────────────────────
     loss_streak_reduce_risk: bool  = field(default_factory=lambda: _b("LOSS_STREAK_REDUCE_RISK", True))
     loss_streak_threshold:   int   = 2    # After N consecutive losses, reduce risk

@@ -35,7 +35,7 @@ except ImportError:
 
 
 _RETCODE_DONE = 10009 if MT5_AVAILABLE else 10009
-_RETRYABLE_CODES = {10004, 10006, 10007, 10014, 10018, 10019, 10032}
+_RETRYABLE_CODES = {10004, 10006, 10007, 10014, 10018, 10019, 10030, 10032}
 
 
 @dataclass
@@ -82,11 +82,15 @@ class OrderExecutor:
         if not MT5_AVAILABLE:
             return 0
         info = mt5.symbol_info(broker_sym)
-        if info:
-            if info.filling_mode & mt5.ORDER_FILLING_FOK:
-                return mt5.ORDER_FILLING_FOK
-            if info.filling_mode & mt5.ORDER_FILLING_IOC:
-                return mt5.ORDER_FILLING_IOC
+        if not info:
+            return mt5.ORDER_FILLING_IOC
+        fill_flags = info.filling_mode
+        if fill_flags & mt5.ORDER_FILLING_FOK:
+            return mt5.ORDER_FILLING_FOK
+        if fill_flags & mt5.ORDER_FILLING_IOC:
+            return mt5.ORDER_FILLING_IOC
+        if hasattr(mt5, "ORDER_FILLING_RETURN") and (fill_flags & mt5.ORDER_FILLING_RETURN):
+            return mt5.ORDER_FILLING_RETURN
         return mt5.ORDER_FILLING_IOC
 
     # ── Pre-Trade Risk Validations ──────────────────────────────────────────
@@ -411,6 +415,15 @@ class OrderExecutor:
                 logger.warning(
                     f"Retryable MT5 retcode {result.retcode} ({result.comment}) — retrying in {(attempt+1)*0.2}s"
                 )
+                if result.retcode == 10030:
+                    curr_fill = req.get("type_filling", mt5.ORDER_FILLING_FOK)
+                    if curr_fill == mt5.ORDER_FILLING_FOK:
+                        req["type_filling"] = mt5.ORDER_FILLING_IOC
+                    elif curr_fill == mt5.ORDER_FILLING_IOC:
+                        req["type_filling"] = getattr(mt5, "ORDER_FILLING_RETURN", 0)
+                    else:
+                        req["type_filling"] = mt5.ORDER_FILLING_FOK
+                    logger.info(f"[{broker_sym}] Retrying order with updated type_filling={req['type_filling']}")
                 tick = mt5.symbol_info_tick(broker_sym)
                 if tick:
                     if req.get("type") == mt5.ORDER_TYPE_BUY:

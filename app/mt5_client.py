@@ -63,7 +63,7 @@ _SYM_VARIANTS: Dict[str, List[str]] = {
 }
 
 _RETCODE_DONE = 10009 if MT5_AVAILABLE else 0
-_RETRYABLE_CODES = {10004, 10006, 10007, 10014, 10018, 10019, 10032}
+_RETRYABLE_CODES = {10004, 10006, 10007, 10014, 10018, 10019, 10030, 10032}
 
 # Simulated base prices for each symbol (used in no-MT5 simulation mode)
 _SIM_PRICES: Dict[str, float] = {
@@ -772,7 +772,17 @@ class MT5Client:
                 )
 
             if result.retcode in _RETRYABLE_CODES and attempt < retries - 1:
-                logger.warning(f"Retryable {result.retcode} {result.comment}")
+                logger.warning(f"Retryable [{result.retcode}] {result.comment}")
+                if result.retcode == 10030:
+                    # Unsupported filling mode — rotate filling mode (FOK -> IOC -> RETURN)
+                    curr_fill = req.get("type_filling", mt5.ORDER_FILLING_FOK)
+                    if curr_fill == mt5.ORDER_FILLING_FOK:
+                        req["type_filling"] = mt5.ORDER_FILLING_IOC
+                    elif curr_fill == mt5.ORDER_FILLING_IOC:
+                        req["type_filling"] = getattr(mt5, "ORDER_FILLING_RETURN", 0)
+                    else:
+                        req["type_filling"] = mt5.ORDER_FILLING_FOK
+                    logger.info(f"[{broker_sym}] Retrying with updated type_filling={req['type_filling']}")
                 tick = mt5.symbol_info_tick(broker_sym)
                 if tick and req.get("type") == mt5.ORDER_TYPE_BUY:
                     req["price"] = tick.ask
@@ -809,8 +819,15 @@ class MT5Client:
         if not MT5_AVAILABLE:
             return 0
         info = mt5.symbol_info(broker_sym)
-        if info and (info.filling_mode & mt5.ORDER_FILLING_FOK):
+        if not info:
+            return mt5.ORDER_FILLING_IOC
+        fill_flags = info.filling_mode
+        if fill_flags & mt5.ORDER_FILLING_FOK:
             return mt5.ORDER_FILLING_FOK
+        if fill_flags & mt5.ORDER_FILLING_IOC:
+            return mt5.ORDER_FILLING_IOC
+        if hasattr(mt5, "ORDER_FILLING_RETURN") and (fill_flags & mt5.ORDER_FILLING_RETURN):
+            return mt5.ORDER_FILLING_RETURN
         return mt5.ORDER_FILLING_IOC
 
     @property
