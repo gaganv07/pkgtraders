@@ -321,10 +321,16 @@ class SystemConfig:
 
 @dataclass
 class BookmapConfig:
-    enabled:       bool  = field(default_factory=lambda: _b("BOOKMAP_ENABLED", True))
-    host:          str   = field(default_factory=lambda: _s("BOOKMAP_HOST", "127.0.0.1"))
-    port:          int   = field(default_factory=lambda: _i("BOOKMAP_PORT", 7496))
-    min_wall_size: float = field(default_factory=lambda: _f("BOOKMAP_MIN_WALL_SIZE", 50.0))
+    enabled:           bool  = field(default_factory=lambda: _b("BOOKMAP_ENABLED", True))
+    required:          bool  = field(default_factory=lambda: _b("BOOKMAP_REQUIRED", False))
+    weight:            float = field(default_factory=lambda: _f("BOOKMAP_WEIGHT", 0.15))
+    timeout_ms:        int   = field(default_factory=lambda: _i("BOOKMAP_TIMEOUT_MS", 500))
+    reconnect_seconds: int   = field(default_factory=lambda: _i("BOOKMAP_RECONNECT_SECONDS", 5))
+    host:              str   = field(default_factory=lambda: _s("BOOKMAP_HOST", "127.0.0.1"))
+    port:              int   = field(default_factory=lambda: _i("BOOKMAP_PORT", 7496))
+    min_wall_size:     float = field(default_factory=lambda: _f("BOOKMAP_MIN_WALL_SIZE", 50.0))
+    max_latency:       float = field(default_factory=lambda: _f("BOOKMAP_MAX_LATENCY", 100.0))
+    min_confidence:    float = field(default_factory=lambda: _f("BOOKMAP_MIN_CONFIDENCE", 0.60))
 
 
 # ── Root Settings ─────────────────────────────────────────────────────────────

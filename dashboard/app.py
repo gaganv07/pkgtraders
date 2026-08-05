@@ -106,6 +106,23 @@ async def ml_ep(_=Depends(_auth)):
     return _state.get("ml", {})
 
 
+@app.get("/api/v2/bookmap")
+async def bookmap_ep(_=Depends(_auth)):
+    return _state.get("bookmap", {
+        "connected": False,
+        "mode": "FALLBACK_DOM",
+        "latency_ms": 0.0,
+        "confluence_score": 50.0,
+        "bid_walls_count": 0,
+        "ask_walls_count": 0,
+        "icebergs_count": 0,
+        "depth_imbalance": 0.0,
+        "packets_sec": 0,
+        "reconnect_count": 0,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
+
+
 @app.get("/api/charts/equity")
 async def equity_chart(_=Depends(_auth)):
     if _db is None:
