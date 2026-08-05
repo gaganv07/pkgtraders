@@ -329,19 +329,20 @@ class TradeQualityEngine:
         current_spread:   float,
         avg_spread:       float,
         symbol:           str = "XAUUSD",
+        bookmap_snap:     Optional[Any] = None,
     ) -> Optional[QualityBreakdown]:
-        long_bd  = self._score_recalibrated("LONG",  of_snap, liq_snap, ms_state,
-                                            vol_state, vol_snap, sess,
-                                            ema_bull_h1, ema_bear_h1,
-                                            ema_bull_m15, ema_bear_m15,
-                                            price_above_vwap, current_spread, avg_spread,
-                                            symbol)
-        short_bd = self._score_recalibrated("SHORT", of_snap, liq_snap, ms_state,
-                                            vol_state, vol_snap, sess,
-                                            ema_bull_h1, ema_bear_h1,
-                                            ema_bull_m15, ema_bear_m15,
-                                            price_above_vwap, current_spread, avg_spread,
-                                            symbol)
+        long_bd  = self._score_v3("LONG",  of_snap, liq_snap, ms_state,
+                                  vol_state, vol_snap, sess,
+                                  ema_bull_h1, ema_bear_h1,
+                                  ema_bull_m15, ema_bear_m15,
+                                  price_above_vwap, current_spread, avg_spread,
+                                  symbol, bookmap_snap)
+        short_bd = self._score_v3("SHORT", of_snap, liq_snap, ms_state,
+                                  vol_state, vol_snap, sess,
+                                  ema_bull_h1, ema_bear_h1,
+                                  ema_bull_m15, ema_bear_m15,
+                                  price_above_vwap, current_spread, avg_spread,
+                                  symbol, bookmap_snap)
 
         self._latest_long  = long_bd
         self._latest_short = short_bd
@@ -355,15 +356,13 @@ class TradeQualityEngine:
             logger.debug(
                 f"Quality PASS (Recalibrated): {symbol} {best.direction} score={best.total:.1f}"
             )
-            return best
         else:
             best.tradeable = False
-
-        logger.debug(
-            f"Quality FAIL (Recalibrated): {symbol} LONG={long_bd.total:.1f} "
-            f"SHORT={short_bd.total:.1f} (need {threshold})"
-        )
-        return None
+            logger.debug(
+                f"Quality FAIL (Recalibrated): {symbol} LONG={long_bd.total:.1f} "
+                f"SHORT={short_bd.total:.1f} (need {threshold})"
+            )
+        return best
 
     def _score_v3(
         self,
@@ -382,6 +381,7 @@ class TradeQualityEngine:
         spread:    float,
         avg_spread: float,
         symbol:    str = "XAUUSD",
+        bookmap_snap: Optional[Any] = None,
     ) -> QualityBreakdown:
         """
         V3 scoring — forensics-backed June 2026 redesign.
@@ -544,6 +544,11 @@ class TradeQualityEngine:
             sr = spread / avg_spread
             sp_adj = max(-20.0, min(10.0, 10.0 - (sr - 1.0) * 25.0))
             bd.liq_score = max(0.0, min(100.0, bd.liq_score + sp_adj))
+
+        # Bookmap L2 Heatmap Confluence Overlay
+        if bookmap_snap and getattr(bookmap_snap, "connected", False):
+            bm_score = getattr(bookmap_snap, "confluence_score", 50.0)
+            bd.liq_score = round(max(0.0, min(100.0, bm_score * 0.60 + bd.liq_score * 0.40)), 1)
 
         # ── 5. News State (5%) ──────────────────────────────────────────────────
         if sess:

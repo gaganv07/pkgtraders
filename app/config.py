@@ -319,6 +319,14 @@ class SystemConfig:
     env:        str = field(default_factory=lambda: _s("ENVIRONMENT", "production"))
 
 
+@dataclass
+class BookmapConfig:
+    enabled:       bool  = field(default_factory=lambda: _b("BOOKMAP_ENABLED", True))
+    host:          str   = field(default_factory=lambda: _s("BOOKMAP_HOST", "127.0.0.1"))
+    port:          int   = field(default_factory=lambda: _i("BOOKMAP_PORT", 7496))
+    min_wall_size: float = field(default_factory=lambda: _f("BOOKMAP_MIN_WALL_SIZE", 50.0))
+
+
 # ── Root Settings ─────────────────────────────────────────────────────────────
 
 @dataclass
@@ -334,6 +342,7 @@ class Settings:
     news:      NewsConfig         = field(default_factory=NewsConfig)
     dashboard: DashboardConfig    = field(default_factory=DashboardConfig)
     system:    SystemConfig       = field(default_factory=SystemConfig)
+    bookmap:   BookmapConfig      = field(default_factory=BookmapConfig)
 
 
 settings = Settings()
