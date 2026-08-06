@@ -426,15 +426,17 @@ class RiskManager:
             )
             if self._dd.consecutive_losses >= self._cfg.circuit_loss_streak:
                 self._circuit_broken = True
+                self._cooldown_until = datetime.now(timezone.utc) + timedelta(minutes=30.0)
                 logger.warning(
-                    f"Circuit breaker: {self._dd.consecutive_losses} consecutive losses"
+                    f"Circuit breaker: {self._dd.consecutive_losses} consecutive losses (cooldown 30m)"
                 )
 
     def on_exec_failure(self) -> None:
         self._exec_fails += 1
         if self._exec_fails >= self._cfg.circuit_exec_fails:
             self._circuit_broken = True
-            logger.warning(f"Circuit breaker: {self._exec_fails} exec failures")
+            self._cooldown_until = datetime.now(timezone.utc) + timedelta(minutes=30.0)
+            logger.warning(f"Circuit breaker: {self._exec_fails} exec failures (cooldown 30m)")
 
     def reset_circuit(self) -> None:
         """Manual operator reset."""
@@ -448,6 +450,11 @@ class RiskManager:
 
     @property
     def circuit_broken(self) -> bool:
+        if self._circuit_broken and self._cooldown_until and datetime.now(timezone.utc) >= self._cooldown_until:
+            self._circuit_broken = False
+            self._dd.consecutive_losses = 0
+            self._cooldown_until = None
+            logger.info("Circuit breaker cooldown expired — trading resumed automatically")
         return self._circuit_broken
 
     @property

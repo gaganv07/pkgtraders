@@ -1,25 +1,25 @@
 # Advanced Execution Analytics & Certification Report
 
-Generated: 2026-08-05 13:49:14 UTC
+Generated: 2026-08-06 08:59:09 UTC
 
 ## Performance Overview
-- **Total Trades**: 52
-- **Win Rate**: 50.00% (26 W / 26 L)
-- **Net Profit**: $-5873.39
-- **Profit Factor**: 0.39
-- **Expectancy**: $-112.95 (0.00R)
-- **95% Confidence Interval (Expectancy)**: [$-272.10, $46.20]
-- **Bootstrap Expectancy (10,000 samples)**: $-113.50 [$-277.50, $38.67]
-- **Max Drawdown**: $8586.61 (663.97%)
-- **Recovery Factor**: -0.68
-- **Sharpe Ratio**: -3.06
-- **Sortino Ratio**: -2.86
-- **Ulcer Index**: 269.32
+- **Total Trades**: 74
+- **Win Rate**: 45.95% (34 W / 40 L)
+- **Net Profit**: $-7302.76
+- **Profit Factor**: 0.34
+- **Expectancy**: $-98.69 (0.00R)
+- **95% Confidence Interval (Expectancy)**: [$-213.12, $15.75]
+- **Bootstrap Expectancy (10,000 samples)**: $-97.87 [$-216.64, $13.84]
+- **Max Drawdown**: $9222.75 (1844.55%)
+- **Recovery Factor**: -0.79
+- **Sharpe Ratio**: -3.12
+- **Sortino Ratio**: -2.91
+- **Ulcer Index**: 686.39
 - **Edge Stability**: [STABLE - Distributed across symbols & days]
 
 ## Execution Quality
 - **Execution Success Rate**: 100.0%
 - **Rejected Trades**: 0
-- **Average Latency**: 308.3 ms
-- **Average Spread**: 0.8 pts
-- **Average Slippage**: 0.26 pts
+- **Average Latency**: 305.5 ms
+- **Average Spread**: 1.4 pts
+- **Average Slippage**: 0.53 pts

@@ -1,13 +1,13 @@
-"""
+'''
 scripts/strategy_validation.py — V2 Strategy Validation Suite
 =============================================================
 
 Executes the complete production certification suite for the Opening Range Breakout (P4) strategy.
 Runs Phase 1 through Phase 11 and generates all requested reports in the reports/ directory.
-
 Usage:
   python scripts/strategy_validation.py
-"""
+'''
+
 import os
 import sys
 import math
@@ -22,8 +22,10 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
+# pyrefly: ignore [missing-import]
 import numpy as np
 import pandas as pd
+# pyrefly: ignore [missing-import]
 from scipy import stats
 
 # ── Path Setup ────────────────────────────────────────────────────────────────

@@ -158,9 +158,10 @@ class TradeQualityEngine:
         self._score_history.extend(scores)
 
     def get_adaptive_threshold(self) -> float:
-        """Compute the adaptive 70th percentile threshold, falling back to 65.0."""
+        """Compute the adaptive 70th percentile threshold, using settings.risk.min_quality_score as base."""
+        base_threshold = settings.risk.min_quality_score
         if len(self._score_history) < 200:
-            return 65.0
+            return base_threshold
         
         recent_scores = sorted(list(self._score_history))
         idx = 0.70 * (len(recent_scores) - 1)
@@ -171,7 +172,7 @@ class TradeQualityEngine:
         else:
             p70 = recent_scores[idx_low] * (idx_high - idx) + recent_scores[idx_high] * (idx - idx_low)
         
-        return max(58.0, min(80.0, p70))
+        return max(base_threshold - 5.0, min(base_threshold + 10.0, p70))
 
     def _weights(self, symbol: str) -> QualityWeights:
         """Return quality weights for the given symbol."""
