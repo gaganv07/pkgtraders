@@ -1,6 +1,6 @@
 # Candidate Machine Learning Model Benchmark Report
 
-**Generated At:** 2026-08-07T08:43:42.323620+00:00  
+**Generated At:** 2026-08-07T08:46:34.042669+00:00  
 **Candidate Model:** `XGBoost_Candidate_v1` (v3.1_candidate)  
 
 ## Benchmark Metrics
