@@ -331,6 +331,7 @@ class BookmapConfig:
     min_wall_size:     float = field(default_factory=lambda: _f("BOOKMAP_MIN_WALL_SIZE", 50.0))
     max_latency:       float = field(default_factory=lambda: _f("BOOKMAP_MAX_LATENCY", 100.0))
     min_confidence:    float = field(default_factory=lambda: _f("BOOKMAP_MIN_CONFIDENCE", 0.60))
+    license_key:       str   = field(default_factory=lambda: _s("BOOKMAP_LICENSE_KEY", ""))
 
 
 # ── Root Settings ─────────────────────────────────────────────────────────────

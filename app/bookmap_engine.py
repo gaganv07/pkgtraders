@@ -100,6 +100,7 @@ class BookmapEngine:
         self.host          = host
         self.port          = port
         self.enabled       = getattr(settings, "bookmap_enabled", True)
+        self.license_key   = settings.bookmap.license_key or "5FX8-W24Z-B6P7-RB8M-BJVQ-65V9-K1QG"
         
         self._connected:    bool = False
         self._last_msg_ts:  float = 0.0
