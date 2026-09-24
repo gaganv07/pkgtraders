@@ -15,6 +15,9 @@ ENV/
 *.env
 .env.*
 !.env.example
+accounts.json
+*.accounts.json
+!accounts.example.json
 
 # ── Python Cache ─────────────────────────────────────────────
 __pycache__/
@@ -26,6 +29,7 @@ __pycache__/
 
 # ── Test Cache ───────────────────────────────────────────────
 .pytest_cache/
+pytest_temp/
 .coverage
 htmlcov/
 *.coveragerc

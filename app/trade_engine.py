@@ -48,6 +48,7 @@ from app.ml_layer import MLLayer, TradeContext
 from app.database import Database
 from app.trade_journal import TradeJournal, TradeJournalEntry
 from app.execution_analytics import ExecutionAnalyticsEngine
+from app.multi_account.account_context import NormalizedSignal
 
 logger = logging.getLogger(__name__)
 
@@ -189,6 +190,13 @@ class TradeEngine:
                 logger.warning("get_recent_quality_scores did not return a list. Skipping warm up.")
         except Exception as e:
             logger.warning(f"Could not warm up adaptive threshold history queue: {e}")
+
+        # Account manager for multi-account execution (injected if multi-account is active)
+        self._account_mgr = None
+
+    def set_account_manager(self, mgr) -> None:
+        """Inject MultiAccountExecutionManager / MT5AccountManager."""
+        self._account_mgr = mgr
 
     def set_close_callback(self, cb) -> None:
         """Inject a callback that receives an ActiveTrade when it closes."""
@@ -563,15 +571,96 @@ class TradeEngine:
         # ── 12. Execute Order if ACCEPTED ─────────────────────────────────
         trade = None
         if active_decision == "ACCEPTED":
-            trade = await self._open(symbol, active_qb, tick, atr, md)
-            if trade:
-                trade.quality_score = active_score
-                ml_ctx.trade_id = trade.trade_id
-                self._ml.record_context(ml_ctx)
-                self._trades[symbol] = trade
+            # Per-symbol SL multiplier override
+            sym_cfg = SYMBOL_CONFIGS.get(symbol)
+            atr_mult = (
+                sym_cfg.atr_sl_mult
+                if sym_cfg and sym_cfg.atr_sl_mult > 0
+                else self._cfg.atr_sl_mult
+            )
+            sl_dist = atr * atr_mult
 
-                # Print accepted trade parameters
-                print(f"""====================================================
+            if direction == "LONG":
+                entry_est = tick.ask
+                sl  = entry_est - sl_dist
+                tp1 = entry_est + sl_dist * self._cfg.tp1_rr
+                tp2 = entry_est + sl_dist * self._cfg.tp2_rr
+                tp3 = entry_est + sl_dist * self._cfg.tp3_rr
+            else:
+                entry_est = tick.bid
+                sl  = entry_est + sl_dist
+                tp1 = entry_est - sl_dist * self._cfg.tp1_rr
+                tp2 = entry_est - sl_dist * self._cfg.tp2_rr
+                tp3 = entry_est - sl_dist * self._cfg.tp3_rr
+
+            breakdown_str = f"of:{active_qb.of_score:.1f};liq:{active_qb.liq_score:.1f};ms:{active_qb.ms_score:.1f};vol:{active_qb.vol_score:.1f};session:{active_qb.session_score:.1f};news:{active_qb.news_score:.1f}"
+
+            if self._account_mgr is not None:
+                norm_signal = NormalizedSignal(
+                    signal_id=f"sig_{uuid.uuid4().hex[:10]}",
+                    timestamp=datetime.now(timezone.utc),
+                    symbol=symbol,
+                    direction=direction,
+                    entry_reference=entry_est,
+                    stop_loss=sl,
+                    take_profit_1=tp1,
+                    take_profit_2=tp2,
+                    take_profit_3=tp3,
+                    quality_score=active_score,
+                    atr=atr,
+                    spread=tick.spread,
+                    strategy_name=f"{symbol}_LiveEngine",
+                    strategy_version="2.0.0",
+                    score_breakdown=breakdown_str,
+                )
+                reports = await self._account_mgr.distribute_signal(norm_signal)
+                successful_reports = [r for r in reports.values() if r.is_success]
+                if successful_reports:
+                    first_rep = successful_reports[0]
+                    trade = ActiveTrade(
+                        ticket=first_rep.ticket,
+                        direction=direction,
+                        symbol=symbol,
+                        entry_price=first_rep.executed_price,
+                        entry_time=first_rep.timestamp,
+                        volume=first_rep.executed_volume,
+                        initial_vol=first_rep.executed_volume,
+                        risk_usd=0.0,
+                        quality_score=active_score,
+                        atr_entry=atr,
+                        spread_entry=tick.spread,
+                        latency_ms=first_rep.latency_ms,
+                        sl=sl, tp1=tp1, tp2=tp2, tp3=tp3,
+                        current_tp=tp1,
+                        high_water=first_rep.executed_price,
+                        low_water=first_rep.executed_price,
+                        score_breakdown=breakdown_str,
+                    )
+                    trade.quality_score = active_score
+                    ml_ctx.trade_id = trade.trade_id
+                    self._ml.record_context(ml_ctx)
+                    self._trades[symbol] = trade
+
+                    print(f"""====================================================
+MULTI-ACCOUNT TRADES EXECUTED: {len(successful_reports)}/{len(reports)} Accounts
+Symbol: {trade.symbol}
+Direction: {trade.direction}
+Quality Score: {trade.quality_score:.1f}
+====================================================""", flush=True)
+                else:
+                    active_decision = "REJECTED"
+                    print("Multi-account order execution rejected/failed across accounts", flush=True)
+                    print("====================================================", flush=True)
+            else:
+                trade = await self._open(symbol, active_qb, tick, atr, md)
+                if trade:
+                    trade.quality_score = active_score
+                    ml_ctx.trade_id = trade.trade_id
+                    self._ml.record_context(ml_ctx)
+                    self._trades[symbol] = trade
+
+                    # Print accepted trade parameters
+                    print(f"""====================================================
 TRADE ACCEPTED
 
 Symbol: {trade.symbol}
@@ -584,10 +673,10 @@ TP1: {trade.tp1:.5f}
 TP2: {trade.tp2:.5f}
 Risk: ${trade.risk_usd:.2f}
 ====================================================""", flush=True)
-            else:
-                active_decision = "REJECTED"
-                print("Order execution failed", flush=True)
-                print("====================================================", flush=True)
+                else:
+                    active_decision = "REJECTED"
+                    print("Order execution failed", flush=True)
+                    print("====================================================", flush=True)
 
         return trade
 

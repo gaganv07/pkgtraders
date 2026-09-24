@@ -18,11 +18,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.security import APIKeyHeader
 
+from app.multi_account import multi_account_router
+
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="XAUUSD Pro Scalper", version="2.0.0", docs_url="/docs")
 app.add_middleware(CORSMiddleware, allow_origins=["*"],
-                   allow_methods=["GET"], allow_headers=["*"])
+                   allow_methods=["*"], allow_headers=["*"])
+app.include_router(multi_account_router)
+
 
 _api_key_hdr = APIKeyHeader(name="X-API-Key", auto_error=False)
 _state: Dict[str, Any] = {}

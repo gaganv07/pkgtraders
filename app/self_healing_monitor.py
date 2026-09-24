@@ -47,8 +47,9 @@ class SelfHealingMonitor:
     def audit_system_health(self) -> SystemHealthMetrics:
         actions = []
         
-        # 1. Check Disk Space
-        c_drive = shutil.disk_usage("C:\\") if os.name == "nt" else shutil.disk_usage("/")
+        # 1. Check Disk Space on the active application drive
+        app_drive = Path.cwd().anchor or ("C:\\" if os.name == "nt" else "/")
+        c_drive = shutil.disk_usage(app_drive)
         free_gb = c_drive.free / (1024 ** 3)
 
         if free_gb < 1.0:

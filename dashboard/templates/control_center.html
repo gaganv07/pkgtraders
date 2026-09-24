@@ -219,6 +219,11 @@ tr:hover td { background: rgba(0, 229, 255, 0.04); }
 }
 .badge-long { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid rgba(0, 230, 118, 0.3); }
 .badge-short { background: rgba(255, 82, 82, 0.15); color: var(--red); border: 1px solid rgba(255, 82, 82, 0.3); }
+.badge-connected { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid rgba(0, 230, 118, 0.3); }
+.badge-trading { background: rgba(0, 229, 255, 0.15); color: var(--cyan); border: 1px solid rgba(0, 229, 255, 0.3); }
+.badge-disabled { background: rgba(139, 148, 158, 0.15); color: var(--text-muted); border: 1px solid rgba(139, 148, 158, 0.3); }
+.badge-error { background: rgba(255, 82, 82, 0.15); color: var(--red); border: 1px solid rgba(255, 82, 82, 0.3); }
+.badge-risk { background: rgba(255, 179, 0, 0.15); color: var(--gold); border: 1px solid rgba(255, 179, 0, 0.3); }
 
 .btn {
   background: var(--cyan);
@@ -230,8 +235,18 @@ tr:hover td { background: rgba(0, 229, 255, 0.04); }
   font-size: 11px;
   cursor: pointer;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 .btn:hover { background: #66efff; box-shadow: 0 0 12px var(--cyan); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #ff7979; box-shadow: 0 0 12px var(--red); }
+.btn-warning { background: var(--gold); color: #000; }
+.btn-warning:hover { background: #ffca28; box-shadow: 0 0 12px var(--gold); }
+.btn-outline { background: transparent; color: var(--cyan); border: 1px solid var(--cyan); }
+.btn-outline:hover { background: rgba(0, 229, 255, 0.1); }
+
 
 .log-container {
   height: 320px;
@@ -327,6 +342,7 @@ tr:hover td { background: rgba(0, 229, 255, 0.04); }
 
 <div class="nav-tabs">
   <button class="tab-btn active" onclick="switchTab('dashboard', event)"><i class="fa-solid fa-gauge"></i> Dashboard</button>
+  <button class="tab-btn" onclick="switchTab('multi-account', event)"><i class="fa-solid fa-network-wired cyan"></i> Multi-Account Fleet</button>
   <button class="tab-btn" onclick="switchTab('live-trades', event)"><i class="fa-solid fa-bolt"></i> Live Positions</button>
   <button class="tab-btn" onclick="switchTab('trade-history', event)"><i class="fa-solid fa-list-check"></i> Trade Journal</button>
   <button class="tab-btn" onclick="switchTab('charts', event)"><i class="fa-solid fa-chart-area"></i> Analytics & Charts</button>
@@ -393,6 +409,83 @@ tr:hover td { background: rgba(0, 229, 255, 0.04); }
       </div>
     </div>
   </div>
+
+  <!-- MULTI-ACCOUNT FLEET TAB -->
+  <div id="tab-multi-account" class="tab-content">
+    <div class="grid g5">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-users"></i> Fleet Accounts</div>
+        <div class="kpi-val cyan" id="fleet-accounts-count">0 / 0</div>
+        <div class="kpi-sub" id="fleet-trading-count">Trading: 0 | Disabled: 0</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-vault"></i> Total Fleet Equity</div>
+        <div class="kpi-val green" id="fleet-equity">$0.00</div>
+        <div class="kpi-sub" id="fleet-balance">Balance: $0.00</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-hand-holding-dollar"></i> Today Fleet P&L</div>
+        <div class="kpi-val green" id="fleet-pnl">+$0.00</div>
+        <div class="kpi-sub">Aggregated Realized</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-chart-pie"></i> Fleet Open Trades</div>
+        <div class="kpi-val cyan" id="fleet-positions">0</div>
+        <div class="kpi-sub">Across All Terminals</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-shield-virus"></i> Emergency Stop</div>
+        <div class="kpi-val green" id="fleet-kill-status">STANDBY</div>
+        <div class="kpi-sub">Fanout Protection: ON</div>
+      </div>
+    </div>
+
+    <!-- Fleet Master Controls -->
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-sliders cyan"></i> Fleet Execution & Safety Controls</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-warning" id="btn-toggle-bot" onclick="toggleBotTrading()"><i class="fa-solid fa-pause"></i> Pause Fleet Trading</button>
+          <button class="btn btn-danger" id="btn-emergency-stop" onclick="triggerGlobalEmergency()"><i class="fa-solid fa-triangle-exclamation"></i> Emergency Kill-Switch</button>
+          <button class="btn btn-outline" id="btn-reset-stop" onclick="resetGlobalEmergency()"><i class="fa-solid fa-rotate-left"></i> Reset Kill-Switch</button>
+          <button class="btn" onclick="loadAccounts()"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accounts Matrix Table -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-cubes-stacked"></i> Managed Accounts Registry & Isolation Metrics</div>
+        <span class="badge badge-long" id="badge-fleet-summary">0 ACCOUNTS MANAGED</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Account ID</th>
+              <th>Server</th>
+              <th>Login</th>
+              <th>Magic #</th>
+              <th>Status</th>
+              <th>Balance</th>
+              <th>Equity</th>
+              <th>Free Margin</th>
+              <th>Today P&L</th>
+              <th>Open</th>
+              <th>Risk %</th>
+              <th>Allowed Symbols</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="body-fleet-accounts">
+            <tr><td colspan="13" style="text-align:center; color:var(--text-muted); padding:20px;">Loading fleet accounts...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 
   <!-- 2. LIVE POSITIONS TAB -->
   <div id="tab-live-trades" class="tab-content">
@@ -596,8 +689,14 @@ function switchTab(tabId, evt) {
     evt.currentTarget.classList.add('active');
   }
   const target = document.getElementById('tab-' + tabId);
-  if (target) target.classList.add('active');
+  if (target) {
+    target.classList.add('active');
+    if (tabId === 'multi-account') {
+      loadAccounts();
+    }
+  }
 }
+
 
 function connectWebSocket() {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -761,11 +860,160 @@ async function loadSymbolAnalytics() {
 function exportExcel() { window.location.href = '/api/v2/export/excel'; }
 function exportPDF(title) { window.location.href = `/api/v2/export/pdf?range_title=${title}`; }
 
+async function loadAccounts() {
+  try {
+    const res = await fetch('/api/accounts');
+    if (!res.ok) return;
+    const accounts = await res.json();
+
+    const sumRes = await fetch('/api/accounts/summary');
+    const summary = sumRes.ok ? await sumRes.json() : null;
+
+    if (summary) {
+      const elCount = document.getElementById('fleet-accounts-count');
+      if (elCount) elCount.textContent = `${summary.connected_accounts || 0} / ${summary.total_accounts || 0}`;
+      const elTrading = document.getElementById('fleet-trading-count');
+      if (elTrading) elTrading.textContent = `Trading: ${summary.trading_accounts || 0} | Disabled: ${summary.disconnected_accounts || 0}`;
+      const elEq = document.getElementById('fleet-equity');
+      if (elEq) elEq.textContent = `$${(summary.total_equity || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+      
+      const pnl = summary.today_pnl || 0;
+      const elPnl = document.getElementById('fleet-pnl');
+      if (elPnl) {
+        elPnl.textContent = `${pnl>=0?'+':''}$${pnl.toFixed(2)}`;
+        elPnl.className = `kpi-val ${pnl>=0?'green':'red'}`;
+      }
+      const elPos = document.getElementById('fleet-positions');
+      if (elPos) elPos.textContent = summary.open_positions || 0;
+
+      const killEl = document.getElementById('fleet-kill-status');
+      if (killEl) {
+        if (summary.emergency_stop) {
+          killEl.textContent = 'TRIPPED (STOPPED)';
+          killEl.className = 'kpi-val red';
+        } else {
+          killEl.textContent = 'STANDBY (ACTIVE)';
+          killEl.className = 'kpi-val green';
+        }
+      }
+
+      const botBtn = document.getElementById('btn-toggle-bot');
+      if (botBtn) {
+        if (summary.bot_enabled) {
+          botBtn.innerHTML = '<i class="fa-solid fa-pause"></i> Pause Fleet Trading';
+          botBtn.className = 'btn btn-warning';
+        } else {
+          botBtn.innerHTML = '<i class="fa-solid fa-play"></i> Resume Fleet Trading';
+          botBtn.className = 'btn';
+        }
+      }
+    }
+
+    const tbody = document.getElementById('body-fleet-accounts');
+    if (!tbody) return;
+
+    if (!accounts || accounts.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; color:var(--text-muted); padding:20px;">No accounts registered</td></tr>';
+      return;
+    }
+
+    const badgeEl = document.getElementById('badge-fleet-summary');
+    if (badgeEl) badgeEl.textContent = `${accounts.length} ACCOUNTS MANAGED`;
+
+    tbody.innerHTML = accounts.map(a => {
+      let badgeClass = 'badge-disabled';
+      if (a.status === 'CONNECTED') badgeClass = 'badge-connected';
+      else if (a.status === 'TRADING') badgeClass = 'badge-trading';
+      else if (a.status === 'RISK_LOCKED') badgeClass = 'badge-risk';
+      else if (a.status === 'ERROR' || a.status === 'AUTH_ERROR') badgeClass = 'badge-error';
+
+      const pnl = a.daily_pnl || 0;
+      const symbolsStr = (a.symbols && a.symbols.length > 0) ? a.symbols.join(', ') : 'ALL';
+
+      return `
+        <tr>
+          <td style="font-weight:700; color:var(--cyan);">${a.account_id}</td>
+          <td>${a.server || '—'}</td>
+          <td>#${a.login}</td>
+          <td>${a.magic_number}</td>
+          <td><span class="badge ${badgeClass}">${a.status}</span></td>
+          <td>$${(a.balance||0).toFixed(2)}</td>
+          <td style="font-weight:700;">$${(a.equity||0).toFixed(2)}</td>
+          <td>$${(a.free_margin||0).toFixed(2)}</td>
+          <td class="${pnl>=0?'green':'red'}">${pnl>=0?'+':''}$${pnl.toFixed(2)}</td>
+          <td>${a.open_trades_count || 0}</td>
+          <td>${(a.risk_per_trade_pct||1.0).toFixed(1)}%</td>
+          <td style="color:var(--text-muted); font-size:10px;">${symbolsStr}</td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <button class="btn ${a.enabled?'btn-warning':'btn'}" style="padding:3px 8px; font-size:10px;" onclick="toggleAccount('${a.account_id}', false)">${a.enabled?'Disable':'Enable'}</button>
+              <button class="btn btn-outline" style="padding:3px 8px; font-size:10px;" onclick="toggleAccount('${a.account_id}', true)">${a.trading_enabled?'Block':'Allow'}</button>
+              <button class="btn btn-danger" style="padding:3px 8px; font-size:10px;" onclick="closeAccountPositions('${a.account_id}')">Close All</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch(e) { console.error('Error loading accounts:', e); }
+}
+
+async function toggleAccount(accountId, tradingOnly) {
+  try {
+    await fetch(`/api/accounts/${accountId}/toggle`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({trading_only: tradingOnly})
+    });
+    loadAccounts();
+  } catch(e) { alert('Failed to toggle account: ' + e); }
+}
+
+async function closeAccountPositions(accountId) {
+  if (!confirm(`Are you sure you want to close ALL open positions on account ${accountId}?`)) return;
+  try {
+    const res = await fetch(`/api/accounts/${accountId}/close-all?reason=Manual+Operator+Close`, {method: 'POST'});
+    const data = await res.json();
+    alert(`Closed ${data.closed_positions_count} positions for ${accountId}`);
+    loadAccounts();
+  } catch(e) { alert('Failed to close positions: ' + e); }
+}
+
+async function triggerGlobalEmergency() {
+  const closeAll = confirm("CRITICAL: Do you also want to close ALL open positions across ALL accounts?");
+  try {
+    await fetch('/api/accounts/emergency-stop', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({close_positions: closeAll, reason: "Operator Emergency Stop"})
+    });
+    alert("GLOBAL EMERGENCY STOP ACTIVATED. All fan-out orders halted.");
+    loadAccounts();
+  } catch(e) { alert('Failed to activate emergency stop: ' + e); }
+}
+
+async function resetGlobalEmergency() {
+  try {
+    await fetch('/api/accounts/emergency-stop/reset', {method: 'POST'});
+    alert("Emergency stop cleared. Trading fan-out resumed.");
+    loadAccounts();
+  } catch(e) { alert('Failed to reset emergency stop: ' + e); }
+}
+
+async function toggleBotTrading() {
+  try {
+    await fetch('/api/accounts/toggle-bot', {method: 'POST'});
+    loadAccounts();
+  } catch(e) { alert('Failed to toggle bot trading: ' + e); }
+}
+
 window.onload = () => {
   initClock();
   connectWebSocket();
   loadHistory();
   loadSymbolAnalytics();
+  loadAccounts();
+  setInterval(loadAccounts, 4000);
 };
 </script>
 </body>

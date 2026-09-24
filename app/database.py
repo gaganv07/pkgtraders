@@ -68,11 +68,33 @@ CREATE TABLE IF NOT EXISTS trades (
     breakeven_done    INTEGER DEFAULT 0,
     trailing_active   INTEGER DEFAULT 0,
 
+    account_id        TEXT DEFAULT 'account_default',
+    broker            TEXT DEFAULT '',
+    server            TEXT DEFAULT '',
+    strategy          TEXT DEFAULT 'PKGTRADERS',
+    signal_id         TEXT DEFAULT '',
+    order_ticket      INTEGER DEFAULT 0,
+    position_ticket   INTEGER DEFAULT 0,
+    requested_volume  REAL DEFAULT 0,
+    executed_volume   REAL DEFAULT 0,
+    requested_price   REAL DEFAULT 0,
+    execution_price   REAL DEFAULT 0,
+    profit            REAL DEFAULT 0,
+    commission        REAL DEFAULT 0,
+    swap              REAL DEFAULT 0,
+    magic             INTEGER DEFAULT 20250701,
+    error_code        INTEGER DEFAULT 0,
+    rejection_reason  TEXT DEFAULT '',
+    strategy_version  TEXT DEFAULT '2.0.0',
+
     created_at        TEXT DEFAULT (datetime('now')),
     updated_at        TEXT DEFAULT (datetime('now'))
 );
-CREATE INDEX IF NOT EXISTS idx_trades_status ON trades(status);
-CREATE INDEX IF NOT EXISTS idx_trades_entry  ON trades(entry_time);
+CREATE INDEX IF NOT EXISTS idx_trades_status  ON trades(status);
+CREATE INDEX IF NOT EXISTS idx_trades_entry   ON trades(entry_time);
+CREATE INDEX IF NOT EXISTS idx_trades_account ON trades(account_id);
+CREATE INDEX IF NOT EXISTS idx_trades_magic   ON trades(magic);
+CREATE INDEX IF NOT EXISTS idx_trades_signal  ON trades(signal_id);
 
 CREATE TABLE IF NOT EXISTS execution_log (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -225,6 +247,47 @@ class Database:
     def _init_schema(self) -> None:
         self._conn().executescript(SCHEMA)
         self._conn().commit()
+        self._migrate_schema()
+
+    def _migrate_schema(self) -> None:
+        """Non-destructive migration: dynamically adds any missing columns to existing tables."""
+        conn = self._conn()
+        try:
+            cursor = conn.execute("PRAGMA table_info(trades)")
+            existing_cols = {row["name"] for row in cursor.fetchall()}
+
+            columns_to_add = [
+                ("account_id", "TEXT DEFAULT 'account_default'"),
+                ("broker", "TEXT DEFAULT ''"),
+                ("server", "TEXT DEFAULT ''"),
+                ("strategy", "TEXT DEFAULT 'PKGTRADERS'"),
+                ("signal_id", "TEXT DEFAULT ''"),
+                ("order_ticket", "INTEGER DEFAULT 0"),
+                ("position_ticket", "INTEGER DEFAULT 0"),
+                ("requested_volume", "REAL DEFAULT 0"),
+                ("executed_volume", "REAL DEFAULT 0"),
+                ("requested_price", "REAL DEFAULT 0"),
+                ("execution_price", "REAL DEFAULT 0"),
+                ("profit", "REAL DEFAULT 0"),
+                ("commission", "REAL DEFAULT 0"),
+                ("swap", "REAL DEFAULT 0"),
+                ("magic", "INTEGER DEFAULT 20250701"),
+                ("error_code", "INTEGER DEFAULT 0"),
+                ("rejection_reason", "TEXT DEFAULT ''"),
+                ("strategy_version", "TEXT DEFAULT '2.0.0'"),
+            ]
+
+            for col_name, col_def in columns_to_add:
+                if col_name not in existing_cols:
+                    conn.execute(f"ALTER TABLE trades ADD COLUMN {col_name} {col_def}")
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Database schema migration check notice: {e}")
+
+    def execute_write(self, sql: str, params: Optional[Dict[str, Any]] = None) -> None:
+        """Thread-safe synchronous execute for write operations."""
+        with self._tx() as conn:
+            conn.execute(sql, params or {})
 
     # ── Trades ────────────────────────────────────────────────────
 
@@ -339,21 +402,92 @@ class Database:
                 ),
             )
 
+    async def insert_account_trade(self, report: Any, signal: Any) -> None:
+        """Persist a multi-account execution report with full attribution."""
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, self._insert_account_trade_sync, report, signal)
+
+    def _insert_account_trade_sync(self, report: Any, signal: Any) -> None:
+        sql = """
+        INSERT OR REPLACE INTO trades (
+            id, ticket, symbol, direction, status,
+            entry_price, entry_time, volume, initial_vol,
+            risk_usd, quality_score, atr_entry,
+            sl, tp1, tp2, tp3,
+            account_id, magic, signal_id, order_ticket, position_ticket,
+            requested_volume, executed_volume, requested_price, execution_price,
+            strategy, strategy_version, rejection_reason, error_code, latency_ms
+        ) VALUES (
+            :id, :ticket, :symbol, :direction, :status,
+            :entry, :entry_time, :vol, :init_vol,
+            :risk_usd, :quality, :atr,
+            :sl, :tp1, :tp2, :tp3,
+            :account_id, :magic, :signal_id, :order_ticket, :position_ticket,
+            :requested_volume, :executed_volume, :requested_price, :execution_price,
+            :strategy, :strategy_version, :rejection_reason, :error_code, :latency_ms
+        )
+        """
+        trade_id = f"{report.account_id}_{report.ticket or signal.signal_id}"
+        ts_val = report.timestamp.isoformat() if hasattr(report.timestamp, "isoformat") else str(report.timestamp)
+        with self._tx() as conn:
+            conn.execute(sql, {
+                "id":               trade_id,
+                "ticket":           report.ticket or 0,
+                "symbol":           report.symbol,
+                "direction":        report.direction,
+                "status":           "OPEN" if report.is_success else "REJECTED",
+                "entry":            report.executed_price,
+                "entry_time":       ts_val,
+                "vol":              report.executed_volume,
+                "init_vol":         report.requested_volume,
+                "risk_usd":         0.0,
+                "quality":          signal.quality_score,
+                "atr":              signal.atr,
+                "sl":               report.stop_loss,
+                "tp1":              report.take_profit,
+                "tp2":              getattr(signal, "take_profit_2", 0.0),
+                "tp3":              getattr(signal, "take_profit_3", 0.0),
+                "account_id":       report.account_id,
+                "magic":            report.magic_number,
+                "signal_id":        report.signal_id,
+                "order_ticket":     report.ticket or 0,
+                "position_ticket":  report.position_ticket or 0,
+                "requested_volume": report.requested_volume,
+                "executed_volume":  report.executed_volume,
+                "requested_price":  report.requested_price,
+                "execution_price":  report.executed_price,
+                "strategy":         signal.strategy_name,
+                "strategy_version": signal.strategy_version,
+                "rejection_reason": report.rejection_reason,
+                "error_code":       report.error_code,
+                "latency_ms":       report.latency_ms,
+            })
+
     def get_trades(
-        self, status: Optional[str] = None, limit: int = 100
+        self,
+        status: Optional[str] = None,
+        limit: int = 100,
+        account_id: Optional[str] = None,
     ) -> List[Dict]:
-        q = "SELECT * FROM trades"
+        conditions = []
         params: List[Any] = []
         if status:
-            q += " WHERE status=?"
+            conditions.append("status=?")
             params.append(status)
+        if account_id:
+            conditions.append("account_id=?")
+            params.append(account_id)
+
+        q = "SELECT * FROM trades"
+        if conditions:
+            q += " WHERE " + " AND ".join(conditions)
         q += " ORDER BY created_at DESC LIMIT ?"
         params.append(limit)
         rows = self._conn().execute(q, params).fetchall()
         return [dict(r) for r in rows]
 
-    def get_closed_trades(self, limit: int = 200) -> List[Dict]:
-        return self.get_trades("CLOSED", limit)
+    def get_closed_trades(self, limit: int = 200, account_id: Optional[str] = None) -> List[Dict]:
+        return self.get_trades("CLOSED", limit, account_id=account_id)
 
     # ── Quality log ───────────────────────────────────────────────
 

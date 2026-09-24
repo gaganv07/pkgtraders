@@ -1,6 +1,6 @@
 # Weekly Trade Journal (Multi-Asset Audit)
 
-**Generated At:** 2026-08-08 04:16:56 UTC  
+**Generated At:** 2026-09-24 15:43:54 UTC  
 **Total Executed Trades:** `125` | **Win Rate:** `47.2%` | **Total Realized PnL:** `$-12,758.75`  
 
 | Timestamp | Symbol | Dir | Entry | Exit | SL | TP | Lot | PnL ($) | R-Mult | Exit Reason |
