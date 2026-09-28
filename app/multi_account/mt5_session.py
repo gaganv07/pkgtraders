@@ -203,6 +203,11 @@ class MT5DirectSession(IMT5Session):
             }
 
         info = mt5.account_info()
+        if info and info.login != self.config.login:
+            pwd = self.config.resolve_password()
+            if mt5.login(login=self.config.login, password=pwd, server=self.config.server):
+                info = mt5.account_info()
+
         if not info:
             return None
         return {

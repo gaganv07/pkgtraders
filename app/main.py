@@ -63,6 +63,12 @@ def _setup_logging() -> logging.Logger:
     root.setLevel(level)
     root.handlers.clear()
 
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
     ch = logging.StreamHandler(sys.stdout)
     ch.setFormatter(logging.Formatter(
         "\033[90m%(asctime)s\033[0m %(levelname)s "
@@ -228,7 +234,7 @@ class Orchestrator:
 
         # 3. Initial account state
         account = self.client.get_account()
-        if not account or account.get("login") != settings.mt5.login:
+        if not account or (settings.mt5.login != 0 and account.get("login") != settings.mt5.login):
             print("\nERROR: Connected to the wrong account.\n")
             raise RuntimeError(f"ERROR: Connected to the wrong account. Target: #{settings.mt5.login}, Got: #{getattr(account, 'get', lambda k:0)('login')} on server '{getattr(account, 'get', lambda k:'Unknown')('server')}'")
         self.risk.initialize(account["balance"])
@@ -267,7 +273,7 @@ class Orchestrator:
                           data={"balance": account["balance"],
                                 "symbols": self._symbols})
         logger.info(
-            f"✅ Live — {len(confirmed)} symbols active "
+            f"[OK] Live -- {len(confirmed)} symbols active "
             f"dom={'active' if self.client.dom_active else 'fallback'}"
         )
         print("\n" + "=" * 40)

@@ -238,7 +238,7 @@ class MT5ConnectionManager:
 
         self.is_connected = True
         mode_str = "DEMO" if getattr(acct_info, "trade_mode", 0) == 0 else "LIVE"
-        conn_log.info(f"✅ [LOGIN] Login verified for Account #{self.login} on server '{acct_info.server}' ({mode_str} MODE)")
+        conn_log.info(f"[OK] [LOGIN] Login verified for Account #{self.login} on server '{acct_info.server}' ({mode_str} MODE)")
         return ConnectionCheckResult(True, "LOGIN", "Login successful")
 
     def disconnect_mt5(self) -> None:

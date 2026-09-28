@@ -271,12 +271,12 @@ class AccountRegistry:
         Constructs and registers a single default AccountConfig from current .env settings.
         Ensures existing `python main.py` runs with zero additional setup.
         """
-        login = settings.mt5.login
+        login = settings.mt5.login or 10000
         server = settings.mt5.server
         password = settings.mt5.password
         terminal_path = settings.mt5.path
         magic = settings.mt5.magic
-        dry_run = os.getenv("DRY_RUN", "false").lower() in ("true", "1", "yes")
+        dry_run = os.getenv("DRY_RUN", "false").lower() in ("true", "1", "yes") or not password
 
         default_cfg = AccountConfig(
             account_id="account_default",

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PKG Traders — Client Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --bg-card: rgba(18, 26, 43, 0.75);
+      --bg-card-border: rgba(255, 255, 255, 0.08);
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background: var(--bg-dark); color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
+
+    /* Background Gradients */
+    .bg-glow {
+      position: fixed; width: 600px; height: 600px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(11, 15, 25, 0) 70%);
+      top: -100px; left: -100px; z-index: -1; pointer-events: none;
+    }
+    .bg-glow-2 {
+      position: fixed; width: 700px; height: 700px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, rgba(11, 15, 25, 0) 70%);
+      bottom: -200px; right: -100px; z-index: -1; pointer-events: none;
+    }
+
+    /* Layout */
+    .app-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 40px; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--bg-card-border); sticky: top: 0; z-index: 50;
+    }
+    .logo { font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .logo span { background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .nav-tabs { display: flex; gap: 8px; }
+    .tab-btn {
+      background: transparent; border: none; color: var(--text-muted); padding: 10px 18px;
+      font-weight: 500; font-size: 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;
+    }
+    .tab-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
+    .tab-btn.active { color: #fff; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); }
+
+    .user-pill { display: flex; align-items: center; gap: 12px; }
+    .badge-kyc { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
+    .kyc-approved { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.4); }
+    .kyc-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); }
+
+    /* Main Container */
+    .container { max-width: 1280px; margin: 32px auto; padding: 0 24px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Grid & Cards */
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 28px; }
+    .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+
+    .stat-card {
+      background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--bg-card-border);
+      border-radius: 16px; padding: 22px; box-shadow: var(--glass-shadow);
+    }
+    .stat-title { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 8px; }
+    .stat-value { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 700; color: #fff; }
+    .stat-sub { font-size: 12px; color: var(--accent-green); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+
+    .card {
+      background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--bg-card-border);
+      border-radius: 16px; padding: 24px; box-shadow: var(--glass-shadow); margin-bottom: 24px;
+    }
+    .card-title { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { font-size: 12px; text-transform: uppercase; color: var(--text-muted); padding: 12px 16px; border-bottom: 1px solid var(--bg-card-border); font-weight: 600; }
+    td { padding: 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); font-size: 14px; }
+    tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+    .val-buy { color: var(--accent-green); font-weight: 600; }
+    .val-sell { color: var(--accent-red); font-weight: 600; }
+
+    /* Forms */
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+    input, select {
+      width: 100%; padding: 12px 16px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--bg-card-border);
+      border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: all 0.2s ease;
+    }
+    input:focus, select:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb); border: none; color: #fff;
+      padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.2s ease;
+    }
+    .btn-primary:hover { opacity: 0.95; transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
+
+  <header class="app-header">
+    <div class="logo">
+      ⚡ PKG <span>TRADERS</span>
+    </div>
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+      <button class="tab-btn" onclick="switchTab('trading')">Trading & Positions</button>
+      <button class="tab-btn" onclick="switchTab('wallet')">Wallet & Financials</button>
+      <button class="tab-btn" onclick="switchTab('kyc')">KYC Verification</button>
+      <button class="tab-btn" onclick="switchTab('profile')">Profile</button>
+    </nav>
+    <div class="user-pill">
+      <span id="kycBadge" class="badge-kyc kyc-approved">KYC Approved</span>
+      <span id="userName" style="font-weight: 600;">Gagan Trader</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- TAB 1: DASHBOARD -->
+    <div id="tab-dashboard" class="tab-content active">
+      <div class="grid-4">
+        <div class="stat-card">
+          <div class="stat-title">Total Account Balance</div>
+          <div class="stat-value" id="totalBalance">$1,495.37</div>
+          <div class="stat-sub">↑ Verified MT5 Real-time Balance</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Net Equity</div>
+          <div class="stat-value" id="totalEquity">$1,483.96</div>
+          <div class="stat-sub" style="color: var(--accent-cyan);">Live Floating Portfolio</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Active MT5 Accounts</div>
+          <div class="stat-value" id="accountCount">2 Accounts</div>
+          <div class="stat-sub">Bot Instances Active</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Open Positions</div>
+          <div class="stat-value" id="openPositionsCount">1 Position</div>
+          <div class="stat-sub" style="color: var(--accent-red);">-$11.41 Floating P&L</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Mapped Trading Accounts</div>
+          <table>
+            <thead>
+              <tr>
+                <th>MT5 Login</th>
+                <th>Account Name</th>
+                <th>Server</th>
+                <th>Balance</th>
+                <th>Equity</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="accountsTableBody">
+              <tr>
+                <td><strong>#26128885</strong></td>
+                <td>Standard Vantage Account 1</td>
+                <td>VantageMarkets-Demo</td>
+                <td>$495.37</td>
+                <td>$483.96</td>
+                <td><span style="color: var(--accent-green);">● Active</span></td>
+              </tr>
+              <tr>
+                <td><strong>#26179878</strong></td>
+                <td>Standard Vantage Account 3</td>
+                <td>VantageMarkets-Demo</td>
+                <td>$1,000.00</td>
+                <td>$1,000.00</td>
+                <td><span style="color: var(--accent-green);">● Active</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Quick Actions</div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn-primary" onclick="switchTab('wallet')">+ Deposit Funds</button>
+            <button class="btn-primary" style="background: rgba(255,255,255,0.08); border: 1px solid var(--bg-card-border);" onclick="switchTab('wallet')">Request Withdrawal</button>
+            <button class="btn-primary" style="background: rgba(255,255,255,0.08); border: 1px solid var(--bg-card-border);" onclick="switchTab('kyc')">View KYC Profile</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: TRADING & POSITIONS -->
+    <div id="tab-trading" class="tab-content">
+      <div class="card">
+        <div class="card-title">Active Open Positions</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket #</th>
+              <th>Symbol</th>
+              <th>Direction</th>
+              <th>Volume</th>
+              <th>Entry Price</th>
+              <th>SL</th>
+              <th>TP</th>
+              <th>Floating P&L</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#2103686984</td>
+              <td><strong>GBPUSD</strong></td>
+              <td><span class="val-buy">SELL</span></td>
+              <td>0.07 lots</td>
+              <td>1.32841</td>
+              <td>1.32609</td>
+              <td>1.32473</td>
+              <td><span class="val-sell">-$11.41</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Closed Trade History</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket #</th>
+              <th>Symbol</th>
+              <th>Type</th>
+              <th>Volume</th>
+              <th>Entry Price</th>
+              <th>Realized P&L</th>
+              <th>Execution Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#1662528771</td>
+              <td>XAUUSD</td>
+              <td><span class="val-buy">BUY</span></td>
+              <td>0.01 lots</td>
+              <td>4310.53</td>
+              <td><span class="val-buy">+$6.22</span></td>
+              <td>2026-09-23 19:51:22</td>
+            </tr>
+            <tr>
+              <td>#1662448932</td>
+              <td>GBPUSD</td>
+              <td><span class="val-buy">BUY</span></td>
+              <td>0.07 lots</td>
+              <td>1.32908</td>
+              <td><span class="val-sell">-$4.69</span></td>
+              <td>2026-09-23 19:28:51</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: WALLET & FINANCIALS -->
+    <div id="tab-wallet" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Request Deposit</div>
+          <form id="depositForm" onsubmit="handleDeposit(event)">
+            <div class="form-group">
+              <label>Amount (USD)</label>
+              <input type="number" step="0.01" id="depAmount" placeholder="e.g. 500.00" required>
+            </div>
+            <div class="form-group">
+              <label>Payment Method</label>
+              <select id="depMethod">
+                <option value="BANK_WIRE">Bank Wire Transfer</option>
+                <option value="CRYPTO_USDT">USDT (TRC20)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Proof of Payment URL (Optional)</label>
+              <input type="url" id="depProof" placeholder="https://storage.example.com/receipt.pdf">
+            </div>
+            <button type="submit" class="btn-primary">Submit Deposit Request</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Request Withdrawal</div>
+          <form id="withdrawForm" onsubmit="handleWithdrawal(event)">
+            <div class="form-group">
+              <label>Amount (USD)</label>
+              <input type="number" step="0.01" id="wthAmount" placeholder="e.g. 100.00" required>
+            </div>
+            <div class="form-group">
+              <label>Destination Account / Wallet Address</label>
+              <input type="text" id="wthAddress" placeholder="IBAN or USDT Address" required>
+            </div>
+            <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669);">Submit Withdrawal Request</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: KYC VERIFICATION -->
+    <div id="tab-kyc" class="tab-content">
+      <div class="card">
+        <div class="card-title">KYC Identity Verification</div>
+        <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">Complete your KYC verification to unlock full deposit and withdrawal limits.</p>
+        <div style="padding: 16px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; margin-bottom: 20px;">
+          <strong style="color: var(--accent-green);">Status: VERIFIED & APPROVED</strong>
+          <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Your identity documents have been approved by compliance.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: PROFILE -->
+    <div id="tab-profile" class="tab-content">
+      <div class="card">
+        <div class="card-title">Account Profile Information</div>
+        <div class="form-group"><label>Full Name</label><input type="text" value="Gagan Trader" readonly></div>
+        <div class="form-group"><label>Email Address</label><input type="email" value="client@pkgtraders.com" readonly></div>
+        <div class="form-group"><label>Role</label><input type="text" value="Authenticated Client" readonly></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    async function handleDeposit(e) {
+      e.preventDefault();
+      alert('Deposit request of $' + document.getElementById('depAmount').value + ' submitted to admin for verification!');
+    }
+
+    async function handleWithdrawal(e) {
+      e.preventDefault();
+      alert('Withdrawal request of $' + document.getElementById('wthAmount').value + ' submitted to compliance review!');
+    }
+  </script>
+</body>
+</html>
