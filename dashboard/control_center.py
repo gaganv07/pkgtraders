@@ -32,6 +32,7 @@ from fastapi.responses import HTMLResponse, Response
 
 from dashboard.reports_exporter import ReportsExporter
 from app.config import settings
+from app.multi_account import multi_account_router, set_api_account_manager
 
 logger = logging.getLogger(__name__)
 
@@ -49,9 +50,11 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["GET"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(multi_account_router)
 
 _orchestrator = None
 _last_heartbeat_ts = time.time()
@@ -63,6 +66,9 @@ def attach_orchestrator(orch: Any) -> None:
     global _orchestrator, _last_heartbeat_ts
     _orchestrator = orch
     _last_heartbeat_ts = time.time()
+    if hasattr(orch, "account_mgr") and orch.account_mgr:
+        set_api_account_manager(orch.account_mgr)
+
 
 
 def record_live_event(event_type: str, message: str, data: Optional[Dict[str, Any]] = None) -> None:

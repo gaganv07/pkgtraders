@@ -48,6 +48,7 @@ from app.performance import PerformanceTracker
 from app.ml_layer import MLLayer
 from app.risk_manager import RiskManager
 from app.trade_engine import TradeEngine
+from app.multi_account import MT5AccountManager, AccountRegistry, set_api_account_manager
 from reports.generator import ReportGenerator
 from dashboard.app import app as dash_app, inject
 
@@ -154,6 +155,33 @@ class Orchestrator:
             session=self.session, ml=self.ml, db=self.db,
         )
 
+        # Multi-Account Architecture Setup
+        self.account_registry = AccountRegistry()
+        accounts_file = os.getenv("ACCOUNTS_CONFIG_PATH", "accounts.json")
+        loaded_count = 0
+        if os.path.exists(accounts_file):
+            try:
+                loaded_count = self.account_registry.load_from_file(accounts_file)
+            except Exception as e:
+                logger.warning(f"Error loading {accounts_file}: {e}")
+
+        # If no multi-account file exists, load default single account from .env for 100% backward compatibility
+        if loaded_count == 0:
+            self.account_registry.load_default_from_env()
+
+        self.account_mgr = MT5AccountManager(
+            registry=self.account_registry,
+            database=self.db,
+            max_accounts=int(os.getenv("MAX_ACCOUNTS", "10")),
+        )
+        for cfg in self.account_registry.get_all():
+            self.account_mgr.add_account(cfg)
+
+        # Inject account manager into trade engine for fan-out execution
+        self.engine.set_account_manager(self.account_mgr)
+        set_api_account_manager(self.account_mgr)
+
+
         # Monitoring
         self.health  = HealthMonitor(self.client, primary_md, self.risk, self.db)
         self.reports = ReportGenerator(settings.system.report_dir)
@@ -209,6 +237,10 @@ class Orchestrator:
 
         # 4. Warm up all confirmed symbols
         await self._warmup(confirmed)
+
+        # 4b. Connect multi-account sessions
+        account_results = await self.account_mgr.connect_all()
+        logger.info(f"Multi-account sessions connected: {account_results}")
 
         # 5. Start Telegram
         await self.notifier.start()
@@ -267,6 +299,7 @@ class Orchestrator:
         bal  = acct["balance"] if acct else 0.0
         await self.notifier.shutdown(reason, bal)
         await self.notifier.stop()
+        await self.account_mgr.disconnect_all()
         self.client.disconnect()
         self.db.log_event("SYSTEM_STOP", reason)
         self._shutdown.set()
@@ -499,6 +532,7 @@ class Orchestrator:
                         "currency":     acct["currency"],
                     }
                     self._state["risk"] = self.risk.summary()
+                    self._state["accounts"] = self.account_mgr.get_telemetry()
 
                     # Performance snapshot
                     if self.perf:
