@@ -187,6 +187,7 @@ class SizingResult:
 
     # Trade reference
     trade_id:        str   = ""
+    rejection_reason: str  = ""
 
     @property
     def is_valid(self) -> bool:
@@ -253,19 +254,57 @@ class PositionSizer:
         )
 
         # ── Pre-validation ────────────────────────────────────────────────────
-        if balance <= 0:
-            logger.warning(f"[SIZER][{symbol}] Balance <= 0 — cannot size")
+        if not isinstance(balance, (int, float)) or not math.isfinite(balance) or balance <= 0:
+            msg = f"Balance ({balance}) must be positive and finite"
+            logger.warning(f"[SIZER][{symbol}] {msg}")
+            result.rejection_reason = msg
+            result.final_lot = 0.0
+            _write_csv(result, write_csv)
+            return result
+
+        if not isinstance(risk_pct, (int, float)) or not math.isfinite(risk_pct) or risk_pct <= 0:
+            msg = f"Risk % ({risk_pct}) must be positive and finite"
+            logger.warning(f"[SIZER][{symbol}] {msg}")
+            result.rejection_reason = msg
+            result.final_lot = 0.0
+            _write_csv(result, write_csv)
+            return result
+
+        if not isinstance(entry, (int, float)) or not math.isfinite(entry) or entry <= 0:
+            msg = f"Entry price ({entry}) must be positive and finite"
+            logger.warning(f"[SIZER][{symbol}] {msg}")
+            result.rejection_reason = msg
+            result.final_lot = 0.0
+            _write_csv(result, write_csv)
+            return result
+
+        if not isinstance(stop_loss, (int, float)) or not math.isfinite(stop_loss) or stop_loss <= 0:
+            msg = f"Stop loss ({stop_loss}) must be positive and finite"
+            logger.warning(f"[SIZER][{symbol}] {msg}")
+            result.rejection_reason = msg
+            result.final_lot = 0.0
             _write_csv(result, write_csv)
             return result
 
         sl_distance = abs(entry - stop_loss)
-        if sl_distance < 1e-8:
-            logger.warning(f"[SIZER][{symbol}] SL distance ~0 — skipping")
+        if not math.isfinite(sl_distance) or sl_distance < 1e-8:
+            msg = f"SL distance ~0 ({sl_distance}) — skipping"
+            logger.warning(f"[SIZER][{symbol}] {msg}")
+            result.rejection_reason = msg
+            result.final_lot = 0.0
             _write_csv(result, write_csv)
             return result
 
-        if spec.tick_size <= 0 or spec.tick_value <= 0 or spec.vol_step <= 0:
-            logger.warning(f"[SIZER][{symbol}] Invalid broker spec — skipping")
+        if (spec is None or
+            not isinstance(spec.tick_size, (int, float)) or not math.isfinite(spec.tick_size) or spec.tick_size <= 0 or
+            not isinstance(spec.tick_value, (int, float)) or not math.isfinite(spec.tick_value) or spec.tick_value <= 0 or
+            not isinstance(spec.vol_step, (int, float)) or not math.isfinite(spec.vol_step) or spec.vol_step <= 0 or
+            not isinstance(spec.vol_min, (int, float)) or not math.isfinite(spec.vol_min) or spec.vol_min <= 0 or
+            not isinstance(spec.vol_max, (int, float)) or not math.isfinite(spec.vol_max) or spec.vol_max <= 0):
+            msg = "Invalid broker spec: tick_size, tick_value, vol_step, vol_min, and vol_max must be positive and finite"
+            logger.warning(f"[SIZER][{symbol}] {msg}")
+            result.rejection_reason = msg
+            result.final_lot = 0.0
             _write_csv(result, write_csv)
             return result
 
@@ -275,6 +314,13 @@ class PositionSizer:
         denominator = sl_points * spec.tick_value
 
         raw_lot = risk_amount / denominator if denominator > 0 else 0.0
+        if raw_lot <= 0.0 or not math.isfinite(raw_lot):
+            msg = f"Calculated raw lot ({raw_lot}) is non-positive or non-finite"
+            logger.warning(f"[SIZER][{symbol}] {msg}")
+            result.rejection_reason = msg
+            result.final_lot = 0.0
+            _write_csv(result, write_csv)
+            return result
 
         # ── Broker compliance: floor to step, clamp to [min, max] ─────────────
         step_count  = math.floor(raw_lot / spec.vol_step) if spec.vol_step > 0 else 0

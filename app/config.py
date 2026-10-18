@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import json
 import logging
+import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -27,12 +28,34 @@ def _s(k: str, d: str = "") -> str:
     return os.getenv(k, d).strip()
 
 def _f(k: str, d: float) -> float:
-    try: return float(os.getenv(k, str(d)))
-    except ValueError: return d
+    raw = os.getenv(k)
+    if raw is None or not raw.strip():
+        return d
+    val_str = raw.strip().lower()
+    if val_str in ("unlimited", "inf", "none"):
+        return 100.0
+    try:
+        val = float(val_str)
+        if not math.isfinite(val) or val < 0.0:
+            return d
+        return val
+    except (ValueError, TypeError):
+        return d
 
 def _i(k: str, d: int) -> int:
-    try: return int(os.getenv(k, str(d)))
-    except ValueError: return d
+    raw = os.getenv(k)
+    if raw is None or not raw.strip():
+        return d
+    val_str = raw.strip().lower()
+    if val_str in ("unlimited", "inf", "none"):
+        return 0
+    try:
+        val = int(val_str)
+        if val < 0:
+            return d
+        return val
+    except (ValueError, TypeError):
+        return d
 
 def _b(k: str, d: bool) -> bool:
     v = os.getenv(k, str(d)).strip().lower()
@@ -163,6 +186,7 @@ class MT5Config:
     deviation_pts:       int   = 20
     magic:               int   = field(default_factory=lambda: _i("MAGIC_NUMBER", 20250701))
     dom_subscribe:       bool  = True
+    desktop_execution_account: str = field(default_factory=lambda: _s("DESKTOP_EXECUTION_ACCOUNT", "account_003"))
 
 
 # ── Risk configuration ────────────────────────────────────────────────────────
@@ -170,7 +194,7 @@ class MT5Config:
 @dataclass
 class RiskConfig:
     # ── Initial capital (configurable via INITIAL_BALANCE) ──────────────────
-    initial_balance:     float = field(default_factory=lambda: _f("INITIAL_BALANCE", 500.0))
+    initial_balance:     float = field(default_factory=lambda: _f("INITIAL_BALANCE", 100.0))
     # ── Position sizing ──────────────────────────────────────────────────────
     risk_per_trade_pct:  float = field(default_factory=lambda: _f("RISK_PER_TRADE_PCT", 1.0))
     compounding_enabled: bool  = field(default_factory=lambda: _b("COMPOUNDING_ENABLED", True))
@@ -203,11 +227,11 @@ class RiskConfig:
     loss_streak_risk_factor: float = 0.5  # Multiply risk_pct by this during streak
     use_recalibrated_scoring: bool = field(default_factory=lambda: USE_RECALIBRATED_SCORING)
     shadow_mode:              bool = field(default_factory=lambda: SHADOW_MODE)
-    # ── V3 scoring ────────────────────────────────────────────────────────────
+    # ── V3 scoring ────────────────────────────────────────────────────
     use_v3_scoring:           bool  = field(default_factory=lambda: USE_V3_SCORING)
     v3_min_atr_percentile:    float = field(default_factory=lambda: V3_MIN_ATR_PERCENTILE)
     # ── Correlation cap (always-on for V3+ safety) ────────────────────────────
-    # Max open trades in the same USD-correlated group (prevents cascade stop-outs)
+    # Max open trades in the same USD-correlated group (prevents cascade stop-outs; 0 = unlimited)
     max_same_corr_group_trades: int = field(default_factory=lambda: _i("MAX_SAME_CORR_GROUP_TRADES", 2))
 
 
