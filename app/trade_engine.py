@@ -346,7 +346,7 @@ class TradeEngine:
         news_pass = bool(sess and not sess.news_blackout)
         cooldown_pass = not self._risk.in_cooldown()
         risk_pass = bool(risk_ok and not self._risk.drawdown.any_hit and not self._risk.circuit_broken)
-        pos_limit_pass = (self.open_trade_count() < self._cfg.max_open_trades)
+        pos_limit_pass = (self._cfg.max_open_trades <= 0 or self.open_trade_count() < self._cfg.max_open_trades)
 
         # Legacy Decision
         legacy_reasons = []

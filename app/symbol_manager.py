@@ -38,8 +38,8 @@ CANONICAL_ALIASES: Dict[str, List[str]] = {
     "EURUSD": ["EURUSD", "EUR/USD", "EURUSDm", "EURUSD.a", "EURUSD+", "EURUSDp", "EURUSD.r", "EURUSD_M"],
     "GBPUSD": ["GBPUSD", "GBP/USD", "GBPUSDm", "GBPUSD.a", "GBPUSD+", "GBPUSDp", "GBPUSD.r", "GBPUSD_M"],
     "USDJPY": ["USDJPY", "USD/JPY", "USDJPYm", "USDJPY.a", "USDJPY+", "USDJPYp", "USDJPY.r", "USDJPY_M"],
-    "NAS100": ["NAS100", "NASDAQ", "US100", "USTEC", "NAS100m", "NASDAQm", "US100m", "USTECm", "NAS100.r", "NAS100.cash", "US100.cash"],
-    "US30":   ["US30", "DJ30", "DJIA", "DOW30", "WS30", "US30m", "USA30", "US30.a", "US30.r", "US30.cash", "WALLSTREET"],
+    "NAS100": ["NAS100", "NAS100.r", "NASDAQ", "US100", "USTEC", "NAS100m", "NASDAQm", "US100m", "USTECm", "NAS100.cash", "US100.cash"],
+    "US30":   ["US30", "DJ30.r", "DJ30", "DJIA", "DOW30", "WS30", "US30m", "USA30", "US30.a", "US30.r", "US30.cash", "WALLSTREET"],
     "BTCUSD": ["BTCUSD", "BITCOIN", "BTC/USD", "BTCUSDm", "BTCUSD+", "BTCUSDp", "BTCUSD.r", "BTCUSD.cash"],
 }
 
@@ -134,11 +134,11 @@ class SymbolManager:
 
     def _discover_symbol_dynamic(self, canonical: str, catalog: Dict[str, Any]) -> Optional[str]:
         """
-        Dynamic multi-pass discovery algorithm:
-        Pass 1: Direct match in alias list
-        Pass 2: Match canonical base + auto-detected broker suffix/prefix
-        Pass 3: Regex pattern match against catalog names
-        Pass 4: Fuzzy substring matching in broker catalog
+        Tightened discovery algorithm:
+        Pass 1: Direct exact match in alias list
+        Pass 2: Controlled alphanumeric exact match
+        Pass 3: Controlled prefix match (starts with alias)
+        No loose substring matching (prevents US30 matching stock U).
         """
         aliases = CANONICAL_ALIASES.get(canonical, [canonical])
 
@@ -149,25 +149,29 @@ class SymbolManager:
                 if info.trade_mode != mt5.SYMBOL_TRADE_MODE_DISABLED:
                     return alias
 
-        # Pass 2: Search with prefixes and suffixes across catalog
-        base_name = canonical.replace("/", "")
-        for sname, sinfo in catalog.items():
-            if sinfo.trade_mode == mt5.SYMBOL_TRADE_MODE_DISABLED:
-                continue
-            # Check if canonical base is contained inside sname (e.g. XAUUSD in XAUUSD.a, GOLD in GOLD.cash)
-            clean_sname = re.sub(r'[^A-Z0-9]', '', sname.upper())
-            for alias in aliases:
-                clean_alias = re.sub(r'[^A-Z0-9]', '', alias.upper())
-                if clean_alias in clean_sname or clean_sname in clean_alias:
-                    logger.info(f"[SYMBOL_MGR] Dynamic match for {canonical}: {sname}")
+        # Pass 2: Controlled alphanumeric exact match (e.g. DJ30.r -> DJ30R == DJ30R)
+        for alias in aliases:
+            clean_alias = re.sub(r'[^A-Z0-9]', '', alias.upper())
+            for sname, sinfo in catalog.items():
+                if sinfo.trade_mode == mt5.SYMBOL_TRADE_MODE_DISABLED:
+                    continue
+                clean_sname = re.sub(r'[^A-Z0-9]', '', sname.upper())
+                if clean_sname == clean_alias:
+                    logger.info(f"[SYMBOL_MGR] Exact alphanumeric match for {canonical}: {sname}")
                     return sname
 
-        # Pass 3: Fuzzy keyword match in catalog names/paths
-        key_term = canonical[:3] if len(canonical) >= 6 else canonical
-        for sname, sinfo in catalog.items():
-            if key_term in sname.upper() and sinfo.trade_mode != mt5.SYMBOL_TRADE_MODE_DISABLED:
-                logger.info(f"[SYMBOL_MGR] Fuzzy fallback match for {canonical}: {sname}")
-                return sname
+        # Pass 3: Controlled prefix match (sname starts with alias, e.g. NAS100 in NAS100.r)
+        for alias in aliases:
+            clean_alias = re.sub(r'[^A-Z0-9]', '', alias.upper())
+            if len(clean_alias) < 4:
+                continue
+            for sname, sinfo in catalog.items():
+                if sinfo.trade_mode == mt5.SYMBOL_TRADE_MODE_DISABLED:
+                    continue
+                clean_sname = re.sub(r'[^A-Z0-9]', '', sname.upper())
+                if clean_sname.startswith(clean_alias):
+                    logger.info(f"[SYMBOL_MGR] Prefix match for {canonical}: {sname}")
+                    return sname
 
         return None
 

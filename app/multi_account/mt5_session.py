@@ -122,6 +122,46 @@ class MT5DirectSession(IMT5Session):
         self._sim_balance: float = getattr(config, "initial_balance", 10000.0)
         self._sim_equity: float = self._sim_balance
         self._positions: List[PositionSnapshot] = []
+        self._symbol_cache: Dict[str, str] = {}
+
+    def resolve_symbol(self, symbol: str) -> str:
+        """Resolve canonical symbol to actual broker symbol in MT5."""
+        if not symbol:
+            return "XAUUSD"
+        if self.config.dry_run or not MT5_AVAILABLE:
+            return symbol
+
+        if symbol in self._symbol_cache:
+            return self._symbol_cache[symbol]
+
+        info = mt5.symbol_info(symbol)
+        if info is not None:
+            self._symbol_cache[symbol] = symbol
+            return symbol
+
+        try:
+            from app.symbol_manager import CANONICAL_ALIASES
+            aliases = CANONICAL_ALIASES.get(symbol, [])
+            for alias in aliases:
+                info = mt5.symbol_info(alias)
+                if info is not None:
+                    mt5.symbol_select(alias, True)
+                    self._symbol_cache[symbol] = alias
+                    logger.info(f"[{self.config.account_id}] Resolved symbol {symbol} -> {alias}")
+                    return alias
+        except Exception as e:
+            logger.warning(f"[{self.config.account_id}] Symbol alias lookup failed for {symbol}: {e}")
+
+        clean = symbol.rstrip("m+.a").upper()
+        for variant in [clean, f"{clean}.r", f"{clean}m", f"{clean}.a", f"{clean}+", f"{clean}p", f"{clean}.cash"]:
+            info = mt5.symbol_info(variant)
+            if info is not None:
+                mt5.symbol_select(variant, True)
+                self._symbol_cache[symbol] = variant
+                logger.info(f"[{self.config.account_id}] Resolved symbol {symbol} -> {variant}")
+                return variant
+
+        return symbol
 
     def set_sim_balance(self, balance: float, equity: Optional[float] = None) -> None:
         """Dynamically set simulated balance and equity."""
@@ -147,6 +187,14 @@ class MT5DirectSession(IMT5Session):
             if not init_ok:
                 err = mt5.last_error()
                 logger.error(f"[{self.config.account_id}] mt5.initialize failed: {err}")
+                return False
+
+            curr_acct = mt5.account_info()
+            if curr_acct and curr_acct.login != self.config.login:
+                logger.warning(
+                    f"[{self.config.account_id}] Active MT5 terminal login #{curr_acct.login} "
+                    f"does not match session login #{self.config.login}. Refusing cross-account mt5.login()."
+                )
                 return False
 
             pwd = self.config.resolve_password()
@@ -204,9 +252,11 @@ class MT5DirectSession(IMT5Session):
 
         info = mt5.account_info()
         if info and info.login != self.config.login:
-            pwd = self.config.resolve_password()
-            if mt5.login(login=self.config.login, password=pwd, server=self.config.server):
-                info = mt5.account_info()
+            logger.warning(
+                f"[{self.config.account_id}] Active MT5 terminal login #{info.login} "
+                f"does not match requested session login #{self.config.login}. Refusing cross-account mt5.login()."
+            )
+            return None
 
         if not info:
             return None
@@ -235,7 +285,8 @@ class MT5DirectSession(IMT5Session):
                 candidates = [p for p in candidates if p.magic == self.config.magic_number]
             return list(candidates)
 
-        raw = mt5.positions_get(symbol=symbol) if symbol else mt5.positions_get()
+        broker_sym = self.resolve_symbol(symbol) if symbol else None
+        raw = mt5.positions_get(symbol=broker_sym) if broker_sym else mt5.positions_get()
         if not raw:
             return []
 
@@ -281,7 +332,8 @@ class MT5DirectSession(IMT5Session):
                 "tick_value": spec["tick_value"],
             }
 
-        info = mt5.symbol_info(symbol)
+        broker_sym = self.resolve_symbol(symbol)
+        info = mt5.symbol_info(broker_sym)
         if not info:
             return None
         return {
@@ -309,7 +361,8 @@ class MT5DirectSession(IMT5Session):
                 "time": datetime.now(timezone.utc),
             }
 
-        tick = mt5.symbol_info_tick(symbol)
+        broker_sym = self.resolve_symbol(symbol)
+        tick = mt5.symbol_info_tick(broker_sym)
         if not tick:
             return None
         return {
@@ -363,13 +416,14 @@ class MT5DirectSession(IMT5Session):
             return FillResult(success=False, error="MetaTrader5 package not installed")
 
         t0 = time.time()
-        tick = mt5.symbol_info_tick(symbol)
+        broker_sym = self.resolve_symbol(symbol)
+        tick = mt5.symbol_info_tick(broker_sym)
         if not tick:
-            return FillResult(success=False, error=f"No tick for {symbol}")
+            return FillResult(success=False, error=f"No tick for {broker_sym}")
 
         req = {
             "action": mt5.TRADE_ACTION_DEAL,
-            "symbol": symbol,
+            "symbol": broker_sym,
             "volume": float(volume),
             "type": mt5.ORDER_TYPE_BUY,
             "price": tick.ask,
@@ -443,13 +497,14 @@ class MT5DirectSession(IMT5Session):
             return FillResult(success=False, error="MetaTrader5 package not installed")
 
         t0 = time.time()
-        tick = mt5.symbol_info_tick(symbol)
+        broker_sym = self.resolve_symbol(symbol)
+        tick = mt5.symbol_info_tick(broker_sym)
         if not tick:
-            return FillResult(success=False, error=f"No tick for {symbol}")
+            return FillResult(success=False, error=f"No tick for {broker_sym}")
 
         req = {
             "action": mt5.TRADE_ACTION_DEAL,
-            "symbol": symbol,
+            "symbol": broker_sym,
             "volume": float(volume),
             "type": mt5.ORDER_TYPE_SELL,
             "price": tick.bid,
@@ -489,9 +544,10 @@ class MT5DirectSession(IMT5Session):
                     p.tp = tp
             return FillResult(success=True, ticket=ticket)
 
+        broker_sym = self.resolve_symbol(symbol)
         req = {
             "action": mt5.TRADE_ACTION_SLTP,
-            "symbol": symbol,
+            "symbol": broker_sym,
             "position": ticket,
             "sl": float(sl),
             "tp": float(tp),
@@ -518,9 +574,12 @@ class MT5DirectSession(IMT5Session):
             return FillResult(success=False, error=f"Ticket {ticket} not found")
 
         pos = positions[0]
+        sym = pos.symbol or self.resolve_symbol(symbol or "XAUUSD")
         vol = volume or pos.volume
         close_type = mt5.ORDER_TYPE_SELL if pos.type == mt5.POSITION_TYPE_BUY else mt5.ORDER_TYPE_BUY
         tick = mt5.symbol_info_tick(sym)
+        if not tick:
+            return FillResult(success=False, error=f"No tick for {sym}")
         price = tick.bid if close_type == mt5.ORDER_TYPE_SELL else tick.ask
 
         req = {
@@ -575,6 +634,33 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
     magic = config_dict.get("magic_number", 20250701)
 
     connected = False
+    _worker_sym_cache: Dict[str, str] = {}
+
+    def _resolve_worker_sym(s: str) -> str:
+        if dry_run or not has_mt5 or not s:
+            return s
+        if s in _worker_sym_cache:
+            return _worker_sym_cache[s]
+        info = worker_mt5.symbol_info(s)
+        if info is not None:
+            _worker_sym_cache[s] = s
+            return s
+        try:
+            from app.symbol_manager import CANONICAL_ALIASES
+            for alias in CANONICAL_ALIASES.get(s, []):
+                if worker_mt5.symbol_info(alias) is not None:
+                    worker_mt5.symbol_select(alias, True)
+                    _worker_sym_cache[s] = alias
+                    return alias
+        except Exception:
+            pass
+        clean = s.rstrip("m+.a").upper()
+        for variant in [clean, f"{clean}.r", f"{clean}m", f"{clean}.a", f"{clean}+", f"{clean}p", f"{clean}.cash"]:
+            if worker_mt5.symbol_info(variant) is not None:
+                worker_mt5.symbol_select(variant, True)
+                _worker_sym_cache[s] = variant
+                return variant
+        return s
 
     while True:
         try:
@@ -591,6 +677,14 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
                 init_ok = worker_mt5.initialize(path=terminal_path) if terminal_path and os.path.exists(terminal_path) else worker_mt5.initialize()
                 if not init_ok:
                     pipe.send({"ok": False, "error": str(worker_mt5.last_error())})
+                    continue
+
+                curr_acct = worker_mt5.account_info()
+                if curr_acct and curr_acct.login != login:
+                    logger.warning(
+                        f"[WORKER] Active MT5 login #{curr_acct.login} does not match target login #{login}. Refusing cross-account worker_mt5.login()."
+                    )
+                    pipe.send({"ok": False, "error": f"Refused cross-account worker_mt5.login() from #{curr_acct.login} to #{login}"})
                     continue
 
                 login_ok = worker_mt5.login(login=login, password=password, server=server)
@@ -649,13 +743,14 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
                 if dry_run or not has_mt5:
                     pipe.send({"success": True, "ticket": 900000 + random.randint(100, 999), "price": 2000.0, "volume": vol})
                 else:
-                    tick = worker_mt5.symbol_info_tick(sym)
+                    bsym = _resolve_worker_sym(sym)
+                    tick = worker_mt5.symbol_info_tick(bsym)
                     if not tick:
-                        pipe.send({"success": False, "error": "No tick"})
+                        pipe.send({"success": False, "error": f"No tick for {bsym}"})
                         continue
                     req = {
                         "action": worker_mt5.TRADE_ACTION_DEAL,
-                        "symbol": sym,
+                        "symbol": bsym,
                         "volume": float(vol),
                         "type": worker_mt5.ORDER_TYPE_BUY,
                         "price": tick.ask,
@@ -678,13 +773,14 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
                 if dry_run or not has_mt5:
                     pipe.send({"success": True, "ticket": 900000 + random.randint(100, 999), "price": 2000.0, "volume": vol})
                 else:
-                    tick = worker_mt5.symbol_info_tick(sym)
+                    bsym = _resolve_worker_sym(sym)
+                    tick = worker_mt5.symbol_info_tick(bsym)
                     if not tick:
-                        pipe.send({"success": False, "error": "No tick"})
+                        pipe.send({"success": False, "error": f"No tick for {bsym}"})
                         continue
                     req = {
                         "action": worker_mt5.TRADE_ACTION_DEAL,
-                        "symbol": sym,
+                        "symbol": bsym,
                         "volume": float(vol),
                         "type": worker_mt5.ORDER_TYPE_SELL,
                         "price": tick.bid,
@@ -708,7 +804,8 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
                 if dry_run or not has_mt5:
                     pipe.send([])
                 else:
-                    raw = worker_mt5.positions_get(symbol=sym) if sym else worker_mt5.positions_get()
+                    bsym = _resolve_worker_sym(sym) if sym else None
+                    raw = worker_mt5.positions_get(symbol=bsym) if bsym else worker_mt5.positions_get()
                     if not raw:
                         pipe.send([])
                     else:
@@ -723,6 +820,44 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
                                     "profit": p.profit, "magic": p.magic, "comment": p.comment,
                                 })
                         pipe.send(res)
+
+            elif cmd == "GET_SYMBOL_SPEC":
+                sym = args[0] if (args and len(args) > 0) else "XAUUSD"
+                if dry_run or not has_mt5:
+                    clean_sym = sym.rstrip("m+.a").upper()
+                    spec = _SIM_TICK_SPECS.get(clean_sym, _SIM_TICK_SPECS.get("XAUUSD"))
+                    pipe.send({
+                        "digits": spec["digits"],
+                        "point": spec["point"],
+                        "spread": 15,
+                        "contract_size": 100.0 if "XAU" in clean_sym else (1.0 if any(k in clean_sym for k in ["NAS", "US30", "DJ", "BTC", "ETH"]) else 100000.0),
+                        "vol_min": spec["vol_min"],
+                        "vol_max": spec["vol_max"],
+                        "vol_step": spec["vol_step"],
+                        "bid": _SIM_PRICES.get(clean_sym, 2000.0),
+                        "ask": _SIM_PRICES.get(clean_sym, 2000.0) + _SIM_SPREADS.get(clean_sym, 0.20),
+                        "tick_size": spec["tick_size"],
+                        "tick_value": spec["tick_value"],
+                    })
+                else:
+                    bsym = _resolve_worker_sym(sym)
+                    info = worker_mt5.symbol_info(bsym)
+                    if not info:
+                        pipe.send(None)
+                    else:
+                        pipe.send({
+                            "digits": info.digits,
+                            "point": info.point,
+                            "spread": info.spread,
+                            "contract_size": info.trade_contract_size,
+                            "vol_min": info.volume_min,
+                            "vol_max": info.volume_max,
+                            "vol_step": info.volume_step,
+                            "bid": info.bid,
+                            "ask": info.ask,
+                            "tick_size": info.trade_tick_size if info.trade_tick_size > 0 else info.point,
+                            "tick_value": info.trade_tick_value if info.trade_tick_value > 0 else info.point,
+                        })
 
         except Exception as e:
             try:
@@ -833,17 +968,26 @@ class MT5ProcessSession(IMT5Session):
         return []
 
     def get_symbol_spec(self, symbol: str) -> Optional[Dict[str, Any]]:
-        # Fall back to static simulation tick spec if needed
-        clean_sym = symbol.rstrip("m+.a").upper()
-        spec = _SIM_TICK_SPECS.get(clean_sym, _SIM_TICK_SPECS.get("XAUUSD"))
-        return {
-            "digits": spec["digits"], "point": spec["point"], "spread": 15,
-            "contract_size": 100.0 if "XAU" in clean_sym else 100000.0,
-            "vol_min": spec["vol_min"], "vol_max": spec["vol_max"], "vol_step": spec["vol_step"],
-            "bid": _SIM_PRICES.get(clean_sym, 2000.0),
-            "ask": _SIM_PRICES.get(clean_sym, 2000.0) + _SIM_SPREADS.get(clean_sym, 0.20),
-            "tick_size": spec["tick_size"], "tick_value": spec["tick_value"],
-        }
+        if self.config.dry_run:
+            clean_sym = symbol.rstrip("m+.a").upper()
+            spec = _SIM_TICK_SPECS.get(clean_sym, _SIM_TICK_SPECS.get("XAUUSD"))
+            return {
+                "digits": spec["digits"], "point": spec["point"], "spread": 15,
+                "contract_size": 100.0 if "XAU" in clean_sym else 100000.0,
+                "vol_min": spec["vol_min"], "vol_max": spec["vol_max"], "vol_step": spec["vol_step"],
+                "bid": _SIM_PRICES.get(clean_sym, 2000.0),
+                "ask": _SIM_PRICES.get(clean_sym, 2000.0) + _SIM_SPREADS.get(clean_sym, 0.20),
+                "tick_size": spec["tick_size"], "tick_value": spec["tick_value"],
+            }
+        if not self._connected:
+            return None
+        try:
+            self._parent_conn.send(("GET_SYMBOL_SPEC", (symbol,)))
+            if self._parent_conn.poll(5.0):
+                return self._parent_conn.recv()
+        except Exception as e:
+            logger.error(f"[{self.config.account_id}] get_symbol_spec failed: {e}")
+        return None
 
     def get_tick(self, symbol: str) -> Optional[Dict[str, Any]]:
         clean_sym = symbol.rstrip("m+.a").upper()
