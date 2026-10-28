@@ -43,3 +43,8 @@ Implement a secure server-side data bridge from the staging MT5 bot to a backend
 ## Git safety
 
 Never commit real `.env` files, credentials, service-role keys, account databases, logs with account details or backups. Keep secrets in Vercel/Supabase provider settings and use placeholder-only templates in Git.
+
+
+## Live trades feed (read-only)
+
+The optional publisher in app/vortext_dashboard.py emits signed, broker-confirmed MT5 snapshots. The /api/trades endpoint validates HMAC signatures for bot ingestion and verifies Supabase sessions plus an email allowlist for dashboard reads. No browser order endpoints exist. Follow docs/VORTEXT_LIVE_FEED_SETUP.md to restore the dedicated Supabase project and configure secrets before enabling the feed.

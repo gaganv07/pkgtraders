@@ -51,6 +51,7 @@ from app.trade_engine import TradeEngine
 from app.multi_account import MT5AccountManager, AccountRegistry, set_api_account_manager
 from reports.generator import ReportGenerator
 from dashboard.app import app as dash_app, inject
+from app.vortext_dashboard import VortextDashboardPublisher
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 
@@ -194,6 +195,7 @@ class Orchestrator:
         self._running  = False
         self._shutdown = asyncio.Event()
         self._tasks    = []
+        self.vortext_dashboard_publisher = VortextDashboardPublisher(mt5_client=self.client)
 
         # Counters / tracking
         self._tick_count:     int   = 0
@@ -262,6 +264,10 @@ class Orchestrator:
             asyncio.create_task(self._daily_report(),  name="daily_report"),
             asyncio.create_task(self._backup_loop(),   name="backup_loop"),
         ]
+        if self.vortext_dashboard_publisher.enabled:
+            self._tasks.append(asyncio.create_task(
+                self.vortext_dashboard_publisher.run(), name="vortext_dashboard_sync"
+            ))
 
         self.db.log_event("SYSTEM_START", "Multi-Market Bot started",
                           data={"balance": account["balance"],
