@@ -48,3 +48,10 @@ Never commit real `.env` files, credentials, service-role keys, account database
 ## Live trades feed (read-only)
 
 The optional publisher in app/vortext_dashboard.py emits signed, broker-confirmed MT5 snapshots. The /api/trades endpoint validates HMAC signatures for bot ingestion and verifies Supabase sessions plus an email allowlist for dashboard reads. No browser order endpoints exist. Follow docs/VORTEXT_LIVE_FEED_SETUP.md to restore the dedicated Supabase project and configure secrets before enabling the feed.
+
+
+## Android APK and technical feature disclosure
+
+- The landing page's Android guide links directly to the APK linked by MetaTrader's official Android page, and also offers the official product page as a fallback.
+- Market feature cards describe the implemented bot modules: DOM when broker Level II data is available; estimated tick-based fallback otherwise; tick order-flow metrics; market-microstructure detectors; multi-timeframe/volume analysis; risk controls; and execution reconciliation.
+- Do not represent a tick-based DOM fallback as true Level II/exchange order-book data. Availability varies by broker and instrument.
