@@ -4,7 +4,7 @@ This directory is the website root for the VORTEXT AI trading-bot demonstration.
 
 ## Current implementation
 
-- Responsive VORTEXT AI landing page and scalable SVG brand asset.
+- Responsive VORTEXT AI landing page using the supplied VORTEXT AI logo asset.
 - Sign-in page with Google, Apple and email magic-link options wired to Supabase Auth when configured.
 - Dashboard page checks the Supabase session before showing the dashboard shell.
 - Serverless `/api/auth-config` endpoint publishes only the browser-safe Supabase URL and publishable key; it never returns a service-role key.
