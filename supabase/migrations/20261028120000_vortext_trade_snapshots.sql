@@ -35,7 +35,7 @@ begin
         updated_at = pg_catalog.now()
     where current_row.captured_at < excluded.captured_at
   returning true into v_accepted;
-  return pg_catalog.jsonb_build_object('accepted', pg_catalog.coalesce(v_accepted, false));
+  return pg_catalog.jsonb_build_object('accepted', coalesce(v_accepted, false));
 end;
 $$;
 revoke all on function public.upsert_vortext_trade_snapshot(text, timestamptz, jsonb) from public, anon, authenticated;
