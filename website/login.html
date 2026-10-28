@@ -17,10 +17,13 @@ label{display:block;color:#d5e8e1;font-size:12px;font-weight:650;margin-bottom:7
 .notice{display:none;border:1px solid #3b6254;border-radius:10px;padding:11px 12px;margin:14px 0 0;color:#d6f7e9;font-size:12px;overflow-wrap:anywhere}.notice.show{display:block}.notice.warn{border-color:#76592b;background:#211a0d;color:#ffdfaa}.legal{font-size:11px;color:#829b91;margin-top:20px}.legal a{color:#c4f6e3;text-decoration:underline}.tiny{font-size:11px;color:#789085;margin-top:13px}
 footer{padding:18px 0;border-top:1px solid #17372d;color:#80978e;font-size:11px}
 @media(max-width:480px){.panel{padding:23px 19px}h1{font-size:27px}.logo{width:136px;max-width:40vw}.provider{min-height:50px}}
+.back-to-top{position:fixed;right:16px;bottom:18px;z-index:20;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid #00e6ad;background:#00e6ad;color:#052019;font-size:25px;font-weight:850;line-height:1;box-shadow:0 8px 28px #0006;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease;cursor:pointer}.back-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}.back-to-top:hover{background:#bfffea;border-color:#bfffea}.back-to-top:focus-visible{outline:3px solid #bfffea;outline-offset:4px}@media(prefers-reduced-motion:reduce){.back-to-top{transition:none}}
 </style>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261028-1">
+<link rel="shortcut icon" href="/favicon.svg?v=20261028-1">
 </head>
 <body>
-<header><div class="wrap row"><a href="/" aria-label="VORTEXT AI home"><img class="logo" src="/vortext-ai-logo.svg" alt="VORTEXT AI"></a><a class="back" href="/">← Back to home</a></div></header>
+<header><div class="wrap row"><a href="/" aria-label="VORTEXT AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261028-1" alt="VORTEXT AI"></a><a class="back" href="/">← Back to home</a></div></header>
 <main><section class="panel" aria-labelledby="heading">
 <div class="eyebrow">Secure dashboard access</div><h1 id="heading">Sign in to VORTEXT AI</h1>
 <p>Sign in to view your authorized trading dashboard. Your MT5 password is never requested here.</p>
@@ -88,6 +91,26 @@ footer{padding:18px 0;border-top:1px solid #17372d;color:#80978e;font-size:11px}
     else show("If this email is eligible, a secure sign-in link has been sent. Check your inbox.");
   });
   init();
+})();
+</script>
+<button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
+<script>
+(function(){
+  const button=document.getElementById("back-to-top");
+  if(!button)return;
+  let queued=false;
+  function sync(){
+    button.classList.toggle("is-visible",window.scrollY>320);
+    queued=false;
+  }
+  window.addEventListener("scroll",function(){
+    if(!queued){queued=true;window.requestAnimationFrame(sync);}
+  },{passive:true});
+  button.addEventListener("click",function(){
+    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({top:0,behavior:reduced?"auto":"smooth"});
+  });
+  sync();
 })();
 </script>
 </body>

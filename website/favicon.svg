@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>VORTEXT AI</title>
+  <defs><linearGradient id="t" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a9ffd5"/><stop offset=".5" stop-color="#00e6ad"/><stop offset="1" stop-color="#008d74"/></linearGradient></defs>
+  <path d="M4 7H20L37 29H46L38 37L32 31L16 12H11L28 33L33 38L27 44Z" fill="url(#t)"/>
+  <g stroke="#00e6ad" stroke-width="3" stroke-linecap="round"><path d="M43 29V49M51 18V42M59 8V29"/></g>
+  <g fill="url(#t)"><rect x="40" y="34" width="6" height="10" rx="1"/><rect x="48" y="24" width="6" height="11" rx="1"/><rect x="56" y="13" width="6" height="10" rx="1"/></g>
+</svg>

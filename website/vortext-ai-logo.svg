@@ -1,47 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 860" role="img" aria-labelledby="vortext-title vortext-desc">
-  <title id="vortext-title">VORTEXT AI</title>
-  <desc id="vortext-desc">Teal geometric V with rising candlesticks, VORTEXT AI wordmark, Markets Move. We Adapt tagline, and 8 Pairs AI Trading Bot. Transparent background.</desc>
-  <defs>
-    <linearGradient id="vortext-teal" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#a9ffd5"/>
-      <stop offset=".38" stop-color="#00efb3"/>
-      <stop offset=".72" stop-color="#00c99b"/>
-      <stop offset="1" stop-color="#008d74"/>
-    </linearGradient>
-    <linearGradient id="vortext-silver" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset=".58" stop-color="#eaf2f3"/>
-      <stop offset="1" stop-color="#aebdc3"/>
-    </linearGradient>
-    <linearGradient id="candle-green" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#20ffc0"/>
-      <stop offset="1" stop-color="#00a982"/>
-    </linearGradient>
-    <filter id="soft-glow" x="-25%" y="-25%" width="150%" height="150%">
-      <feGaussianBlur stdDeviation="5" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
-  </defs>
-  <g filter="url(#soft-glow)">
-    <path d="M176 82 H433 L672 369 H761 L694 435 L632 372 L414 123 H303 L523 371 L587 438 L522 503 Z" fill="url(#vortext-teal)"/>
-    <path d="M176 82 H433 L672 369 H761 L694 435 L632 372 L414 123 H303 L523 371 L587 438 L522 503 Z" fill="none" stroke="#29ffd0" stroke-opacity=".24" stroke-width="3" stroke-linejoin="round"/>
-  </g>
-  <g stroke="url(#candle-green)" stroke-width="8" stroke-linecap="round">
-    <path d="M760 270 V424"/>
-    <path d="M850 205 V365"/>
-    <path d="M940 145 V292"/>
-    <path d="M1030 65 V228"/>
-  </g>
-  <g fill="url(#candle-green)">
-    <rect x="742" y="304" width="36" height="88" rx="1"/>
-    <rect x="832" y="235" width="36" height="83" rx="1"/>
-    <rect x="922" y="181" width="36" height="67" rx="1"/>
-    <rect x="1012" y="109" width="36" height="75" rx="1"/>
-  </g>
-  <g font-family="Arial, Helvetica, sans-serif" font-weight="800">
-    <text x="590" y="638" text-anchor="middle" font-size="125" letter-spacing="7" fill="url(#vortext-silver)">VORTEXT</text>
-    <text x="1032" y="638" text-anchor="middle" font-size="125" letter-spacing="3" fill="url(#vortext-teal)">AI</text>
-  </g>
-  <text x="600" y="713" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="600" letter-spacing="9" fill="#d5fff3">MARKETS MOVE. WE ADAPT.</text>
-  <text x="600" y="784" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="8" fill="#00e6ad">8 PAIRS  |  AI TRADING BOT</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 275" role="img" aria-labelledby="title desc">
+  <title id="title">VORTEXT AI</title>
+  <desc id="desc">Original VORTEXT AI logo, transparent background.</desc>
+  <image href="/vortext-ai-logo.webp" width="400" height="275" preserveAspectRatio="xMidYMid meet"/>
 </svg>
