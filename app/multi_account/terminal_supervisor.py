@@ -27,8 +27,25 @@ from app.multi_account.mt5_session import IMT5Session
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_TERMINAL_BASE_DIR = Path(r"D:\MT5_Terminals")
+
+def _get_default_terminal_base_dir() -> Path:
+    env_dir = os.getenv("MT5_TERMINALS_DIR")
+    if env_dir:
+        return Path(env_dir)
+    d_path = Path(r"D:\MT5_Terminals")
+    try:
+        if d_path.drive and os.path.exists(d_path.drive):
+            total, used, free = shutil.disk_usage(d_path.drive)
+            if free > 1024 * 1024 * 1024:  # > 1 GB free
+                return d_path
+    except Exception:
+        pass
+    return Path(r"C:\MT5_Terminals")
+
+
+DEFAULT_TERMINAL_BASE_DIR = _get_default_terminal_base_dir()
 PRIMARY_TERMINAL_EXE = Path(r"C:\Program Files\MetaTrader 5\terminal64.exe")
+
 
 
 @dataclass

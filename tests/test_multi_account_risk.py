@@ -15,17 +15,17 @@ def test_independent_position_sizing_across_balances():
     manager = MT5AccountManager(registry=registry)
 
     # Account A: $1,000 balance, 1% risk
-    cfg_a = AccountConfig(account_id="acc_a", login=1001, password="p", magic_number=1001, risk_per_trade_pct=1.0)
+    cfg_a = AccountConfig(account_id="acc_a", login=1001, password="p", magic_number=1001, risk_per_trade_pct=1.0, dry_run=True)
     ctx_a = manager.add_account(cfg_a)
     ctx_a.update_snapshot(balance=1000.0, equity=1000.0)
 
     # Account B: $10,000 balance, 1% risk
-    cfg_b = AccountConfig(account_id="acc_b", login=1002, password="p", magic_number=1002, risk_per_trade_pct=1.0)
+    cfg_b = AccountConfig(account_id="acc_b", login=1002, password="p", magic_number=1002, risk_per_trade_pct=1.0, dry_run=True)
     ctx_b = manager.add_account(cfg_b)
     ctx_b.update_snapshot(balance=10000.0, equity=10000.0)
 
     # Account C: $50,000 balance, 0.5% risk
-    cfg_c = AccountConfig(account_id="acc_c", login=1003, password="p", magic_number=1003, risk_per_trade_pct=0.5)
+    cfg_c = AccountConfig(account_id="acc_c", login=1003, password="p", magic_number=1003, risk_per_trade_pct=0.5, dry_run=True)
     ctx_c = manager.add_account(cfg_c)
     ctx_c.update_snapshot(balance=50000.0, equity=50000.0)
 

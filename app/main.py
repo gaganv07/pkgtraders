@@ -48,7 +48,7 @@ from app.performance import PerformanceTracker
 from app.ml_layer import MLLayer
 from app.risk_manager import RiskManager
 from app.trade_engine import TradeEngine
-from app.multi_account import MT5AccountManager, AccountRegistry, set_api_account_manager
+from app.multi_account import MT5AccountManager, AccountRegistry, set_api_account_manager, get_terminal_supervisor
 from reports.generator import ReportGenerator
 from dashboard.app import app as dash_app, inject
 
@@ -63,6 +63,12 @@ def _setup_logging() -> logging.Logger:
     root.setLevel(level)
     root.handlers.clear()
 
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
     ch = logging.StreamHandler(sys.stdout)
     ch.setFormatter(logging.Formatter(
         "\033[90m%(asctime)s\033[0m %(levelname)s "
@@ -71,7 +77,21 @@ def _setup_logging() -> logging.Logger:
     ))
     root.addHandler(ch)
 
-    fh = logging.handlers.TimedRotatingFileHandler(
+    class SafeTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):
+        def doRollover(self):
+            try:
+                super().doRollover()
+            except PermissionError:
+                pass
+
+    class SafeRotatingFileHandler(logging.handlers.RotatingFileHandler):
+        def doRollover(self):
+            try:
+                super().doRollover()
+            except PermissionError:
+                pass
+
+    fh = SafeTimedRotatingFileHandler(
         log_dir / "xauusd_pro.log",
         when="midnight", backupCount=30, encoding="utf-8", utc=True,
     )
@@ -82,7 +102,7 @@ def _setup_logging() -> logging.Logger:
     ))
     root.addHandler(fh)
 
-    eh = logging.handlers.RotatingFileHandler(
+    eh = SafeRotatingFileHandler(
         log_dir / "errors.log",
         maxBytes=20 * 1024 * 1024, backupCount=5, encoding="utf-8",
     )
@@ -169,13 +189,36 @@ class Orchestrator:
         if loaded_count == 0:
             self.account_registry.load_default_from_env()
 
+        # Desktop execution account resolution & single-desktop isolation
+        desktop_account_id = os.getenv(
+            "DESKTOP_EXECUTION_ACCOUNT",
+            getattr(settings.mt5, "desktop_execution_account", "account_003"),
+        )
+
+        # Enforce desktop single-terminal isolation:
+        # Non-selected live accounts are preserved in configuration for future isolated execution,
+        # but marked disabled for the shared desktop session context to prevent mt5.login() collisions.
+        for cfg in self.account_registry.get_all():
+            if cfg.account_id != desktop_account_id and not cfg.dry_run and not (cfg.bridge_port and cfg.bridge_port > 0):
+                logger.info(
+                    f"[DESKTOP_ISOLATION] Account '{cfg.account_id}' (#{cfg.login}) is preserved in configuration, "
+                    f"but disabled for shared desktop MT5 context. Selected desktop execution account: '{desktop_account_id}'."
+                )
+                cfg.enabled = False
+
         self.account_mgr = MT5AccountManager(
             registry=self.account_registry,
             database=self.db,
             max_accounts=int(os.getenv("MAX_ACCOUNTS", "10")),
         )
+        supervisor = get_terminal_supervisor()
+        session_mode = os.getenv("SESSION_MODE", "direct")
         for cfg in self.account_registry.get_all():
-            self.account_mgr.add_account(cfg)
+            if cfg.enabled and not cfg.dry_run and session_mode == "process":
+                supervisor.start_terminal(cfg)
+            if cfg.enabled:
+                self.account_mgr.add_account(cfg, session_mode=session_mode)
+
 
         # Inject account manager into trade engine for fan-out execution
         self.engine.set_account_manager(self.account_mgr)
@@ -194,6 +237,7 @@ class Orchestrator:
         self._running  = False
         self._shutdown = asyncio.Event()
         self._tasks    = []
+        self.vortext_publisher = None
 
         # Counters / tracking
         self._tick_count:     int   = 0
@@ -226,11 +270,30 @@ class Orchestrator:
         # Narrow tracked symbols to those confirmed by broker
         confirmed = [s for s in self._symbols if s in active or not active]
 
-        # 3. Initial account state
+        # 3. Initial account state & desktop execution validation
         account = self.client.get_account()
-        if not account or account.get("login") != settings.mt5.login:
+        desktop_account_id = os.getenv(
+            "DESKTOP_EXECUTION_ACCOUNT",
+            getattr(settings.mt5, "desktop_execution_account", "account_003"),
+        )
+        target_cfg = self.account_registry.get(desktop_account_id)
+
+        if not target_cfg:
+            raise RuntimeError(
+                f"DESKTOP ISOLATION FAIL SAFE: Selected desktop execution account '{desktop_account_id}' "
+                f"was not found in account registry."
+            )
+
+        target_login = target_cfg.login if target_cfg else settings.mt5.login
+        actual_login = account.get("login") if account else 0
+
+        if not account or (target_login != 0 and actual_login != target_login):
             print("\nERROR: Connected to the wrong account.\n")
-            raise RuntimeError(f"ERROR: Connected to the wrong account. Target: #{settings.mt5.login}, Got: #{getattr(account, 'get', lambda k:0)('login')} on server '{getattr(account, 'get', lambda k:'Unknown')('server')}'")
+            raise RuntimeError(
+                f"ERROR: Connected to the wrong account. Selected desktop account '{desktop_account_id}' "
+                f"requires login #{target_login}, but connected desktop MT5 terminal is logged into "
+                f"#{actual_login} on server '{account.get('server') if account else 'Unknown'}'"
+            )
         self.risk.initialize(account["balance"])
         self.perf = PerformanceTracker(account["balance"])
         self.engine.set_close_callback(self.perf.record_trade)
@@ -263,11 +326,28 @@ class Orchestrator:
             asyncio.create_task(self._backup_loop(),   name="backup_loop"),
         ]
 
+        # 6b. Start VORTEXT Live Feed Publisher if configured
+        try:
+            from app.vortext_dashboard import VortextDashboardPublisher
+            self.vortext_publisher = VortextDashboardPublisher(
+                account_manager=self.account_mgr,
+                mt5_client=self.client,
+            )
+            if self.vortext_publisher.enabled:
+                self._tasks.append(
+                    asyncio.create_task(self.vortext_publisher.run(), name="vortext_live_feed")
+                )
+                logger.info("[VORTEXT] Live feed publisher task started")
+            else:
+                logger.info("[VORTEXT] Live feed publisher is disabled in configuration")
+        except Exception as exc:
+            logger.warning(f"[VORTEXT] Live feed publisher init error: {exc}")
+
         self.db.log_event("SYSTEM_START", "Multi-Market Bot started",
                           data={"balance": account["balance"],
                                 "symbols": self._symbols})
         logger.info(
-            f"✅ Live — {len(confirmed)} symbols active "
+            f"[OK] Live -- {len(confirmed)} symbols active "
             f"dom={'active' if self.client.dom_active else 'fallback'}"
         )
         print("\n" + "=" * 40)
@@ -288,9 +368,13 @@ class Orchestrator:
         self._running = False
         logger.info(f"Shutdown: {reason}")
 
+        current = asyncio.current_task()
         for t in self._tasks:
-            t.cancel()
-        await asyncio.gather(*self._tasks, return_exceptions=True)
+            if t is not current and not t.done():
+                t.cancel()
+        other_tasks = [t for t in self._tasks if t is not current]
+        if other_tasks:
+            await asyncio.gather(*other_tasks, return_exceptions=True)
 
         if any(kw in reason.lower() for kw in ("emergency", "critical", "drawdown")):
             await self.engine.emergency_close()

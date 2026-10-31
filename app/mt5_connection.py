@@ -186,11 +186,9 @@ class MT5ConnectionManager:
             conn_log.info(f"MT5 initialization attempt {attempt}/{max_retries}...")
             
             init_ok = False
-            if self.is_terminal_process_running():
-                init_ok = mt5.initialize()
-            elif self.path and os.path.exists(self.path):
+            if self.path and os.path.exists(self.path):
                 init_ok = mt5.initialize(path=self.path)
-            else:
+            if not init_ok:
                 init_ok = mt5.initialize()
 
             if init_ok:
@@ -211,7 +209,14 @@ class MT5ConnectionManager:
 
         # 4. Login execution (check if already logged into target account first)
         acct_info = mt5.account_info()
-        if acct_info is None or acct_info.login != self.login:
+        if acct_info is not None and self.login != 0 and acct_info.login != self.login:
+            conn_log.warning(
+                f"[LOGIN] Active MT5 terminal login #{acct_info.login} does not match requested login #{self.login}. "
+                f"Refusing cross-account mt5.login() on shared terminal."
+            )
+            return ConnectionCheckResult(False, "ACCOUNT_MISMATCH", f"Refused cross-account login switch from #{acct_info.login} to #{self.login}", -998)
+
+        if acct_info is None:
             conn_log.info(f"[LOGIN] Attempting login for Account #{self.login} on server '{self.server}'...")
             login_ok = False
             if self.server:
@@ -238,7 +243,7 @@ class MT5ConnectionManager:
 
         self.is_connected = True
         mode_str = "DEMO" if getattr(acct_info, "trade_mode", 0) == 0 else "LIVE"
-        conn_log.info(f"✅ [LOGIN] Login verified for Account #{self.login} on server '{acct_info.server}' ({mode_str} MODE)")
+        conn_log.info(f"[OK] [LOGIN] Login verified for Account #{self.login} on server '{acct_info.server}' ({mode_str} MODE)")
         return ConnectionCheckResult(True, "LOGIN", "Login successful")
 
     def disconnect_mt5(self) -> None:

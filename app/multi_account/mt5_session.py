@@ -12,6 +12,7 @@ Provides:
 from __future__ import annotations
 
 import logging
+import math
 import multiprocessing as mp
 import os
 import random
@@ -21,7 +22,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from app.mt5_client import FillResult, PositionSnapshot, _SIM_PRICES, _SIM_SPREADS, _SIM_TICK_SPECS
+from app.mt5_client import FillResult, PositionSnapshot, _SIM_CONTRACT, _SIM_PRICES, _SIM_SPREADS, _SIM_TICK_SPECS
 from app.multi_account.account_registry import AccountConfig, mask_credential
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,58 @@ try:
 except ImportError:
     mt5 = None
     MT5_AVAILABLE = False
+
+
+def _normalize_simulated_symbol(symbol: str) -> str:
+    """Normalize known broker suffixes before looking up local simulation data."""
+    return str(symbol or "").rstrip("m+.a").upper()
+
+
+def _simulated_symbol_spec(symbol: str) -> Optional[Dict[str, Any]]:
+    """Return a complete simulated contract spec, never borrowing another symbol's data."""
+    clean_symbol = _normalize_simulated_symbol(symbol)
+    spec = _SIM_TICK_SPECS.get(clean_symbol)
+    contract_size = _SIM_CONTRACT.get(clean_symbol)
+    bid = _SIM_PRICES.get(clean_symbol)
+    spread = _SIM_SPREADS.get(clean_symbol)
+    if spec is None or contract_size is None or bid is None or spread is None:
+        logger.warning(
+            "No complete simulation contract is configured for %s; refusing fallback data",
+            clean_symbol or "<empty>",
+        )
+        return None
+
+    return {
+        "digits": spec["digits"],
+        "point": spec["point"],
+        "spread": 15,
+        "contract_size": contract_size,
+        "vol_min": spec["vol_min"],
+        "vol_max": spec["vol_max"],
+        "vol_step": spec["vol_step"],
+        "bid": bid,
+        "ask": bid + spread,
+        "tick_size": spec["tick_size"],
+        "tick_value": spec["tick_value"],
+    }
+
+
+def _simulated_tick(symbol: str) -> Optional[Dict[str, Any]]:
+    """Return a simulated quote only when that symbol has explicit quote data."""
+    clean_symbol = _normalize_simulated_symbol(symbol)
+    bid = _SIM_PRICES.get(clean_symbol)
+    spread = _SIM_SPREADS.get(clean_symbol)
+    if bid is None or spread is None:
+        logger.warning(
+            "No simulated quote is configured for %s; refusing fallback price",
+            clean_symbol or "<empty>",
+        )
+        return None
+    return {
+        "bid": bid,
+        "ask": bid + spread,
+        "time": datetime.now(timezone.utc),
+    }
 
 
 class IMT5Session(ABC):
@@ -61,6 +114,16 @@ class IMT5Session(ABC):
     def get_positions(self, symbol: Optional[str] = None, all_magic: bool = False) -> List[PositionSnapshot]:
         """Fetch active positions. If all_magic=False, filters by account's magic number."""
         pass
+
+    def get_history_deals(
+        self,
+        start: Optional[Any] = None,
+        end: Optional[Any] = None,
+        all_magic: bool = False,
+        days: int = 7,
+    ) -> List[Dict[str, Any]]:
+        """Fetch closed deal history for this account. If all_magic=False, filters by account's magic number."""
+        return []
 
     @abstractmethod
     def get_symbol_spec(self, symbol: str) -> Optional[Dict[str, Any]]:
@@ -122,6 +185,46 @@ class MT5DirectSession(IMT5Session):
         self._sim_balance: float = getattr(config, "initial_balance", 10000.0)
         self._sim_equity: float = self._sim_balance
         self._positions: List[PositionSnapshot] = []
+        self._symbol_cache: Dict[str, str] = {}
+
+    def resolve_symbol(self, symbol: str) -> str:
+        """Resolve canonical symbol to actual broker symbol in MT5."""
+        if not symbol:
+            return "XAUUSD"
+        if self.config.dry_run or not MT5_AVAILABLE:
+            return symbol
+
+        if symbol in self._symbol_cache:
+            return self._symbol_cache[symbol]
+
+        info = mt5.symbol_info(symbol)
+        if info is not None:
+            self._symbol_cache[symbol] = symbol
+            return symbol
+
+        try:
+            from app.symbol_manager import CANONICAL_ALIASES
+            aliases = CANONICAL_ALIASES.get(symbol, [])
+            for alias in aliases:
+                info = mt5.symbol_info(alias)
+                if info is not None:
+                    mt5.symbol_select(alias, True)
+                    self._symbol_cache[symbol] = alias
+                    logger.info(f"[{self.config.account_id}] Resolved symbol {symbol} -> {alias}")
+                    return alias
+        except Exception as e:
+            logger.warning(f"[{self.config.account_id}] Symbol alias lookup failed for {symbol}: {e}")
+
+        clean = symbol.rstrip("m+.a").upper()
+        for variant in [clean, f"{clean}.r", f"{clean}m", f"{clean}.a", f"{clean}+", f"{clean}p", f"{clean}.cash"]:
+            info = mt5.symbol_info(variant)
+            if info is not None:
+                mt5.symbol_select(variant, True)
+                self._symbol_cache[symbol] = variant
+                logger.info(f"[{self.config.account_id}] Resolved symbol {symbol} -> {variant}")
+                return variant
+
+        return symbol
 
     def set_sim_balance(self, balance: float, equity: Optional[float] = None) -> None:
         """Dynamically set simulated balance and equity."""
@@ -147,6 +250,14 @@ class MT5DirectSession(IMT5Session):
             if not init_ok:
                 err = mt5.last_error()
                 logger.error(f"[{self.config.account_id}] mt5.initialize failed: {err}")
+                return False
+
+            curr_acct = mt5.account_info()
+            if curr_acct and curr_acct.login != self.config.login:
+                logger.warning(
+                    f"[{self.config.account_id}] Active MT5 terminal login #{curr_acct.login} "
+                    f"does not match session login #{self.config.login}. Refusing cross-account mt5.login()."
+                )
                 return False
 
             pwd = self.config.resolve_password()
@@ -203,6 +314,13 @@ class MT5DirectSession(IMT5Session):
             }
 
         info = mt5.account_info()
+        if info and info.login != self.config.login:
+            logger.warning(
+                f"[{self.config.account_id}] Active MT5 terminal login #{info.login} "
+                f"does not match requested session login #{self.config.login}. Refusing cross-account mt5.login()."
+            )
+            return None
+
         if not info:
             return None
         return {
@@ -230,7 +348,8 @@ class MT5DirectSession(IMT5Session):
                 candidates = [p for p in candidates if p.magic == self.config.magic_number]
             return list(candidates)
 
-        raw = mt5.positions_get(symbol=symbol) if symbol else mt5.positions_get()
+        broker_sym = self.resolve_symbol(symbol) if symbol else None
+        raw = mt5.positions_get(symbol=broker_sym) if broker_sym else mt5.positions_get()
         if not raw:
             return []
 
@@ -258,27 +377,126 @@ class MT5DirectSession(IMT5Session):
             )
         return res
 
-    def get_symbol_spec(self, symbol: str) -> Optional[Dict[str, Any]]:
-        clean_sym = symbol.rstrip("m+.a").upper()
-        if self.config.dry_run or not MT5_AVAILABLE:
-            spec = _SIM_TICK_SPECS.get(clean_sym, _SIM_TICK_SPECS.get("XAUUSD"))
-            return {
-                "digits": spec["digits"],
-                "point": spec["point"],
-                "spread": 15,
-                "contract_size": 100.0 if "XAU" in clean_sym else 100000.0,
-                "vol_min": spec["vol_min"],
-                "vol_max": spec["vol_max"],
-                "vol_step": spec["vol_step"],
-                "bid": _SIM_PRICES.get(clean_sym, 2000.0),
-                "ask": _SIM_PRICES.get(clean_sym, 2000.0) + _SIM_SPREADS.get(clean_sym, 0.20),
-                "tick_size": spec["tick_size"],
-                "tick_value": spec["tick_value"],
-            }
+    def get_history_deals(
+        self,
+        start: Optional[Any] = None,
+        end: Optional[Any] = None,
+        all_magic: bool = False,
+        days: int = 7,
+    ) -> List[Dict[str, Any]]:
+        """Fetch closed deal history for this account."""
+        if not self._connected:
+            return []
 
-        info = mt5.symbol_info(symbol)
+        if self.config.dry_run or not MT5_AVAILABLE:
+            return []
+
+        now_utc = datetime.now(timezone.utc)
+        if end is None:
+            end_dt = now_utc
+        elif isinstance(end, (int, float)):
+            end_dt = datetime.fromtimestamp(end, tz=timezone.utc)
+        elif isinstance(end, datetime):
+            end_dt = end if end.tzinfo else end.replace(tzinfo=timezone.utc)
+        else:
+            end_dt = now_utc
+
+        if start is None:
+            from datetime import timedelta
+            start_dt = end_dt - timedelta(days=days)
+        elif isinstance(start, (int, float)):
+            start_dt = datetime.fromtimestamp(start, tz=timezone.utc)
+        elif isinstance(start, datetime):
+            start_dt = start if start.tzinfo else start.replace(tzinfo=timezone.utc)
+        else:
+            from datetime import timedelta
+            start_dt = end_dt - timedelta(days=days)
+
+        try:
+            raw = mt5.history_deals_get(start_dt, end_dt)
+        except Exception as exc:
+            logger.warning(f"[{self.config.account_id}] Failed to get history deals: {exc}")
+            return []
+
+        if not raw:
+            return []
+
+        res: List[Dict[str, Any]] = []
+        for d in raw:
+            deal_magic = getattr(d, "magic", 0)
+            if not all_magic and deal_magic != self.config.magic_number:
+                continue
+
+            deal_type = getattr(d, "type", 0)
+            if deal_type == mt5.DEAL_TYPE_BUY:
+                side = "buy"
+            elif deal_type == mt5.DEAL_TYPE_SELL:
+                side = "sell"
+            else:
+                continue
+
+            entry_code = getattr(d, "entry", 0)
+            entry_map = {
+                mt5.DEAL_ENTRY_IN: "in",
+                mt5.DEAL_ENTRY_OUT: "out",
+                mt5.DEAL_ENTRY_INOUT: "inout",
+                mt5.DEAL_ENTRY_OUT_BY: "out_by",
+            }
+            entry_str = entry_map.get(entry_code, "other")
+
+            deal_time = getattr(d, "time", 0)
+            deal_time_iso = None
+            if deal_time:
+                try:
+                    deal_time_iso = datetime.fromtimestamp(deal_time, tz=timezone.utc).isoformat()
+                except Exception:
+                    pass
+
+            profit = float(getattr(d, "profit", 0.0) or 0.0)
+            commission = float(getattr(d, "commission", 0.0) or 0.0)
+            swap = float(getattr(d, "swap", 0.0) or 0.0)
+            fee = float(getattr(d, "fee", 0.0) or 0.0)
+
+            res.append({
+                "ticket": str(getattr(d, "ticket", "")),
+                "order": str(getattr(d, "order", "")),
+                "position_id": str(getattr(d, "position_id", getattr(d, "order", ""))),
+                "symbol": str(getattr(d, "symbol", "")),
+                "side": side,
+                "entry": entry_str,
+                "volume": float(getattr(d, "volume", 0.0) or 0.0),
+                "price": float(getattr(d, "price", 0.0) or 0.0),
+                "profit": profit,
+                "commission": commission,
+                "swap": swap,
+                "fee": fee,
+                "net_profit": profit + commission + swap + fee,
+                "time": deal_time_iso,
+                "reason": str(getattr(d, "reason", "")),
+                "magic": deal_magic,
+                "comment": str(getattr(d, "comment", "")),
+            })
+        return res
+
+    def get_symbol_spec(self, symbol: str) -> Optional[Dict[str, Any]]:
+        if self.config.dry_run or not MT5_AVAILABLE:
+            return _simulated_symbol_spec(symbol)
+
+        broker_sym = self.resolve_symbol(symbol)
+        info = mt5.symbol_info(broker_sym)
         if not info:
             return None
+        # P52-03: Strict validation of required monetary tick values (Fail-closed; NO point substitution)
+        if info.trade_tick_value is None or not math.isfinite(info.trade_tick_value) or info.trade_tick_value <= 0:
+            logger.warning(f"[{self.config.account_id}][{broker_sym}] Invalid trade_tick_value ({getattr(info, 'trade_tick_value', None)}). Point substitution strictly barred.")
+            return None
+        if info.trade_tick_size is None or not math.isfinite(info.trade_tick_size) or info.trade_tick_size <= 0:
+            logger.warning(f"[{self.config.account_id}][{broker_sym}] Invalid trade_tick_size ({getattr(info, 'trade_tick_size', None)}). Refusing spec.")
+            return None
+        if info.trade_contract_size is None or not math.isfinite(info.trade_contract_size) or info.trade_contract_size <= 0:
+            logger.warning(f"[{self.config.account_id}][{broker_sym}] Invalid trade_contract_size ({getattr(info, 'trade_contract_size', None)}). Refusing spec.")
+            return None
+
         return {
             "digits": info.digits,
             "point": info.point,
@@ -289,22 +507,16 @@ class MT5DirectSession(IMT5Session):
             "vol_step": info.volume_step,
             "bid": info.bid,
             "ask": info.ask,
-            "tick_size": info.trade_tick_size if info.trade_tick_size > 0 else info.point,
-            "tick_value": info.trade_tick_value if info.trade_tick_value > 0 else info.point,
+            "tick_size": info.trade_tick_size,
+            "tick_value": info.trade_tick_value,
         }
 
     def get_tick(self, symbol: str) -> Optional[Dict[str, Any]]:
-        clean_sym = symbol.rstrip("m+.a").upper()
         if self.config.dry_run or not MT5_AVAILABLE:
-            base = _SIM_PRICES.get(clean_sym, 2000.0)
-            spread = _SIM_SPREADS.get(clean_sym, 0.20)
-            return {
-                "bid": base,
-                "ask": base + spread,
-                "time": datetime.now(timezone.utc),
-            }
+            return _simulated_tick(symbol)
 
-        tick = mt5.symbol_info_tick(symbol)
+        broker_sym = self.resolve_symbol(symbol)
+        tick = mt5.symbol_info_tick(broker_sym)
         if not tick:
             return None
         return {
@@ -358,13 +570,14 @@ class MT5DirectSession(IMT5Session):
             return FillResult(success=False, error="MetaTrader5 package not installed")
 
         t0 = time.time()
-        tick = mt5.symbol_info_tick(symbol)
+        broker_sym = self.resolve_symbol(symbol)
+        tick = mt5.symbol_info_tick(broker_sym)
         if not tick:
-            return FillResult(success=False, error=f"No tick for {symbol}")
+            return FillResult(success=False, error=f"No tick for {broker_sym}")
 
         req = {
             "action": mt5.TRADE_ACTION_DEAL,
-            "symbol": symbol,
+            "symbol": broker_sym,
             "volume": float(volume),
             "type": mt5.ORDER_TYPE_BUY,
             "price": tick.ask,
@@ -438,13 +651,14 @@ class MT5DirectSession(IMT5Session):
             return FillResult(success=False, error="MetaTrader5 package not installed")
 
         t0 = time.time()
-        tick = mt5.symbol_info_tick(symbol)
+        broker_sym = self.resolve_symbol(symbol)
+        tick = mt5.symbol_info_tick(broker_sym)
         if not tick:
-            return FillResult(success=False, error=f"No tick for {symbol}")
+            return FillResult(success=False, error=f"No tick for {broker_sym}")
 
         req = {
             "action": mt5.TRADE_ACTION_DEAL,
-            "symbol": symbol,
+            "symbol": broker_sym,
             "volume": float(volume),
             "type": mt5.ORDER_TYPE_SELL,
             "price": tick.bid,
@@ -484,9 +698,10 @@ class MT5DirectSession(IMT5Session):
                     p.tp = tp
             return FillResult(success=True, ticket=ticket)
 
+        broker_sym = self.resolve_symbol(symbol)
         req = {
             "action": mt5.TRADE_ACTION_SLTP,
-            "symbol": symbol,
+            "symbol": broker_sym,
             "position": ticket,
             "sl": float(sl),
             "tp": float(tp),
@@ -513,9 +728,12 @@ class MT5DirectSession(IMT5Session):
             return FillResult(success=False, error=f"Ticket {ticket} not found")
 
         pos = positions[0]
+        sym = pos.symbol or self.resolve_symbol(symbol or "XAUUSD")
         vol = volume or pos.volume
         close_type = mt5.ORDER_TYPE_SELL if pos.type == mt5.POSITION_TYPE_BUY else mt5.ORDER_TYPE_BUY
         tick = mt5.symbol_info_tick(sym)
+        if not tick:
+            return FillResult(success=False, error=f"No tick for {sym}")
         price = tick.bid if close_type == mt5.ORDER_TYPE_SELL else tick.ask
 
         req = {
@@ -570,6 +788,33 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
     magic = config_dict.get("magic_number", 20250701)
 
     connected = False
+    _worker_sym_cache: Dict[str, str] = {}
+
+    def _resolve_worker_sym(s: str) -> str:
+        if dry_run or not has_mt5 or not s:
+            return s
+        if s in _worker_sym_cache:
+            return _worker_sym_cache[s]
+        info = worker_mt5.symbol_info(s)
+        if info is not None:
+            _worker_sym_cache[s] = s
+            return s
+        try:
+            from app.symbol_manager import CANONICAL_ALIASES
+            for alias in CANONICAL_ALIASES.get(s, []):
+                if worker_mt5.symbol_info(alias) is not None:
+                    worker_mt5.symbol_select(alias, True)
+                    _worker_sym_cache[s] = alias
+                    return alias
+        except Exception:
+            pass
+        clean = s.rstrip("m+.a").upper()
+        for variant in [clean, f"{clean}.r", f"{clean}m", f"{clean}.a", f"{clean}+", f"{clean}p", f"{clean}.cash"]:
+            if worker_mt5.symbol_info(variant) is not None:
+                worker_mt5.symbol_select(variant, True)
+                _worker_sym_cache[s] = variant
+                return variant
+        return s
 
     while True:
         try:
@@ -586,6 +831,14 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
                 init_ok = worker_mt5.initialize(path=terminal_path) if terminal_path and os.path.exists(terminal_path) else worker_mt5.initialize()
                 if not init_ok:
                     pipe.send({"ok": False, "error": str(worker_mt5.last_error())})
+                    continue
+
+                curr_acct = worker_mt5.account_info()
+                if curr_acct and curr_acct.login != login:
+                    logger.warning(
+                        f"[WORKER] Active MT5 login #{curr_acct.login} does not match target login #{login}. Refusing cross-account worker_mt5.login()."
+                    )
+                    pipe.send({"ok": False, "error": f"Refused cross-account worker_mt5.login() from #{curr_acct.login} to #{login}"})
                     continue
 
                 login_ok = worker_mt5.login(login=login, password=password, server=server)
@@ -644,13 +897,14 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
                 if dry_run or not has_mt5:
                     pipe.send({"success": True, "ticket": 900000 + random.randint(100, 999), "price": 2000.0, "volume": vol})
                 else:
-                    tick = worker_mt5.symbol_info_tick(sym)
+                    bsym = _resolve_worker_sym(sym)
+                    tick = worker_mt5.symbol_info_tick(bsym)
                     if not tick:
-                        pipe.send({"success": False, "error": "No tick"})
+                        pipe.send({"success": False, "error": f"No tick for {bsym}"})
                         continue
                     req = {
                         "action": worker_mt5.TRADE_ACTION_DEAL,
-                        "symbol": sym,
+                        "symbol": bsym,
                         "volume": float(vol),
                         "type": worker_mt5.ORDER_TYPE_BUY,
                         "price": tick.ask,
@@ -673,13 +927,14 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
                 if dry_run or not has_mt5:
                     pipe.send({"success": True, "ticket": 900000 + random.randint(100, 999), "price": 2000.0, "volume": vol})
                 else:
-                    tick = worker_mt5.symbol_info_tick(sym)
+                    bsym = _resolve_worker_sym(sym)
+                    tick = worker_mt5.symbol_info_tick(bsym)
                     if not tick:
-                        pipe.send({"success": False, "error": "No tick"})
+                        pipe.send({"success": False, "error": f"No tick for {bsym}"})
                         continue
                     req = {
                         "action": worker_mt5.TRADE_ACTION_DEAL,
-                        "symbol": sym,
+                        "symbol": bsym,
                         "volume": float(vol),
                         "type": worker_mt5.ORDER_TYPE_SELL,
                         "price": tick.bid,
@@ -703,7 +958,8 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
                 if dry_run or not has_mt5:
                     pipe.send([])
                 else:
-                    raw = worker_mt5.positions_get(symbol=sym) if sym else worker_mt5.positions_get()
+                    bsym = _resolve_worker_sym(sym) if sym else None
+                    raw = worker_mt5.positions_get(symbol=bsym) if bsym else worker_mt5.positions_get()
                     if not raw:
                         pipe.send([])
                     else:
@@ -718,6 +974,122 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
                                     "profit": p.profit, "magic": p.magic, "comment": p.comment,
                                 })
                         pipe.send(res)
+
+            elif cmd == "GET_HISTORY_DEALS":
+                start_val, end_val, all_magic_flag, days_count = args
+                if dry_run or not has_mt5:
+                    pipe.send([])
+                else:
+                    now_utc = datetime.now(timezone.utc)
+                    if end_val is None:
+                        end_dt = now_utc
+                    elif isinstance(end_val, (int, float)):
+                        end_dt = datetime.fromtimestamp(end_val, tz=timezone.utc)
+                    elif isinstance(end_val, datetime):
+                        end_dt = end_val if end_val.tzinfo else end_val.replace(tzinfo=timezone.utc)
+                    else:
+                        end_dt = now_utc
+
+                    if start_val is None:
+                        from datetime import timedelta
+                        start_dt = end_dt - timedelta(days=days_count)
+                    elif isinstance(start_val, (int, float)):
+                        start_dt = datetime.fromtimestamp(start_val, tz=timezone.utc)
+                    elif isinstance(start_val, datetime):
+                        start_dt = start_val if start_val.tzinfo else start_val.replace(tzinfo=timezone.utc)
+                    else:
+                        from datetime import timedelta
+                        start_dt = end_dt - timedelta(days=days_count)
+
+                    try:
+                        raw = worker_mt5.history_deals_get(start_dt, end_dt)
+                    except Exception as e:
+                        logger.warning(f"[WORKER] history_deals_get error: {e}")
+                        raw = None
+
+                    if not raw:
+                        pipe.send([])
+                    else:
+                        res = []
+                        for d in raw:
+                            deal_magic = getattr(d, "magic", 0)
+                            if not all_magic_flag and deal_magic != magic:
+                                continue
+
+                            deal_type = getattr(d, "type", 0)
+                            if deal_type == worker_mt5.DEAL_TYPE_BUY:
+                                side = "buy"
+                            elif deal_type == worker_mt5.DEAL_TYPE_SELL:
+                                side = "sell"
+                            else:
+                                continue
+
+                            entry_code = getattr(d, "entry", 0)
+                            entry_map = {
+                                worker_mt5.DEAL_ENTRY_IN: "in",
+                                worker_mt5.DEAL_ENTRY_OUT: "out",
+                                worker_mt5.DEAL_ENTRY_INOUT: "inout",
+                                worker_mt5.DEAL_ENTRY_OUT_BY: "out_by",
+                            }
+                            entry_str = entry_map.get(entry_code, "other")
+
+                            deal_time = getattr(d, "time", 0)
+                            deal_time_iso = None
+                            if deal_time:
+                                try:
+                                    deal_time_iso = datetime.fromtimestamp(deal_time, tz=timezone.utc).isoformat()
+                                except Exception:
+                                    pass
+
+                            profit = float(getattr(d, "profit", 0.0) or 0.0)
+                            commission = float(getattr(d, "commission", 0.0) or 0.0)
+                            swap = float(getattr(d, "swap", 0.0) or 0.0)
+                            fee = float(getattr(d, "fee", 0.0) or 0.0)
+
+                            res.append({
+                                "ticket": str(getattr(d, "ticket", "")),
+                                "order": str(getattr(d, "order", "")),
+                                "position_id": str(getattr(d, "position_id", getattr(d, "order", ""))),
+                                "symbol": str(getattr(d, "symbol", "")),
+                                "side": side,
+                                "entry": entry_str,
+                                "volume": float(getattr(d, "volume", 0.0) or 0.0),
+                                "price": float(getattr(d, "price", 0.0) or 0.0),
+                                "profit": profit,
+                                "commission": commission,
+                                "swap": swap,
+                                "fee": fee,
+                                "net_profit": profit + commission + swap + fee,
+                                "time": deal_time_iso,
+                                "reason": str(getattr(d, "reason", "")),
+                                "magic": deal_magic,
+                                "comment": str(getattr(d, "comment", "")),
+                            })
+                        pipe.send(res)
+
+            elif cmd == "GET_SYMBOL_SPEC":
+                sym = args[0] if (args and len(args) > 0) else "XAUUSD"
+                if dry_run or not has_mt5:
+                    pipe.send(_simulated_symbol_spec(sym))
+                else:
+                    bsym = _resolve_worker_sym(sym)
+                    info = worker_mt5.symbol_info(bsym)
+                    if not info:
+                        pipe.send(None)
+                    else:
+                        pipe.send({
+                            "digits": info.digits,
+                            "point": info.point,
+                            "spread": info.spread,
+                            "contract_size": info.trade_contract_size,
+                            "vol_min": info.volume_min,
+                            "vol_max": info.volume_max,
+                            "vol_step": info.volume_step,
+                            "bid": info.bid,
+                            "ask": info.ask,
+                            "tick_size": info.trade_tick_size if info.trade_tick_size > 0 else info.point,
+                            "tick_value": info.trade_tick_value if info.trade_tick_value > 0 else info.point,
+                        })
 
         except Exception as e:
             try:
@@ -827,24 +1199,41 @@ class MT5ProcessSession(IMT5Session):
             logger.error(f"[{self.config.account_id}] get_positions failed: {e}")
         return []
 
+    def get_history_deals(
+        self,
+        start: Optional[Any] = None,
+        end: Optional[Any] = None,
+        all_magic: bool = False,
+        days: int = 7,
+    ) -> List[Dict[str, Any]]:
+        """Fetch closed deal history for this account via process IPC."""
+        if not self._connected or not self._parent_conn:
+            return []
+        try:
+            self._parent_conn.send(("GET_HISTORY_DEALS", (start, end, all_magic, days)))
+            if self._parent_conn.poll(10.0):
+                res = self._parent_conn.recv()
+                if isinstance(res, list):
+                    return res
+        except Exception as e:
+            logger.warning(f"[{self.config.account_id}] ProcessSession get_history_deals error: {e}")
+        return []
+
     def get_symbol_spec(self, symbol: str) -> Optional[Dict[str, Any]]:
-        # Fall back to static simulation tick spec if needed
-        clean_sym = symbol.rstrip("m+.a").upper()
-        spec = _SIM_TICK_SPECS.get(clean_sym, _SIM_TICK_SPECS.get("XAUUSD"))
-        return {
-            "digits": spec["digits"], "point": spec["point"], "spread": 15,
-            "contract_size": 100.0 if "XAU" in clean_sym else 100000.0,
-            "vol_min": spec["vol_min"], "vol_max": spec["vol_max"], "vol_step": spec["vol_step"],
-            "bid": _SIM_PRICES.get(clean_sym, 2000.0),
-            "ask": _SIM_PRICES.get(clean_sym, 2000.0) + _SIM_SPREADS.get(clean_sym, 0.20),
-            "tick_size": spec["tick_size"], "tick_value": spec["tick_value"],
-        }
+        if self.config.dry_run:
+            return _simulated_symbol_spec(symbol)
+        if not self._connected:
+            return None
+        try:
+            self._parent_conn.send(("GET_SYMBOL_SPEC", (symbol,)))
+            if self._parent_conn.poll(5.0):
+                return self._parent_conn.recv()
+        except Exception as e:
+            logger.error(f"[{self.config.account_id}] get_symbol_spec failed: {e}")
+        return None
 
     def get_tick(self, symbol: str) -> Optional[Dict[str, Any]]:
-        clean_sym = symbol.rstrip("m+.a").upper()
-        base = _SIM_PRICES.get(clean_sym, 2000.0)
-        spread = _SIM_SPREADS.get(clean_sym, 0.20)
-        return {"bid": base, "ask": base + spread, "time": datetime.now(timezone.utc)}
+        return _simulated_tick(symbol)
 
     def buy(self, volume: float, sl: float, tp: float, comment: str = "", symbol: str = "XAUUSD") -> FillResult:
         if not self._connected:

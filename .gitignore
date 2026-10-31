@@ -35,10 +35,11 @@ htmlcov/
 *.coveragerc
 
 # ── Database ─────────────────────────────────────────────────
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
 database/*.db
-database/*.db-journal
-database/*.db-shm
-database/*.db-wal
 database/backups/
 
 # ── Logs ─────────────────────────────────────────────────────
