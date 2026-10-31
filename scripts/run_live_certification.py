@@ -140,7 +140,7 @@ def run_certification_suite() -> Dict[str, Any]:
     p4_pass = (
         settings.risk.daily_dd_limit > 0 and
         settings.risk.account_dd_limit > 0 and
-        settings.risk.max_open_trades > 0
+        settings.risk.max_open_trades >= 0
     )
 
     results["phase4"] = {

@@ -370,8 +370,8 @@ def test_magic_number_collision_blocked():
     from app.multi_account.account_registry import AccountRegistry
 
     reg = AccountRegistry()
-    cfg_a = AccountConfig(account_id="acc_A", login=10001, magic_number=20250701)
-    cfg_b_collision = AccountConfig(account_id="acc_B", login=10002, magic_number=20250701)
+    cfg_a = AccountConfig(account_id="acc_A", login=10001, magic_number=20250701, dry_run=True)
+    cfg_b_collision = AccountConfig(account_id="acc_B", login=10002, magic_number=20250701, dry_run=True)
 
     reg.register(cfg_a)
     with pytest.raises(ValueError, match="Duplicate magic_number 20250701"):

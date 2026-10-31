@@ -365,7 +365,7 @@ class AccountWorker:
             try:
                 if self.ctx.status == AccountStatus.DISCONNECTED and self.ctx.config.enabled:
                     await self.reconnect()
-                elif self.ctx.status in (AccountStatus.CONNECTED, AccountStatus.TRADING):
+                elif self.ctx.status in (AccountStatus.CONNECTED, AccountStatus.TRADING, AccountStatus.EXECUTION_READY):
                     await self.sync_account_state()
             except asyncio.CancelledError:
                 break

@@ -219,12 +219,28 @@ class RiskManager:
             self._dd.weekly_hit   = False
             self._dd._week_key    = week
 
+    def reset_account_baseline(self, balance: float) -> None:
+        """Reset drawdown baselines when account balance is manually reconfigured or reset."""
+        self._dd.daily_start = balance
+        self._dd.weekly_start = balance
+        self._dd.account_start = balance
+        self._dd.peak_equity = balance
+        self._dd.daily_hit = False
+        self._dd.weekly_hit = False
+        self._dd.account_hit = False
+        self._circuit_broken = False
+        logger.info(f"RiskManager drawdown baselines reset to ${balance:,.2f}")
+
     # ── Account update ────────────────────────────────────────────────────────
 
     def update_equity(self, balance: float, equity: float) -> DrawdownState:
         if not self._ready:
             self.initialize(balance)
             return self._dd
+
+        if self._dd.account_start > 0 and balance < self._dd.account_start * 0.5:
+            logger.info(f"Manual balance reset detected (${self._dd.account_start:,.2f} -> ${balance:,.2f}). Re-baselining drawdown calculations.")
+            self.reset_account_baseline(balance)
 
         self._maybe_reset(balance)
         self._dd.current_equity = equity
@@ -316,7 +332,14 @@ class RiskManager:
             return False, "Not initialized"
 
         if self._circuit_broken:
-            return False, "Circuit breaker active"
+            if self._cooldown_until and datetime.now(timezone.utc) >= self._cooldown_until:
+                self._circuit_broken = False
+                self._exec_fails = 0
+                self._dd.consecutive_losses = 0
+                self._cooldown_until = None
+                logger.info("Circuit breaker cooldown expired — trading resumed automatically")
+            else:
+                return False, "Circuit breaker active"
 
         # Cooldown check
         if self._cooldown_until:
@@ -334,7 +357,7 @@ class RiskManager:
             if self._dd.account_hit: parts.append(f"account {self._dd.account_dd_pct:.1f}%")
             return False, f"DD limit: {', '.join(parts)}"
 
-        if self._open_count >= self._cfg.max_open_trades:
+        if self._cfg.max_open_trades > 0 and self._open_count >= self._cfg.max_open_trades:
             return False, f"Max trades ({self._cfg.max_open_trades}) open"
 
         return True, "APPROVED"
@@ -353,12 +376,13 @@ class RiskManager:
         if not ok:
             return False, reason
 
-        projected = self._dd.open_risk_pct + new_risk_pct
-        if projected > self._cfg.max_risk_exposure:
-            return False, (
-                f"MaxExposure {self._cfg.max_risk_exposure}% exceeded: "
-                f"open={self._dd.open_risk_pct:.2f}% + new={new_risk_pct:.2f}% = {projected:.2f}%"
-            )
+        if self._cfg.max_risk_exposure > 0 and self._cfg.max_risk_exposure < 100.0:
+            projected = self._dd.open_risk_pct + new_risk_pct
+            if projected > self._cfg.max_risk_exposure:
+                return False, (
+                    f"MaxExposure {self._cfg.max_risk_exposure}% exceeded: "
+                    f"open={self._dd.open_risk_pct:.2f}% + new={new_risk_pct:.2f}% = {projected:.2f}%"
+                )
 
         return True, "APPROVED"
 
@@ -382,16 +406,17 @@ class RiskManager:
             return False, reason
 
         cap = self._cfg.max_same_corr_group_trades
-        group = _corr_group_for(new_symbol)
-        if group:
-            open_in_group = sum(
-                1 for s in self._open_symbols if _corr_group_for(s) == group
-            )
-            if open_in_group >= cap:
-                return False, (
-                    f"CorrCap: {new_symbol} group='{group}' already has "
-                    f"{open_in_group}/{cap} open trades"
+        if cap > 0:
+            group = _corr_group_for(new_symbol)
+            if group:
+                open_in_group = sum(
+                    1 for s in self._open_symbols if _corr_group_for(s) == group
                 )
+                if open_in_group >= cap:
+                    return False, (
+                        f"CorrCap: {new_symbol} group='{group}' already has "
+                        f"{open_in_group}/{cap} open trades"
+                    )
 
         return True, "APPROVED"
 
@@ -434,9 +459,12 @@ class RiskManager:
     def on_exec_failure(self) -> None:
         self._exec_fails += 1
         if self._exec_fails >= self._cfg.circuit_exec_fails:
-            self._circuit_broken = True
-            self._cooldown_until = datetime.now(timezone.utc) + timedelta(minutes=30.0)
-            logger.warning(f"Circuit breaker: {self._exec_fails} exec failures (cooldown 30m)")
+            if not self._circuit_broken or self._cooldown_until is None:
+                self._circuit_broken = True
+                self._cooldown_until = datetime.now(timezone.utc) + timedelta(minutes=30.0)
+                logger.warning(f"Circuit breaker: {self._exec_fails} exec failures (cooldown 30m)")
+            else:
+                logger.debug(f"Circuit breaker already active: {self._exec_fails} exec failures")
 
     def reset_circuit(self) -> None:
         """Manual operator reset."""
@@ -452,6 +480,7 @@ class RiskManager:
     def circuit_broken(self) -> bool:
         if self._circuit_broken and self._cooldown_until and datetime.now(timezone.utc) >= self._cooldown_until:
             self._circuit_broken = False
+            self._exec_fails = 0
             self._dd.consecutive_losses = 0
             self._cooldown_until = None
             logger.info("Circuit breaker cooldown expired — trading resumed automatically")

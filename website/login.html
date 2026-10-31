@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#050b09"><title>Sign in · VORTEXT AI</title>
+<style>
+:root{color-scheme:dark;--bg:#050b09;--panel:#0c1513;--panel2:#101d1a;--line:#203c34;--text:#f2faf7;--muted:#a1b9b0;--teal:#00e6ad;--cyan:#bfffea;--amber:#ffd58a}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0,#123d32 0,transparent 48%),var(--bg);color:var(--text);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:grid;grid-template-rows:auto 1fr auto}
+a{color:var(--cyan);text-decoration:none}.wrap{width:min(1100px,calc(100% - 32px));margin:auto}
+header{padding:18px 0;border-bottom:1px solid #17372d}header .row,footer .row{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.logo{width:176px;max-width:42vw;height:auto;display:block;object-fit:contain;image-rendering:auto}.back{color:var(--muted);font-size:13px}
+main{display:grid;place-items:center;padding:40px 16px 52px}.panel{width:min(100%,450px);background:#0b1412ef;border:1px solid #244b3e;border-radius:22px;padding:30px;box-shadow:0 28px 80px #0007}
+.eyebrow{color:var(--teal);text-transform:uppercase;letter-spacing:.17em;font-size:11px;font-weight:800;margin-bottom:8px}h1{font-size:30px;letter-spacing:-.04em;line-height:1.12;margin:0 0 10px}p{color:var(--muted);margin:0 0 22px}
+.providers{display:grid;gap:12px}.provider{width:100%;min-height:52px;padding:0 16px;display:flex;align-items:center;justify-content:center;border:1px solid #46665a;border-radius:12px;background:#12221d;color:var(--text);font-weight:650;font-size:14px;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s ease}.provider:hover:not(:disabled){border-color:var(--teal);background:#163026}.provider:focus-visible{outline:2px solid var(--teal);outline-offset:3px}.provider:disabled{opacity:.86;cursor:not-allowed}.provider span{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:24px;line-height:1.2}.provider svg{width:24px;height:24px;flex:0 0 24px;display:block;overflow:visible}
+.or{display:flex;align-items:center;gap:14px;color:#799389;font-size:12px;margin:20px 0}.or:before,.or:after{content:"";height:1px;background:#244238;flex:1}
+label{display:block;color:#d5e8e1;font-size:12px;font-weight:650;margin-bottom:7px}input{width:100%;height:46px;border:1px solid #35564b;border-radius:10px;background:#07100d;color:var(--text);padding:0 13px;font:inherit;outline:none}input:focus{border-color:var(--teal);box-shadow:0 0 0 3px #00e6ad20}.email-row{display:grid;grid-template-columns:1fr;gap:10px}.submit{width:100%;height:46px;border:1px solid var(--teal);border-radius:10px;background:var(--teal);color:#062018;font-size:14px;font-weight:800;cursor:pointer}.submit:disabled{opacity:.56;cursor:not-allowed}
+.notice{display:none;border:1px solid #3b6254;border-radius:10px;padding:11px 12px;margin:14px 0 0;color:#d6f7e9;font-size:12px;overflow-wrap:anywhere}.notice.show{display:block}.notice.warn{border-color:#76592b;background:#211a0d;color:#ffdfaa}.legal{font-size:11px;color:#829b91;margin-top:20px}.legal a{color:#c4f6e3;text-decoration:underline}.tiny{font-size:11px;color:#789085;margin-top:13px}
+footer{padding:18px 0;border-top:1px solid #17372d;color:#80978e;font-size:11px}
+@media(max-width:480px){.panel{padding:23px 19px}h1{font-size:27px}.logo{width:136px;max-width:40vw}.provider{min-height:50px}}
+.back-to-top{position:fixed;right:16px;bottom:18px;z-index:20;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid #00e6ad;background:#00e6ad;color:#052019;font-size:25px;font-weight:850;line-height:1;box-shadow:0 8px 28px #0006;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease;cursor:pointer}.back-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}.back-to-top:hover{background:#bfffea;border-color:#bfffea}.back-to-top:focus-visible{outline:3px solid #bfffea;outline-offset:4px}@media(prefers-reduced-motion:reduce){.back-to-top{transition:none}}
+</style>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
+<link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
+</head>
+<body>
+<header><div class="wrap row"><a href="/" aria-label="VORTEXT AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261028-1" alt="VORTEXT AI"></a><a class="back" href="/">← Back to home</a></div></header>
+<main><section class="panel" aria-labelledby="heading">
+<div class="eyebrow">Secure dashboard access</div><h1 id="heading">Sign in to VORTEXT AI</h1>
+<p>Sign in to view your authorized trading dashboard. Your MT5 password is never requested here.</p>
+<div id="status" class="notice show" role="status">Checking sign-in configuration…</div>
+<div class="providers" style="margin-top:16px">
+<button class="provider" id="google" type="button" disabled><span><svg viewBox="0 0 48 48" focusable="false" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.96 46.98 31.87 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.75 24c0-1.59.27-3.13.75-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.86.92 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.43-4.89 2.28-8.18 2.28-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 43.62 14.62 48 24 48z"/></svg>Continue with Google</span></button>
+</div>
+<div class="or">OR CONTINUE WITH EMAIL</div>
+<form id="email-form"><label for="email">Email address</label><div class="email-row"><input id="email" name="email" type="email" autocomplete="email" placeholder="Enter your email address" required><button class="submit" id="email-submit" type="submit" disabled>Send secure sign-in link</button></div></form>
+<div class="legal">By continuing, you agree to use this service in accordance with our <a href="/#risk">risk disclosure</a>. Automated trading can result in losses.</div>
+<div class="tiny">Demo trading dashboard · Read-only website · No MT5 password collection</div>
+</section></main>
+<footer><div class="wrap row"><span>© VORTEXT AI</span><a href="/">Home</a></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const status = $("status");
+  const providerButtons = [$("google"), $("email-submit")];
+  let client = null;
+  const target = window.location.origin + "/dashboard.html";
+  function show(message, warning = false) {
+    status.textContent = message;
+    status.className = "notice show" + (warning ? " warn" : "");
+  }
+  function enableButtons(enabled) { providerButtons.forEach((button) => button.disabled = !enabled); }
+  async function init() {
+    try {
+      const response = await fetch("/api/auth-config", { cache: "no-store" });
+      const config = await response.json();
+      if (!response.ok || !config.configured) {
+        enableButtons(false);
+        show("Login setup is not complete yet. The dashboard remains private until the authentication project and OAuth providers are configured.", true);
+        return;
+      }
+      if (!window.supabase || !window.supabase.createClient) throw new Error("Auth library unavailable");
+      client = window.supabase.createClient(config.supabaseUrl, config.publishableKey);
+      const { data } = await client.auth.getSession();
+      if (data.session) { window.location.replace("/dashboard.html"); return; }
+      enableButtons(true);
+      show("Sign in with Google, or request a one-time email link.");
+    } catch (error) {
+      enableButtons(false);
+      show("Sign-in service is unavailable. Please try again later.", true);
+    }
+  }
+  async function oauth(provider) {
+    if (!client) return;
+    enableButtons(false);
+    show("Redirecting to Google…");
+    const { error } = await client.auth.signInWithOAuth({ provider, options: { redirectTo: target } });
+    if (error) { show(error.message || "Could not start sign-in.", true); enableButtons(true); }
+  }
+  $("google").addEventListener("click", () => oauth("google"));
+  $("email-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!client) return;
+    const email = $("email").value.trim();
+    enableButtons(false);
+    show("Sending a one-time sign-in link…");
+    const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: target } });
+    if (error) { show(error.message || "Could not send sign-in link.", true); enableButtons(true); }
+    else show("If this email is eligible, a secure sign-in link has been sent. Check your inbox.");
+  });
+  init();
+})();
+</script>
+<button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
+<script>
+(function(){
+  const button=document.getElementById("back-to-top");
+  if(!button)return;
+  let queued=false;
+  function sync(){
+    button.classList.toggle("is-visible",window.scrollY>320);
+    queued=false;
+  }
+  window.addEventListener("scroll",function(){
+    if(!queued){queued=true;window.requestAnimationFrame(sync);}
+  },{passive:true});
+  button.addEventListener("click",function(){
+    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({top:0,behavior:reduced?"auto":"smooth"});
+  });
+  sync();
+})();
+</script>
+</body>
+</html>

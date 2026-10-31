@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#050b09"><title>Dashboard | VORTEXT AI</title>
+<style>
+:root{color-scheme:dark;--bg:#050b09;--panel:#0b1512;--line:#244b3e;--text:#f2faf7;--muted:#a1b9b0;--teal:#00e6ad;--amber:#ffd58a}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0,#123d32,transparent 45%),var(--bg);color:var(--text);font:15px/1.55 system-ui,sans-serif}.wrap{width:min(1050px,calc(100% - 32px));margin:auto}header{border-bottom:1px solid var(--line)}nav{height:92px;display:flex;align-items:center;justify-content:space-between}.logo{width:116px;max-width:32vw;height:auto;display:block}button,.btn{border:1px solid #31564a;border-radius:10px;background:#12221d;color:var(--text);padding:10px 14px;font:inherit;font-weight:650;cursor:pointer}main{padding:42px 0 60px}.kicker{font-size:11px;letter-spacing:.16em;color:var(--teal);font-weight:800;text-transform:uppercase}h1{font-size:clamp(30px,4vw,42px);letter-spacing:-.04em;margin:8px 0}.muted{color:var(--muted)}.notice{border:1px solid #745a30;background:#261d0e;color:#ffe2b1;padding:12px 14px;border-radius:10px;margin-top:18px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}.metric,.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:19px}.metric span{display:block;color:var(--muted);font-size:12px}.metric strong{display:block;font-size:24px;margin-top:6px}.card{margin-top:14px}.table-empty{text-align:center;border:1px dashed #35574b;border-radius:10px;color:var(--muted);padding:26px;margin-top:14px}.fine{font-size:12px;color:var(--muted)}@media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.grid{grid-template-columns:1fr 1fr;gap:8px}.metric{padding:12px}.metric strong{font-size:20px}.logo{width:94px}nav{height:76px}}
+.back-to-top{position:fixed;right:16px;bottom:18px;z-index:20;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid #00e6ad;background:#00e6ad;color:#052019;font-size:25px;font-weight:850;line-height:1;box-shadow:0 8px 28px #0006;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease;cursor:pointer}.back-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}.back-to-top:hover{background:#bfffea;border-color:#bfffea}.back-to-top:focus-visible{outline:3px solid #bfffea;outline-offset:4px}@media(prefers-reduced-motion:reduce){.back-to-top{transition:none}}
+</style><link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
+<link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
+</head><body>
+<header><div class="wrap"><nav><a href="/"><img class="logo" src="/vortext-ai-logo.webp?v=20261028-1" alt="VORTEXT AI"></a><div><span id="user" class="fine">Checking sign-in…</span> <button id="logout" hidden>Sign out</button></div></nav></div></header>
+<main class="wrap">
+<div class="topline"><div><div class="kicker">Private dashboard</div><h1>Your live trading activity</h1><p class="muted">Broker-confirmed positions and deal history from your connected MT5 bot.</p></div></div>
+<div id="status" class="notice" role="status">Verifying your session and feed access…</div>
+<div id="private-content" hidden>
+<div class="grid">
+<div class="metric"><span>Open positions</span><strong id="metric-positions">—</strong><div class="fine">Current bot positions</div></div>
+<div class="metric"><span>Floating P&amp;L</span><strong id="metric-floating">—</strong><div class="fine">Broker-reported open P&amp;L</div></div>
+<div class="metric"><span>Balance</span><strong id="metric-balance">—</strong><div class="fine">Last broker snapshot</div></div>
+<div class="metric"><span>Equity</span><strong id="metric-equity">—</strong><div class="fine">Last broker snapshot</div></div>
+</div>
+<section class="card"><div class="card-head"><h2>Open positions</h2><span id="account-meta" class="fine">Waiting for broker data</span></div>
+<div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Symbol</th><th>Side</th><th>Volume</th><th>Entry</th><th>Current</th><th>Stop loss</th><th>Take profit</th><th>Floating P&amp;L</th></tr></thead><tbody id="positions-body"><tr><td colspan="9">Waiting for verified feed…</td></tr></tbody></table></div>
+</section>
+<section class="card"><div class="card-head"><h2>Recent bot deals</h2><span class="fine">Last seven days · up to 100 deals</span></div>
+<div class="table-wrap"><table><thead><tr><th>Time (UTC)</th><th>Ticket</th><th>Symbol</th><th>Side</th><th>Entry / exit</th><th>Volume</th><th>Price</th><th>Net deal P&amp;L</th></tr></thead><tbody id="deals-body"><tr><td colspan="8">Waiting for verified feed…</td></tr></tbody></table></div>
+</section>
+<p class="fine">Read-only. This dashboard cannot submit, modify or close MT5 orders. Figures are sourced from the broker.</p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  const $ = function (id) { return document.getElementById(id); };
+  const status = $('status'), content = $('private-content'), user = $('user'), logout = $('logout');
+  let auth = null, timer = null, refreshing = false;
+  function setStatus(message, mode) {
+    status.hidden = false;
+    status.className = 'notice' + (mode ? ' ' + mode : '');
+    status.textContent = message;
+  }
+  function n(value) { const v = Number(value); return Number.isFinite(v) ? v : 0; }
+  function cash(value, currency) {
+    const code = /^[A-Z]{3}$/.test(currency || '') ? currency : 'USD';
+    try { return new Intl.NumberFormat(undefined, {style:'currency',currency:code,minimumFractionDigits:2,maximumFractionDigits:2}).format(n(value)); }
+    catch (_) { return code + ' ' + n(value).toFixed(2); }
+  }
+  function when(value) {
+    if (!value) return '—';
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date.toLocaleString() : '—';
+  }
+  function cell(row, value, cls) {
+    const td = document.createElement('td');
+    td.textContent = value === null || value === undefined || value === '' ? '—' : String(value);
+    if (cls) td.className = cls;
+    row.appendChild(td);
+  }
+  function empty(id, span, message) {
+    const body = $(id), row = document.createElement('tr'), td = document.createElement('td');
+    td.colSpan = span; td.className = 'muted'; td.textContent = message;
+    row.appendChild(td); body.replaceChildren(row);
+  }
+  function render(payload) {
+    const s = payload.snapshot, account = s.account || {}, currency = account.currency || 'USD';
+    const positions = Array.isArray(s.positions) ? s.positions : [];
+    const deals = Array.isArray(s.deals) ? s.deals : [];
+    const floating = positions.reduce(function (total, item) { return total + n(item.profit) + n(item.swap); }, 0);
+    $('metric-positions').textContent = String(positions.length);
+    $('metric-floating').textContent = cash(floating, currency);
+    $('metric-floating').className = floating >= 0 ? 'positive' : 'negative';
+    $('metric-balance').textContent = cash(account.balance, currency);
+    $('metric-equity').textContent = cash(account.equity, currency);
+    $('account-meta').textContent = (account.server || 'Broker') + ' · ' + (account.trade_mode || 'UNKNOWN') + ' · ' + currency;
+    if (!positions.length) empty('positions-body', 9, 'No bot-tagged open positions in the latest broker snapshot.');
+    else {
+      const body = $('positions-body'); body.replaceChildren();
+      positions.forEach(function (p) {
+        const row = document.createElement('tr'), pnl = n(p.profit) + n(p.swap);
+        cell(row,p.ticket); cell(row,p.symbol); cell(row,String(p.side || '').toUpperCase(),'side ' + p.side);
+        cell(row,n(p.volume).toFixed(2)); cell(row,n(p.entry_price).toFixed(5));
+        cell(row,n(p.current_price).toFixed(5)); cell(row,n(p.sl) ? n(p.sl).toFixed(5) : '—');
+        cell(row,n(p.tp) ? n(p.tp).toFixed(5) : '—'); cell(row,cash(pnl,currency),pnl >= 0 ? 'positive' : 'negative');
+        body.appendChild(row);
+      });
+    }
+    if (!deals.length) empty('deals-body', 8, 'No matching bot deals in the last seven days.');
+    else {
+      const body = $('deals-body'); body.replaceChildren();
+      deals.slice(0,100).forEach(function (d) {
+        const row = document.createElement('tr'), pnl = n(d.net_profit);
+        cell(row,when(d.time)); cell(row,d.ticket); cell(row,d.symbol);
+        cell(row,String(d.side || '').toUpperCase(),'side ' + d.side);
+        cell(row,String(d.entry || '').toUpperCase()); cell(row,n(d.volume).toFixed(2));
+        cell(row,n(d.price).toFixed(5)); cell(row,cash(pnl,currency),pnl >= 0 ? 'positive' : 'negative');
+        body.appendChild(row);
+      });
+    }
+    const captured = payload.captured_at || s.captured_at;
+    if (payload.connected) setStatus('LIVE · Last broker update ' + when(captured) + ' · refreshes every five seconds.', 'ok');
+    else setStatus('STALE · Last broker update ' + when(captured) + '. These figures are not current.', 'warn');
+  }
+  async function refresh() {
+    if (!auth || refreshing) return;
+    refreshing = true;
+    try {
+      const sessionResult = await auth.auth.getSession(), session = sessionResult.data && sessionResult.data.session;
+      if (!session) { window.location.replace('/login.html?next=dashboard.html'); return; }
+      const response = await fetch('/api/trades', {method:'GET',headers:{Authorization:'Bearer ' + session.access_token,Accept:'application/json'},cache:'no-store'});
+      const data = await response.json().catch(function () { return {}; });
+      if (response.status === 401) { window.location.replace('/login.html?next=dashboard.html'); return; }
+      if (!response.ok || !data.ok) {
+        setStatus(response.status === 403 ? 'This signed-in account is not authorized to view trading data.' :
+          'Authentication is working. The MT5 trade feed is not connected yet; complete the secure bot-feed setup to display live data.', 'warn');
+        return;
+      }
+      if (!data.snapshot) {
+        $('metric-positions').textContent = '—'; $('metric-floating').textContent = '—';
+        $('metric-balance').textContent = '—'; $('metric-equity').textContent = '—';
+        $('account-meta').textContent = 'No broker snapshot yet';
+        empty('positions-body',9,'Awaiting the first bot snapshot.');
+        empty('deals-body',8,'Awaiting the first bot snapshot.');
+        setStatus('Waiting for the bot to publish the first verified MT5 snapshot. No sample trades are displayed.','warn');
+        return;
+      }
+      render(data);
+    } catch (_) {
+      setStatus('Live feed temporarily unavailable. Previously shown figures may be stale.','warn');
+    } finally { refreshing = false; }
+  }
+  async function init() {
+    try {
+      const response = await fetch('/api/auth-config',{cache:'no-store'}), cfg = await response.json();
+      if (!response.ok || !cfg.configured) { window.location.replace('/login.html?auth=pending'); return; }
+      if (!window.supabase || !window.supabase.createClient) throw new Error('Auth library unavailable');
+      auth = window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey);
+      const result = await auth.auth.getSession();
+      if (!result.data.session) { window.location.replace('/login.html?next=dashboard.html'); return; }
+      user.textContent = 'Signed in';
+      logout.hidden = false; content.hidden = false;
+      logout.onclick = async function () { if (timer) window.clearInterval(timer); await auth.auth.signOut(); window.location.href='/login.html'; };
+      await refresh();
+      timer = window.setInterval(refresh,5000);
+    } catch (_) { window.location.replace('/login.html?auth=unavailable'); }
+  }
+  init();
+})();
+</script></main><button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
+<script>
+(function(){
+  const button=document.getElementById("back-to-top");
+  if(!button)return;
+  let queued=false;
+  function sync(){
+    button.classList.toggle("is-visible",window.scrollY>320);
+    queued=false;
+  }
+  window.addEventListener("scroll",function(){
+    if(!queued){queued=true;window.requestAnimationFrame(sync);}
+  },{passive:true});
+  button.addEventListener("click",function(){
+    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({top:0,behavior:reduced?"auto":"smooth"});
+  });
+  sync();
+})();
+</script>
+</body></html>
