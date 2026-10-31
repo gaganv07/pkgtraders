@@ -28,7 +28,7 @@ def test_supabase_browser_sdk_is_pinned_to_a_stable_version() -> None:
 
 def test_dashboard_separates_feed_freshness_from_account_mode() -> None:
     dashboard = read_page("dashboard.html")
-    assert "FEED FRESH" in dashboard
+    assert "FEED CONNECTED · FRESH" in dashboard
     assert "FEED STALE" in dashboard
     assert "REAL ACCOUNT" in dashboard
     assert "DEMO ACCOUNT" in dashboard
