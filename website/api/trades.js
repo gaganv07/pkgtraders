@@ -408,7 +408,7 @@ async function post(req, res, c) {
   }
 
   try {
-    const response = await fetch(c.url + '/rest/v1/rpc/upsert_vortext_multi_account_snapshot', {
+    let response = await fetch(c.url + '/rest/v1/rpc/upsert_vortext_multi_account_snapshot', {
       method: 'POST',
       headers: serviceApiHeaders(c, { 'Content-Type': 'application/json' }),
       body: JSON.stringify({
@@ -419,6 +419,22 @@ async function post(req, res, c) {
       signal: AbortSignal.timeout(7000),
       cache: 'no-store'
     });
+
+    // A fresh single-account install may expose only the base snapshot RPC.
+    // The JSONB payload is identical; account-level reads remain scoped below.
+    if (!response.ok && response.status === 404) {
+      response = await fetch(c.url + '/rest/v1/rpc/upsert_vortext_trade_snapshot', {
+        method: 'POST',
+        headers: serviceApiHeaders(c, { 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          p_bot_id: snapshot.bot_id,
+          p_captured_at: snapshot.captured_at,
+          p_snapshot: snapshot
+        }),
+        signal: AbortSignal.timeout(7000),
+        cache: 'no-store'
+      });
+    }
 
     if (!response.ok) {
       return reply(res, 503, { ok: false, error: 'Trade feed storage is unavailable or not initialized' });
