@@ -37,11 +37,17 @@ def test_dashboard_separates_feed_freshness_from_account_mode() -> None:
     assert "clearDashboardData()" in dashboard
 
 
-def test_homepage_uses_configured_instrument_count_and_limited_access_copy() -> None:
+def test_homepage_uses_configured_instrument_count_limited_access_and_hamburger_menu() -> None:
     homepage = read_page("index.html")
     assert "7 configured instruments" in homepage
     assert "public onboarding is not open" in homepage
     assert 'id="menu-toggle"' in homepage
+    assert 'aria-label="Open navigation"' in homepage
+    assert 'class="bar"' in homepage
+    assert 'href="/getting-started.html"' in homepage
+    assert "LIMITED ACCESS" in homepage.upper()
+    assert "integration testing" in homepage
+    assert "not generally available" in homepage
     assert "8 pairs" not in homepage
 
 
@@ -91,3 +97,40 @@ def test_trade_api_requires_operator_mapping_and_filters_account_ids() -> None:
     assert "vortext_user_account_access" not in api
     assert "validSignature" in api
     assert "VORTEXT_BOT_HMAC_SECRET" in api
+
+
+
+def test_dashboard_has_three_independent_status_indicators() -> None:
+    dashboard = read_page("dashboard.html")
+    assert 'id="feed-connection"' in dashboard
+    assert 'id="account-mode"' in dashboard
+    assert 'id="broker-updated"' in dashboard
+    assert "FEED CONNECTED · FRESH" in dashboard
+    assert "FEED STALE" in dashboard
+    assert "Last successful broker update" in dashboard
+    assert "REAL ACCOUNT" in dashboard
+    assert "DEMO ACCOUNT" in dashboard
+    assert "LIVE · Last broker update" not in dashboard
+
+
+def test_getting_started_covers_mt5_setup_and_safe_testing() -> None:
+    guide = read_page("getting-started.html")
+    for phrase in (
+        "official MetaTrader 5 terminal",
+        "broker and account compatibility",
+        "Connect an account in MT5",
+        "demo account first",
+        "Safe account and credential setup",
+        "not generally available",
+        "https://www.metatrader5.com/en/download",
+        "exact server name",
+        "Never send passwords",
+    ):
+        assert phrase.lower() in guide.lower()
+
+
+def test_unreleased_research_modules_are_marked_as_under_validation() -> None:
+    homepage = read_page("index.html")
+    assert "Research modules under validation" in homepage
+    assert "not released for general customer use" in homepage
+    assert "Live system health" not in homepage
