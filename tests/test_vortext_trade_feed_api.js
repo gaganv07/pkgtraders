@@ -15,7 +15,7 @@ const BASE_ENV = {
   VORTEXT_BOT_HMAC_SECRET: 'h'.repeat(64),
   VORTEXT_BOT_ID: 'vortext-fleet'
 };
-const ENV_KEYS = [...Object.keys(BASE_ENV), 'VORTEXT_DASHBOARD_ALLOWED_EMAILS'];
+const ENV_KEYS = [...Object.keys(BASE_ENV), 'VORTEXT_DASHBOARD_ALLOWED_EMAILS', 'VORTEXT_DASHBOARD_SHARED_ACCOUNTS'];
 
 function makeSnapshot(overrides = {}) {
   const now = new Date().toISOString();
@@ -85,7 +85,7 @@ function makeRes() {
   };
 }
 
-async function invokeGet({ allowedAccounts = ['mt5-A'], active = true, query = '', allowlist } = {}) {
+async function invokeGet({ allowedAccounts = ['mt5-A'], active = true, hasOperator = true, sharedAccounts = '', query = '', allowlist } = {}) {
   const savedEnv = Object.fromEntries(ENV_KEYS.map(key => [key, process.env[key]]));
   const previousFetch = global.fetch;
   const calls = [];
@@ -93,6 +93,8 @@ async function invokeGet({ allowedAccounts = ['mt5-A'], active = true, query = '
     Object.assign(process.env, BASE_ENV);
     delete process.env.VORTEXT_DASHBOARD_ALLOWED_EMAILS;
     if (allowlist !== undefined) process.env.VORTEXT_DASHBOARD_ALLOWED_EMAILS = allowlist;
+    if (sharedAccounts) process.env.VORTEXT_DASHBOARD_SHARED_ACCOUNTS = sharedAccounts;
+    else delete process.env.VORTEXT_DASHBOARD_SHARED_ACCOUNTS;
 
     const operator = {
       user_id: USER_ID,
@@ -109,7 +111,7 @@ async function invokeGet({ allowedAccounts = ['mt5-A'], active = true, query = '
         return makeResponse(200, { id: USER_ID, email: EMAIL });
       }
       if (parsed.pathname.endsWith('/rest/v1/vortext_authorized_operators')) {
-        return makeResponse(200, active ? [operator] : [{ ...operator, is_active: false }]);
+        return makeResponse(200, hasOperator ? (active ? [operator] : [{ ...operator, is_active: false }]) : []);
       }
       if (parsed.pathname.endsWith('/rest/v1/vortext_trade_snapshots')) {
         return makeResponse(200, [{
@@ -143,7 +145,7 @@ async function invokeGet({ allowedAccounts = ['mt5-A'], active = true, query = '
   }
 }
 
-test('GET returns only the signed-in operator assigned account data', async () => {
+test('GET returns only the signed-in user assigned account data', async () => {
   const result = await invokeGet({ allowedAccounts: ['mt5-A'] });
   assert.equal(result.status, 200);
   assert.equal(result.body.snapshot.accounts.length, 1);
@@ -153,6 +155,11 @@ test('GET returns only the signed-in operator assigned account data', async () =
   assert.deepEqual(result.body.authorized_account_ids, ['mt5-A']);
 });
 
+test('GET rejects users without a shared feed or individual account grant', async () => {
+  const result = await invokeGet({ hasOperator: false });
+  assert.equal(result.status, 403);
+});
+
 test('GET rejects a guessed account_id that is not assigned to the user', async () => {
   const result = await invokeGet({ allowedAccounts: ['mt5-A'], query: '?account_id=mt5-B' });
   assert.equal(result.status, 403);
@@ -160,8 +167,47 @@ test('GET rejects a guessed account_id that is not assigned to the user', async 
   assert.equal(result.calls.some(call => call.path.endsWith('/rest/v1/vortext_trade_snapshots')), false);
 });
 
-test('GET rejects inactive operator grants', async () => {
-  const result = await invokeGet({ allowedAccounts: ['mt5-A'], active: false });
+test('GET exposes a configured shared account to any valid signed-in user without an operator row', async () => {
+  const result = await invokeGet({
+    hasOperator: false,
+    sharedAccounts: 'mt5-A'
+  });
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.body.authorized_account_ids, ['mt5-A']);
+  assert.deepEqual(result.body.snapshot.accounts.map(row => row.account_id), ['mt5-A']);
+  assert.deepEqual(result.body.snapshot.positions.map(row => row.account_id), ['mt5-A']);
+  assert.deepEqual(result.body.snapshot.deals.map(row => row.account_id), ['mt5-A']);
+});
+
+test('GET still rejects account IDs that are not in the shared feed', async () => {
+  const result = await invokeGet({
+    hasOperator: false,
+    sharedAccounts: 'mt5-A',
+    query: '?account_id=mt5-B'
+  });
+  assert.equal(result.status, 403);
+  assert.equal(result.calls.some(call => call.path.endsWith('/rest/v1/vortext_trade_snapshots')), false);
+});
+
+test('GET combines a shared feed with additional individually assigned accounts', async () => {
+  const result = await invokeGet({
+    allowedAccounts: ['mt5-B'],
+    sharedAccounts: 'mt5-A'
+  });
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.body.authorized_account_ids.sort(), ['mt5-A', 'mt5-B']);
+  assert.deepEqual(
+    result.body.snapshot.accounts.map(row => row.account_id).sort(),
+    ['mt5-A', 'mt5-B']
+  );
+});
+
+test('GET rejects inactive operator grants even when a shared feed exists', async () => {
+  const result = await invokeGet({
+    allowedAccounts: ['mt5-A'],
+    active: false,
+    sharedAccounts: 'mt5-A'
+  });
   assert.equal(result.status, 403);
 });
 
