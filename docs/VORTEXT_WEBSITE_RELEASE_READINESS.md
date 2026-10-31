@@ -1,95 +1,95 @@
 # VORTEXT AI website and MT5 dashboard release readiness
 
-Inspection date: 2026-10-31. This integration branch combines the PR #5 website-readiness pages with the existing read-only MT5 snapshot publisher and a per-user, per-account dashboard authorization check.
+Inspection date: 2026-11-01. This integration branch combines the PR #5 website-readiness pages, the existing read-only MT5 snapshot publisher, shared authenticated dashboard access, a Getting Started guide and explicit release-state disclosures.
 
 ## Release posture
 
-- This work is on `feat/vortext-authenticated-mt5-dashboard`.
-- The changes are intended for Vercel Preview and the isolated Supabase staging project only.
-- Production has not been changed, migrated or deployed by this branch.
-- PR #3, PR #4 and PR #5 remain separate draft PRs; this branch does not merge them.
-- Live end-to-end data verification is still blocked until the correct Supabase Auth user is granted the exact MT5 registry account ID and the trading PC publishes the first signed snapshot.
+- Branch: `feat/vortext-authenticated-mt5-dashboard`.
+- Review: Draft PR #6; not merged.
+- Deployment scope: Vercel Preview and isolated Supabase staging only.
+- Production has not been migrated, updated or deployed by this work.
+- Product status displayed on the homepage: **LIMITED ACCESS · INTEGRATION TESTING**.
+- VORTEXT AI is not generally available. Public customer onboarding remains closed.
+- The verified website scope in this branch is read-only monitoring. No public commitment is made for unreleased research or execution modules.
 
-## Website disclosures retained
+## User-facing readiness changes
 
-- Seven configured instruments are shown: XAUUSD, EURUSD, GBPUSD, USDJPY, NAS100, US30 and BTCUSD. XAGUSD is not included.
-- USD 200 is described as starting broker-account capital, not a VORTEXT AI fee. Software/subscription pricing is not published.
-- The website dashboard is read-only and cannot submit, modify or close MT5 orders.
-- Public onboarding is not open; dashboard access requires an approved signed-in user and a server-side account grant.
-- Feed freshness and broker account mode (DEMO / REAL / UNKNOWN) are displayed separately.
-- No monitored support inbox is advertised. Privacy and Terms pages remain pre-launch disclosures while legal identity, jurisdiction, privacy contact and retention obligations remain unverified.
-- Email magic links do not create new Supabase users. Delivery is not customer-grade until outbound SMTP is configured and tested. Google OAuth is the configured sign-in provider.
+- Homepage has an accessible three-line hamburger control at mobile widths, with open/close state, Escape-key close and close-on-navigation.
+- Homepage links to `/getting-started.html`.
+- Getting Started explains official MT5 desktop installation, broker/account compatibility checks, account connection, demo-only testing, credential handling and release limitations.
+- The homepage explicitly marks DOM, order-flow, market-structure, multi-timeframe, risk-management and execution analytics as under validation and not generally available.
+- Public pages retain risk, pre-launch, privacy, pricing and access limitations.
 
-## Authenticated account-data controls
+## Dashboard status indicators
 
-The new `website/api/trades.js` GET path:
+The dashboard displays three independent status fields:
 
-1. Requires a Supabase bearer access token.
-2. Validates that token against Supabase Auth.
-3. Looks up `public.vortext_authorized_operators` using the immutable `auth.users.id`.
-4. Requires the returned email to match the Auth session, `is_active = true`, and a non-empty JSON array of account IDs.
-5. Rejects a requested `account_id` that is not in the user's assigned list.
-6. Filters the stored snapshot's `accounts`, `positions` and `deals` to the authorized IDs before returning any data.
+1. **Feed connection:** `FEED CONNECTED · FRESH`, `FEED STALE`, `FEED UNAVAILABLE` or `AWAITING FIRST UPDATE`.
+2. **Account mode:** broker-reported `DEMO`, `REAL`, `CONTEST`, `MIXED` or `UNKNOWN`.
+3. **Last successful broker update:** the timestamp of the latest accepted snapshot, displayed in UTC.
 
-The bot POST path validates a timestamped HMAC-SHA256 signature. The browser receives only the Supabase publishable key and verified, account-scoped snapshot data. It never receives the Supabase secret key or HMAC secret. `VORTEXT_DASHBOARD_ALLOWED_EMAILS` remains an optional additional email restriction; it does not replace the database account grant.
+Feed freshness is not used as a synonym for a real-money account. The dashboard uses explicit DEMO/REAL labels for account mode. A stale snapshot is visibly marked stale and the timestamp does not advance until a newer accepted broker snapshot is received.
 
-## Vercel status
+## Shared dashboard access model
 
-Project: `vortexbot-ai`, website root `website`.
+The Preview API:
 
-- A Preview environment is configured to use the separate `VORTEXT AI Staging` Supabase project.
-- Preview environment metadata contains entries for `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` and `VORTEXT_BOT_HMAC_SECRET`. Secret values were not decrypted or printed, so their correctness and equality with the trading PC secret are not yet verified.
-- `VORTEXT_BOT_ID` must be `vortext-fleet` for the current publisher. The API uses the same default.
-- Production has `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`, but the server-only Supabase secret and bot HMAC secret were not present in Production metadata at inspection. Production was not modified.
-- The current Preview ingest URL must be the exact Preview deployment for this branch, never the public production domain.
+1. Requires a Supabase bearer access token and validates it with Supabase Auth.
+2. Uses the server-only Supabase secret for snapshot and operator metadata reads.
+3. Exposes only the server-configured IDs in `VORTEXT_DASHBOARD_SHARED_ACCOUNTS` to all valid signed-in users.
+4. May add per-user account grants from `vortext_authorized_operators.allowed_accounts`.
+5. Blocks an explicitly inactive or mismatched operator record.
+6. Filters `accounts`, `positions` and `deals` to the allowed set before returning data. Query-string account IDs do not grant access.
+7. Rejects anonymous requests. Website code has no order submit, modify or close operation.
+
+Shared IDs are configured on the Vercel Preview branch only. They do not make the feed publicly readable.
+
+## Vercel Preview state
+
+Project: `vortexbot-ai`, website root: `website`.
+
+- Branch-only `VORTEXT_BOT_ID=vortext-fleet`.
+- Branch-only `VORTEXT_DASHBOARD_SHARED_ACCOUNTS=account_003`.
+- Preview Supabase URL and publishable key point to the isolated staging project.
+- At last environment inspection, Preview `SUPABASE_SECRET_KEY` and `VORTEXT_BOT_HMAC_SECRET` were empty. Both must be provisioned before the API can ingest/read snapshots.
+- The local HMAC secret on the Windows trading PC must match the Preview HMAC secret. Never paste either secret into chat, Git or screenshots.
+- No Production environment variable was changed by this work.
+
+## MT5 account mapping
+
+- An earlier repository integration log mapped MT5 login `26179878` to internal alias `account_003` on `VantageMarkets-Demo`.
+- The private current Windows account registry still requires local confirmation.
+- The publisher must run from the owner-controlled Windows trading PC and send a signed snapshot to the exact Preview `/api/trades` URL.
+- The numeric MT5 login is not the website allowlist alias.
 
 ## Supabase staging state
 
 Project: `xtyszeuvtfcgognkrwxv` (`VORTEXT AI Staging`, ap-south-1).
 
-Applied staging migrations recorded by Supabase:
-- `20261031164736` — `001_durable_telemetry_and_replay_store`
-- `20261031164759` — `002_harden_telemetry_access_and_atomic_ordering`
-- `20261031164855` — `003_optimize_operator_profile_rls`
+- Existing staging schema contains `vortext_authorized_operators`, `vortext_trade_snapshots` and the timestamp-ordered snapshot RPC.
+- RLS is enabled on the VORTEXT tables; browser roles cannot write snapshots or execute the service-only upsert RPC.
+- Operator rows were empty at inspection.
+- Auth lookup for `gagangowdabm27@gmail.com` returned no user.
+- Trade snapshot rows were empty at inspection.
+- Do not apply the incompatible old PR #4 multi-account migration to staging.
+- Production Supabase security findings remain a separate workstream and have not been changed here.
 
-Verified state:
-- `public.vortext_authorized_operators` and `public.vortext_trade_snapshots` exist with RLS enabled.
-- `service_role` can read/write snapshots and read operator grants.
-- `anon` and `authenticated` cannot execute the snapshot-upsert RPC.
-- The RPC is restricted to `service_role`.
-- Staging security advisor returned no security findings.
-- Operator rows: 0.
-- Trade snapshot rows: 0.
+## Test results
 
-The integrated code uses this existing `vortext_authorized_operators.allowed_accounts` model. It does not create the duplicate `vortext_user_account_access` mapping table. The old PR #4 multi-account migration was removed from this integration branch because it assumed a `created_at` column absent from this staging table and would replace the working RPC with an incompatible version.
+Latest isolated Vercel sandbox run before the UI additions:
+- Node API tests: 11 passed.
+- Python website-readiness tests: 8 passed.
 
-## Production Supabase security findings — not changed here
+The new UI/Getting Started tests must be rerun after the current branch changes. A passing unit/static test suite does not replace the Preview browser smoke test or real MT5 publication test.
 
-The Production project `bucziqekzyrttgcoxtas` was inspected read-only:
-- Supabase advisors reported 22 legacy public tables with RLS disabled.
-- The dedicated `vortext_trade_snapshots` table had RLS enabled with no browser-client policies, and no snapshots were present at inspection.
-- Leaked-password protection was disabled.
-- The existing VORTEXT snapshot store has not been granted to browser roles.
+## Remaining release gates
 
-These findings are a separate Production security workstream. Do not add broad authenticated policies or loosen the snapshot store to make the dashboard work. Do not apply staging migrations to Production as part of this branch.
-
-## Remaining launch gates
-
-1. Verify the actual Supabase Auth email for the owner/operator account.
-2. Verify the exact non-secret `account_id` alias in the trading PC's private account registry.
-3. Add one active `vortext_authorized_operators` row mapping that Auth user ID to that account ID; instructions are in `docs/VORTEXT_LIVE_FEED_SETUP.md`.
-4. Verify Preview `SUPABASE_SECRET_KEY` and `VORTEXT_BOT_HMAC_SECRET` are populated and match the staging project and trading PC. Do not paste secret values into chat or Git.
-5. Set Preview `VORTEXT_BOT_ID=vortext-fleet`.
-6. Point the trading PC publisher to this branch's exact Vercel Preview deployment and run it with the existing real MT5 session connected.
-7. Verify the first signed snapshot is stored, timestamps advance, only the mapped user's account is visible, an unauthorized account ID returns 403, and stale data is labelled stale.
-8. Run all Python tests and `node --test tests/test_vortext_trade_feed_api.js`; then perform Preview browser checks.
-9. Keep the PR draft until these checks pass. Production remains out of scope until a separately approved release and database security review.
-
-## Automated checks
-
-```powershell
-python -m pytest -q tests/test_website_readiness.py tests/test_website_login_providers.py tests/test_vortext_dashboard.py
-node --test tests/test_vortext_trade_feed_api.js
-```
+1. Configure non-empty Preview `SUPABASE_SECRET_KEY` and `VORTEXT_BOT_HMAC_SECRET`.
+2. Verify the private Windows account registry maps login 26179878 to `account_003`.
+3. Provision the intended Supabase Auth users using the approved onboarding route; email magic-link login does not create new users.
+4. Verify the publisher configuration and endpoint on the Windows trading PC; keep all broker credentials and secrets local/server-side.
+5. Publish signed snapshots to Preview and verify timestamps advance, feed freshness transitions correctly, and the dashboard renders the exact broker account mode.
+6. Smoke-test desktop and mobile navigation, status indicators, Getting Started links, login and account-filter protections.
+7. Keep the PR draft until Preview and end-to-end checks pass. No merge or Production rollout is implied.
 
 No live trading, MT5 order execution or Production deployment is authorized by these website changes.
