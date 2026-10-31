@@ -1,66 +1,95 @@
-# VORTEXT AI website release-readiness gates
+# VORTEXT AI website and MT5 dashboard release readiness
 
-This branch is based on `phase78-public-pages`. It improves the website only; it does not enable live trading, publish MT5 snapshots, change broker execution, or make the multi-account dashboard available.
+Inspection date: 2026-10-31. This integration branch combines the PR #5 website-readiness pages with the existing read-only MT5 snapshot publisher and a per-user, per-account dashboard authorization check.
 
-## Customer-facing statements
+## Release posture
 
-- The currently configured instrument roster is seven instruments: XAUUSD, EURUSD, GBPUSD, USDJPY, NAS100, US30 and BTCUSD. XAGUSD is not included.
-- USD 200 is stated starting broker-account capital, not a VORTEXT AI fee. Software/subscription pricing is not published.
-- The website dashboard is read-only. The separate MT5 bot performs execution where separately enabled.
-- Access is restricted to approved users. Public onboarding is not open.
-- The dashboard distinguishes feed freshness from account mode (DEMO / REAL / UNKNOWN). A fresh feed is not the same as a REAL account.
-- No official support inbox is currently advertised. The Instagram contact URL remains intentionally disabled until the exact official profile URL is verified.
-- The Privacy and Terms pages remain pre-launch drafts because operator identity, jurisdiction, privacy contact, retention schedule and applicable legal review are incomplete.
+- This work is on `feat/vortext-authenticated-mt5-dashboard`.
+- The changes are intended for Vercel Preview and the isolated Supabase staging project only.
+- Production has not been changed, migrated or deployed by this branch.
+- PR #3, PR #4 and PR #5 remain separate draft PRs; this branch does not merge them.
+- Live end-to-end data verification is still blocked until the correct Supabase Auth user is granted the exact MT5 registry account ID and the trading PC publishes the first signed snapshot.
 
-## Production Vercel environment gates
+## Website disclosures retained
 
-The Production environment was inspected on 2026-10-31. These server-side variables are still required by `website/api/trades.js` and were not present in Production at the time of inspection:
+- Seven configured instruments are shown: XAUUSD, EURUSD, GBPUSD, USDJPY, NAS100, US30 and BTCUSD. XAGUSD is not included.
+- USD 200 is described as starting broker-account capital, not a VORTEXT AI fee. Software/subscription pricing is not published.
+- The website dashboard is read-only and cannot submit, modify or close MT5 orders.
+- Public onboarding is not open; dashboard access requires an approved signed-in user and a server-side account grant.
+- Feed freshness and broker account mode (DEMO / REAL / UNKNOWN) are displayed separately.
+- No monitored support inbox is advertised. Privacy and Terms pages remain pre-launch disclosures while legal identity, jurisdiction, privacy contact and retention obligations remain unverified.
+- Email magic links do not create new Supabase users. Delivery is not customer-grade until outbound SMTP is configured and tested. Google OAuth is the configured sign-in provider.
 
-- `SUPABASE_SECRET_KEY` (or the legacy `SUPABASE_SERVICE_ROLE_KEY`)
-- `VORTEXT_BOT_HMAC_SECRET` (minimum 32 characters; must match the secret configured in the bot publisher)
-- `VORTEXT_DASHBOARD_ALLOWED_EMAILS` (comma-separated, explicitly approved email addresses)
+## Authenticated account-data controls
 
-`SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` were present. Never expose the Supabase secret key or bot HMAC secret to browser code, Git, logs or support messages. Do not enable the publisher until these values are configured and verified in the correct environment.
+The new `website/api/trades.js` GET path:
 
-The feed endpoint returns HTTP 503 when the required server configuration is missing. It must return a validated, fresh snapshot before the dashboard is described as operational.
+1. Requires a Supabase bearer access token.
+2. Validates that token against Supabase Auth.
+3. Looks up `public.vortext_authorized_operators` using the immutable `auth.users.id`.
+4. Requires the returned email to match the Auth session, `is_active = true`, and a non-empty JSON array of account IDs.
+5. Rejects a requested `account_id` that is not in the user's assigned list.
+6. Filters the stored snapshot's `accounts`, `positions` and `deals` to the authorized IDs before returning any data.
 
-## Email sign-in delivery status
+The bot POST path validates a timestamped HMAC-SHA256 signature. The browser receives only the Supabase publishable key and verified, account-scoped snapshot data. It never receives the Supabase secret key or HMAC secret. `VORTEXT_DASHBOARD_ALLOWED_EMAILS` remains an optional additional email restriction; it does not replace the database account grant.
 
-The login page supports Google OAuth and an email magic-link flow for existing users only (`shouldCreateUser: false`). However, the email flow is not a production-ready customer delivery channel until an outbound SMTP sender is configured and tested.
+## Vercel status
 
-ImprovMX forwarding configured for inbound mail (if DNS is later completed) does not itself provide outbound SMTP. Supabase's built-in default mailer is subject to project/team recipient restrictions and low rate limits; do not treat it as customer-grade email delivery. Until a verified outbound sender is configured, keep the visible warning on the login page and use Google OAuth for approved testers. Never expose SMTP credentials in browser code or Git.
+Project: `vortexbot-ai`, website root `website`.
 
-## Supabase security audit — production project
+- A Preview environment is configured to use the separate `VORTEXT AI Staging` Supabase project.
+- Preview environment metadata contains entries for `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` and `VORTEXT_BOT_HMAC_SECRET`. Secret values were not decrypted or printed, so their correctness and equality with the trading PC secret are not yet verified.
+- `VORTEXT_BOT_ID` must be `vortext-fleet` for the current publisher. The API uses the same default.
+- Production has `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`, but the server-only Supabase secret and bot HMAC secret were not present in Production metadata at inspection. Production was not modified.
+- The current Preview ingest URL must be the exact Preview deployment for this branch, never the public production domain.
 
-A direct schema/grant and advisor inspection on 2026-10-31 found:
+## Supabase staging state
 
-- 22 legacy tables in the exposed `public` schema have RLS disabled and no policies.
-- The `anon` and `authenticated` roles have broad table privileges on those legacy tables, including SELECT, INSERT, UPDATE, DELETE and TRUNCATE.
-- The affected tables include user/admin, KYC, broker/account, trade/position, deposit/withdrawal, transaction, notification, audit, API-key, performance, capital-event and invoice data.
-- The dedicated `public.vortext_trade_snapshots` table has RLS enabled and no client policies. Its access is intended to remain server-side through the secret-key backend.
-- `public.vortext_trade_snapshots` contained zero rows at inspection time.
-- The Supabase security advisor also reports leaked-password protection disabled.
+Project: `xtyszeuvtfcgognkrwxv` (`VORTEXT AI Staging`, ap-south-1).
 
-Do not add generic `auth.uid() = user_id` policies to every table. The legacy schema has mixed relationships and several privileged tables. First map actual runtime consumers and foreign-key ownership paths. For tables not intentionally exposed to browser clients, the preferred target is no `anon`/`authenticated` access, RLS enabled, and narrowly scoped server-side access. Create customer-facing policies only where a documented user-ownership model exists.
+Applied staging migrations recorded by Supabase:
+- `20261031164736` — `001_durable_telemetry_and_replay_store`
+- `20261031164759` — `002_harden_telemetry_access_and_atomic_ordering`
+- `20261031164855` — `003_optimize_operator_profile_rls`
 
-No production database grants or RLS policies were changed by this website branch.
+Verified state:
+- `public.vortext_authorized_operators` and `public.vortext_trade_snapshots` exist with RLS enabled.
+- `service_role` can read/write snapshots and read operator grants.
+- `anon` and `authenticated` cannot execute the snapshot-upsert RPC.
+- The RPC is restricted to `service_role`.
+- Staging security advisor returned no security findings.
+- Operator rows: 0.
+- Trade snapshot rows: 0.
 
-## Support, privacy and legal gates
+The integrated code uses this existing `vortext_authorized_operators.allowed_accounts` model. It does not create the duplicate `vortext_user_account_access` mapping table. The old PR #4 multi-account migration was removed from this integration branch because it assumed a `created_at` column absent from this staging table and would replace the working RPC with an incompatible version.
 
-Before public customer onboarding:
+## Production Supabase security findings — not changed here
 
-1. Verify and publish the official support channel; establish a monitored response process.
-2. Confirm the business/operator legal identity and operating jurisdiction.
-3. Finalize the privacy contact and data-retention schedule, including Auth, trade snapshots, support requests and diagnostic logs.
-4. Have the Terms, Privacy notice, financial-services disclosures and any jurisdiction-specific obligations reviewed by qualified counsel.
-5. Do not imply that support email, customer email delivery, subscriptions or payment collection are available until the corresponding services are configured and tested.
+The Production project `bucziqekzyrttgcoxtas` was inspected read-only:
+- Supabase advisors reported 22 legacy public tables with RLS disabled.
+- The dedicated `vortext_trade_snapshots` table had RLS enabled with no browser-client policies, and no snapshots were present at inspection.
+- Leaked-password protection was disabled.
+- The existing VORTEXT snapshot store has not been granted to browser roles.
 
-## Verification
+These findings are a separate Production security workstream. Do not add broad authenticated policies or loosen the snapshot store to make the dashboard work. Do not apply staging migrations to Production as part of this branch.
 
-Run the static website checks:
+## Remaining launch gates
+
+1. Verify the actual Supabase Auth email for the owner/operator account.
+2. Verify the exact non-secret `account_id` alias in the trading PC's private account registry.
+3. Add one active `vortext_authorized_operators` row mapping that Auth user ID to that account ID; instructions are in `docs/VORTEXT_LIVE_FEED_SETUP.md`.
+4. Verify Preview `SUPABASE_SECRET_KEY` and `VORTEXT_BOT_HMAC_SECRET` are populated and match the staging project and trading PC. Do not paste secret values into chat or Git.
+5. Set Preview `VORTEXT_BOT_ID=vortext-fleet`.
+6. Point the trading PC publisher to this branch's exact Vercel Preview deployment and run it with the existing real MT5 session connected.
+7. Verify the first signed snapshot is stored, timestamps advance, only the mapped user's account is visible, an unauthorized account ID returns 403, and stale data is labelled stale.
+8. Run all Python tests and `node --test tests/test_vortext_trade_feed_api.js`; then perform Preview browser checks.
+9. Keep the PR draft until these checks pass. Production remains out of scope until a separately approved release and database security review.
+
+## Automated checks
 
 ```powershell
-python -m pytest -q tests/test_website_readiness.py
+python -m pytest -q tests/test_website_readiness.py tests/test_website_login_providers.py tests/test_vortext_dashboard.py
+node --test tests/test_vortext_trade_feed_api.js
 ```
 
-Then verify the Vercel preview routes, response headers, login behavior, approved-user denial, stale-feed behavior and the `/api/trades` 503/200 paths. The current feed is not production-ready until the server environment and database security gates above are closed.
+No live trading, MT5 order execution or Production deployment is authorized by these website changes.
