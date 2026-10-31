@@ -20,16 +20,20 @@ function config() {
   const secret = process.env.VORTEXT_BOT_HMAC_SECRET || '';
   // Keep this aligned with app.vortext_dashboard.VortextDashboardPublisher.
   const botId = (process.env.VORTEXT_BOT_ID || 'vortext-fleet').trim();
-  // Optional second allowlist. The database operator record remains the required access grant.
+  // Optional email fence; leave unset when all signed-in users should see shared feeds.
   const allowedEmails = (process.env.VORTEXT_DASHBOARD_ALLOWED_EMAILS || '')
     .split(',').map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
+  // Server-controlled shared accounts are visible to every valid Supabase Auth user.
+  const sharedAccountIds = [...new Set((process.env.VORTEXT_DASHBOARD_SHARED_ACCOUNTS || '')
+    .split(',').map(function (s) { return s.trim(); })
+    .filter(function (id) { return ACCOUNT_ID_PATTERN.test(id); }))];
   let validUrl = false;
   try {
     const parsed = new URL(url);
     validUrl = parsed.protocol === 'https:' &&
       (parsed.hostname.endsWith('.supabase.co') || parsed.hostname.endsWith('.supabase.in'));
   } catch (_) {}
-  return { url, publishableKey, secretKey, secret, botId, allowedEmails, validUrl };
+  return { url, publishableKey, secretKey, secret, botId, allowedEmails, sharedAccountIds, validUrl };
 }
 
 function readyForIngest(c) {
@@ -294,22 +298,24 @@ async function getOperatorAccess(c, user) {
 
   const rows = await response.json();
   const operator = Array.isArray(rows) ? rows[0] : null;
-  if (!operator || operator.is_active !== true ||
+
+  // No operator row is acceptable only when a shared account is configured.
+  // An explicitly inactive or mismatched operator record always revokes access.
+  if (!operator) return { allowedAccountIds: [], role: 'viewer', denied: false };
+  if (operator.is_active !== true ||
       String(operator.user_id || '').toLowerCase() !== String(user.id || '').toLowerCase() ||
       String(operator.email || '').trim().toLowerCase() !== String(user.email || '').trim().toLowerCase()) {
-    return null;
+    return { allowedAccountIds: [], role: 'viewer', denied: true };
   }
 
-  const rawAllowed = operator.allowed_accounts;
-  if (!Array.isArray(rawAllowed)) return null;
+  const rawAllowed = Array.isArray(operator.allowed_accounts) ? operator.allowed_accounts : [];
   const allowedAccountIds = [...new Set(rawAllowed.map(function (item) {
     return typeof item === 'string' ? item.trim() : '';
   }).filter(function (item) {
     return ACCOUNT_ID_PATTERN.test(item);
   }))];
-  if (!allowedAccountIds.length) return null;
 
-  return { allowedAccountIds, role: String(operator.role || 'viewer').toLowerCase() };
+  return { allowedAccountIds, role: String(operator.role || 'viewer').toLowerCase(), denied: false };
 }
 
 async function getLatest(c) {
@@ -480,14 +486,25 @@ async function get(req, res, c) {
   } catch (_) {
     return reply(res, 503, { ok: false, error: 'Account authorization service is unavailable' });
   }
-  if (!operatorAccess) {
-    return reply(res, 403, { ok: false, error: 'No active trading-account access is assigned to this user' });
+  if (operatorAccess.denied) {
+    return reply(res, 403, { ok: false, error: 'This VORTEXT account has been disabled' });
   }
+
+  // Shared feeds are read-only and apply to every valid signed-in user.
+  // Per-user operator grants can add accounts but cannot widen the shared list.
+  const allowedAccountIds = [...new Set([
+    ...c.sharedAccountIds,
+    ...operatorAccess.allowedAccountIds
+  ])];
+  if (!allowedAccountIds.length) {
+    return reply(res, 403, { ok: false, error: 'No shared or individually assigned trading-account access is configured' });
+  }
+  operatorAccess = Object.assign({}, operatorAccess, { allowedAccountIds });
 
   const parsedUrl = new URL(req.url, 'http://localhost');
   const targetAccountId = parsedUrl.searchParams.get('account_id');
   if (targetAccountId && !operatorAccess.allowedAccountIds.includes(targetAccountId)) {
-    return reply(res, 403, { ok: false, error: 'This trading account is not assigned to your user' });
+    return reply(res, 403, { ok: false, error: 'This trading account is not assigned or shared for your user' });
   }
 
   try {
