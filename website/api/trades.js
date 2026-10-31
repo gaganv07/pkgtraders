@@ -14,7 +14,8 @@ function reply(res, status, body) {
 function config() {
   const url = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
   const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || '';
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  // Prefer the modern server-only Supabase secret key. Legacy service_role JWTs remain supported.
+  const secretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   const secret = process.env.VORTEXT_BOT_HMAC_SECRET || '';
   const botId = (process.env.VORTEXT_BOT_ID || 'vortext-main').trim();
   const allowedEmails = (process.env.VORTEXT_DASHBOARD_ALLOWED_EMAILS || '')
@@ -25,11 +26,11 @@ function config() {
     validUrl = parsed.protocol === 'https:' &&
       (parsed.hostname.endsWith('.supabase.co') || parsed.hostname.endsWith('.supabase.in'));
   } catch (_) {}
-  return { url, publishableKey, serviceKey, secret, botId, allowedEmails, validUrl };
+  return { url, publishableKey, secretKey, secret, botId, allowedEmails, validUrl };
 }
 
 function readyForIngest(c) {
-  return c.validUrl && !!c.serviceKey && c.secret.length >= 32 &&
+  return c.validUrl && !!c.secretKey && c.secret.length >= 32 &&
     /^[A-Za-z0-9._-]{1,64}$/.test(c.botId);
 }
 function readyForRead(c) {
@@ -165,10 +166,21 @@ async function getUser(c, token) {
   if (!response.ok) return null;
   return response.json();
 }
+function serviceApiHeaders(c, extra) {
+  const headers = Object.assign({
+    apikey: c.secretKey,
+    Accept: 'application/json'
+  }, extra || {});
+  // Legacy service_role keys are JWTs and must also be sent as Bearer tokens.
+  // Modern sb_secret_* keys are API keys, so they are sent only in the apikey header.
+  if (c.secretKey.startsWith('eyJ')) headers.Authorization = 'Bearer ' + c.secretKey;
+  return headers;
+}
+
 async function getLatest(c) {
   const query = new URLSearchParams({ select: 'bot_id,captured_at,snapshot,updated_at', bot_id: 'eq.' + c.botId, limit: '1' });
   const response = await fetch(c.url + '/rest/v1/vortext_trade_snapshots?' + query, {
-    headers: { apikey: c.serviceKey, Authorization: 'Bearer ' + c.serviceKey, Accept: 'application/json' },
+    headers: serviceApiHeaders(c),
     signal: AbortSignal.timeout(6000), cache: 'no-store'
   });
   if (!response.ok) throw new Error('Storage unavailable');
@@ -190,7 +202,7 @@ async function post(req, res, c) {
   try {
     const response = await fetch(c.url + '/rest/v1/rpc/upsert_vortext_trade_snapshot', {
       method: 'POST',
-      headers: { apikey: c.serviceKey, Authorization: 'Bearer ' + c.serviceKey, 'Content-Type': 'application/json' },
+      headers: serviceApiHeaders(c, { 'Content-Type': 'application/json' }),
       body: JSON.stringify({ p_bot_id: snapshot.bot_id, p_captured_at: snapshot.captured_at, p_snapshot: snapshot }),
       signal: AbortSignal.timeout(7000), cache: 'no-store'
     });
