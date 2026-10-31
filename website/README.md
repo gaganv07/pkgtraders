@@ -9,8 +9,8 @@ This directory is the root of the VORTEXT AI customer-facing website.
 - The dashboard is private and read-only. It cannot submit, modify, or close MT5 orders.
 - `/api/auth-config` publishes only the browser-safe Supabase URL and publishable key.
 - `/api/trades` accepts bot snapshots only when the request has a valid HMAC-SHA256 signature.
-- Dashboard reads require a valid Supabase access token and an active row in `public.vortext_authorized_operators`. The server checks the Auth user ID and email, then returns only account IDs listed in `allowed_accounts`.
-- Account selectors and trade rows are restricted to the signed-in operator's own mapped account IDs. An account ID in a query string is not an authorization grant.
+- Dashboard reads require a valid Supabase access token. Server-configured shared account IDs are visible to every signed-in user; additional account IDs can be granted through an active row in `public.vortext_authorized_operators`. The server checks Auth identity and filters every account, position and deal before returning it.
+- Account selectors and trade rows are restricted to the shared account IDs plus any additional IDs assigned to the signed-in user. An account ID in a query string is not an authorization grant.
 - Missing snapshots show an explicit waiting state. Old snapshots are marked stale. No sample or fabricated account values are rendered.
 
 ## Vercel project
@@ -30,13 +30,13 @@ Configure these only in the Vercel **Preview** environment for this integration:
 | `SUPABASE_SECRET_KEY` | Server-only secret used by `/api/trades` to read authorization records and snapshots. |
 | `VORTEXT_BOT_HMAC_SECRET` | At least 32 random characters; must exactly match the bot's local setting. |
 | `VORTEXT_BOT_ID` | `vortext-fleet` for the current publisher. |
-| `VORTEXT_DASHBOARD_ALLOWED_EMAILS` | Optional additional email fence. The database operator/account grant is mandatory even when this is unset. |
+| `VORTEXT_DASHBOARD_SHARED_ACCOUNTS` | Comma-separated server-side account aliases visible to every valid signed-in user, e.g. `account_003`. |\n| `VORTEXT_DASHBOARD_ALLOWED_EMAILS` | Optional restrictive email fence. Leave unset for the intended all-signed-in-users shared feed. |
 
 Never expose `SUPABASE_SECRET_KEY` or `VORTEXT_BOT_HMAC_SECRET` to browser code, Git, logs or screenshots. Never place an MT5 password in Vercel.
 
 ## Operator and account authorization
 
-The staging project already contains `public.vortext_authorized_operators`. An account is visible only when the signed-in Supabase Auth user has an active record with:
+The staging project already contains `public.vortext_authorized_operators`. Shared read-only account IDs are configured only on the server through `VORTEXT_DASHBOARD_SHARED_ACCOUNTS`; no per-user row is required for those shared IDs. Any explicitly inactive operator row blocks that account. Additional non-shared accounts are visible only when the signed-in Supabase Auth user has an active record with:
 
 - `user_id`: the exact `auth.users.id` value for the signed-in account;
 - `email`: the same email as the Auth user;
