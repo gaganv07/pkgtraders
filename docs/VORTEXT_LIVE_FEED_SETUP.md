@@ -8,7 +8,7 @@ This document describes the integration branch's staging path. It does not autho
 2. `app/vortext_dashboard.py` reads account state, bot-tagged open positions and recent deals from connected sessions. It refuses simulated/dry-run sessions.
 3. The publisher sends a JSON snapshot to the Vercel Preview `/api/trades` route over outbound HTTPS. It signs the raw body with HMAC-SHA256 and a timestamp.
 4. The Vercel route validates the signature and snapshot, then uses the server-side Supabase secret to call the staging multi-account snapshot RPC. A fresh single-account database can use the base snapshot RPC fallback.
-5. A dashboard user signs in through Supabase Auth. For every GET, the API validates the bearer token with `/auth/v1/user`, looks up `vortext_authorized_operators` by the immutable Auth user ID, checks the email and `is_active`, and filters the snapshot to the exact `allowed_accounts` list.
+5. A dashboard user signs in through Supabase Auth. For every GET, the API validates the bearer token with `/auth/v1/user`, then filters the snapshot to the server-configured shared account IDs plus any additional active per-user grants. An explicitly inactive or mismatched operator record is denied.
 6. The dashboard renders only the authorized accounts, positions and deals. The browser never receives the Supabase secret or bot HMAC secret.
 
 No inbound connection to the trading PC is required. No order submit, modify or close operation is available from the website.
