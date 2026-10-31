@@ -499,6 +499,7 @@ async function get(req, res, c) {
         stale: true,
         bot_id: c.botId,
         authorized_account_ids: operatorAccess.allowedAccountIds,
+        authorized_accounts: [],
         snapshot: null
       });
     }
@@ -529,6 +530,7 @@ async function get(req, res, c) {
         captured_at: capturedAt,
         updated_at: row.updated_at,
         authorized_account_ids: operatorAccess.allowedAccountIds,
+        authorized_accounts: visibleAccounts,
         snapshot: null
       });
     }
@@ -542,6 +544,7 @@ async function get(req, res, c) {
         captured_at: capturedAt,
         updated_at: row.updated_at,
         authorized_account_ids: operatorAccess.allowedAccountIds,
+        authorized_accounts: [],
         snapshot: null
       });
     }
@@ -569,6 +572,7 @@ async function get(req, res, c) {
       captured_at: capturedAt,
       updated_at: row.updated_at,
       authorized_account_ids: operatorAccess.allowedAccountIds,
+      authorized_accounts: visibleAccounts,
       snapshot: filteredSnapshot
     });
   } catch (_) {
