@@ -32,6 +32,7 @@ def test_dashboard_separates_feed_freshness_from_account_mode() -> None:
     assert "FEED STALE" in dashboard
     assert "REAL ACCOUNT" in dashboard
     assert "DEMO ACCOUNT" in dashboard
+    assert ".mode-badge[hidden]{display:none}" in dashboard
     assert "timeZone: 'UTC'" in dashboard
     assert "LIVE · Last broker update" not in dashboard
     assert "clearDashboardData()" in dashboard
