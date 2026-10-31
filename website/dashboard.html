@@ -133,7 +133,7 @@
       auth = window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey);
       const result = await auth.auth.getSession();
       if (!result.data.session) { window.location.replace('/login.html?next=dashboard.html'); return; }
-      user.textContent = result.data.session.user.email || 'Signed in';
+      user.textContent = 'Signed in';
       logout.hidden = false; content.hidden = false;
       logout.onclick = async function () { if (timer) window.clearInterval(timer); await auth.auth.signOut(); window.location.href='/login.html'; };
       await refresh();
