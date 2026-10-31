@@ -6,8 +6,8 @@
 </style></head>
 <body><header><div class="wrap"><nav aria-label="Main navigation"><a href="/" aria-label="VORTEXT AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261028-1" alt="VORTEXT AI"></a><div class="navlinks"><a href="/">Home</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Support</a></div><a class="back" href="/login.html">Sign in ↗</a></nav></div></header>
 <main class="wrap">
-<div class="kicker">Contact & support</div><h1>How to reach VORTEXT AI</h1><p class="lead">The intended initial customer-support channel is the VORTEXT AI Instagram profile. A direct profile link has not been published here yet because the exact Instagram username has not been supplied.</p>
-<div class="panel"><span class="pill">Instagram support</span><h2>Official profile link pending</h2><p>Before customer onboarding, add the exact Instagram profile URL to this page so visitors can reach the correct account. Do not use an assumed username or a generic Instagram link that could send customers to an unrelated profile.</p><p class="notice" id="social-status">The official Instagram contact link will appear here after the profile URL is configured.</p><a class="btn" id="instagram-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Open official Instagram profile ↗</a></div>
+<div class="kicker">Contact & support</div><h1>How to reach VORTEXT AI</h1><p class="lead">VORTEXT AI does not currently have a verified public support channel. Customer onboarding is not open while the official contact route and operational support process are being finalized.</p>
+<div class="panel"><span class="pill">Support status</span><h2>Public contact route not configured</h2><p>The planned initial support channel is the official VORTEXT AI Instagram profile, but its exact URL has not been verified and published. No monitored support inbox is currently advertised. Do not rely on an assumed handle or send passwords, OTPs, API keys or trading credentials through social messages.</p><p class="notice" id="social-status">Customer onboarding remains closed until a verified support channel and response process are published.</p><a class="btn" id="instagram-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Open official Instagram profile ↗</a></div>
 <div class="grid">
 <section class="card"><h3>For dashboard issues</h3><p>Include the sign-in email you used, the page URL, the approximate time of the issue and a screenshot with account identifiers hidden.</p></section>
 <section class="card"><h3>For MT5 connection issues</h3><p>Include broker name, MT5 server name, whether the terminal is connected and the last update time. Do not send broker login details or passwords.</p></section>
@@ -18,7 +18,7 @@
 <footer><div class="wrap foot"><span>© VORTEXT AI · Automated trading involves risk.</span><div class="footlinks"><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact & Support</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/">Home</a></div></div></footer>
 <script>
 (function(){
-  const profileUrl = ""; // Set this to the exact https://www.instagram.com/<username>/ profile URL after it is confirmed.
+  const profileUrl = ""; // Keep disabled until the exact official profile URL is verified by the operator.
   const link = document.getElementById("instagram-link");
   const status = document.getElementById("social-status");
   if (!profileUrl) return;
@@ -26,7 +26,7 @@
     const url = new URL(profileUrl);
     if (url.protocol !== "https:" || url.hostname !== "www.instagram.com" || !/^\/[A-Za-z0-9._]+\/?$/.test(url.pathname)) return;
     link.href = url.href; link.hidden = false;
-    status.textContent = "Use the verified official VORTEXT AI Instagram profile for support enquiries.";
+    status.textContent = "Use this verified official VORTEXT AI Instagram profile for support enquiries.";
   } catch (_) {}
 })();
 </script>

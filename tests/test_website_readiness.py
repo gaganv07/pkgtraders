@@ -1,0 +1,72 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+WEBSITE = ROOT / "website"
+
+
+def read_page(name: str) -> str:
+    return (WEBSITE / name).read_text(encoding="utf-8")
+
+
+def test_email_signin_does_not_create_new_supabase_users() -> None:
+    login = read_page("login.html")
+    assert "shouldCreateUser: false" in login
+    assert "Continue with Apple" not in login
+    assert 'id="apple"' not in login
+
+
+def test_supabase_browser_sdk_is_pinned_to_a_stable_version() -> None:
+    for page in ("login.html", "dashboard.html"):
+        source = read_page(page)
+        assert "@supabase/supabase-js@2.118.0" in source
+        assert "@supabase/supabase-js@2</script>" not in source
+
+
+def test_dashboard_separates_feed_freshness_from_account_mode() -> None:
+    dashboard = read_page("dashboard.html")
+    assert "FEED FRESH" in dashboard
+    assert "FEED STALE" in dashboard
+    assert "REAL ACCOUNT" in dashboard
+    assert "DEMO ACCOUNT" in dashboard
+    assert "timeZone: 'UTC'" in dashboard
+    assert "LIVE · Last broker update" not in dashboard
+    assert "clearDashboardData()" in dashboard
+
+
+def test_homepage_uses_configured_instrument_count_and_limited_access_copy() -> None:
+    homepage = read_page("index.html")
+    assert "7 configured instruments" in homepage
+    assert "public onboarding is not open" in homepage
+    assert 'id="menu-toggle"' in homepage
+    assert "8 pairs" not in homepage
+
+
+def test_public_pages_disclose_prelaunch_and_support_gaps() -> None:
+    contact = read_page("contact.html")
+    privacy = read_page("privacy.html")
+    terms = read_page("terms.html")
+    pricing = read_page("pricing.html")
+    faq = read_page("faq.html")
+
+    assert "No monitored support inbox" in contact
+    assert "No fixed retention periods" in privacy
+    assert "PRE-LAUNCH NOTICE" in terms
+    assert "not accepting public customers yet" in pricing
+    assert "pre-approved accounts" in faq
+
+
+def test_vercel_security_headers_are_configured() -> None:
+    config = json.loads((WEBSITE / "vercel.json").read_text(encoding="utf-8"))
+    headers = config["headers"]
+    assert headers
+    values = {
+        item["key"].lower(): item["value"]
+        for item in headers[0]["headers"]
+    }
+    assert values["x-content-type-options"] == "nosniff"
+    assert values["x-frame-options"] == "DENY"
+    assert "frame-ancestors 'none'" in values["content-security-policy"]

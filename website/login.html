@@ -34,10 +34,10 @@ footer{padding:18px 0;border-top:1px solid #17372d;color:#80978e;font-size:11px}
 <div class="or">OR CONTINUE WITH EMAIL</div>
 <form id="email-form"><label for="email">Email address</label><div class="email-row"><input id="email" name="email" type="email" autocomplete="email" placeholder="Enter your email address" required><button class="submit" id="email-submit" type="submit" disabled>Send secure sign-in link</button></div></form>
 <div class="legal">By continuing, you agree to use this service in accordance with our <a href="/#risk">risk disclosure</a>. Automated trading can result in losses.</div>
-<div class="tiny">Demo trading dashboard · Read-only website · No MT5 password collection</div>
+<div class="tiny">Email-link delivery is not production-ready until an outbound SMTP sender is configured and tested. Google sign-in is available for approved accounts. Demo trading dashboard · Read-only website · No MT5 password collection</div>
 </section></main>
 <footer><div class="wrap row"><span>© VORTEXT AI</span><div class="row"><a href="/">Home</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/contact.html">Support</a></div></div></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -64,7 +64,7 @@ footer{padding:18px 0;border-top:1px solid #17372d;color:#80978e;font-size:11px}
       const { data } = await client.auth.getSession();
       if (data.session) { window.location.replace("/dashboard.html"); return; }
       enableButtons(true);
-      show("Sign in with Google or request a one-time email link. Apple sign-in is not enabled yet.");
+      show("Sign in with Google or request an email sign-in link. Access is limited to pre-approved accounts; email sign-in does not create new users.");
     } catch (error) {
       enableButtons(false);
       show("Sign-in service is unavailable. Please try again later.", true);
@@ -84,9 +84,16 @@ footer{padding:18px 0;border-top:1px solid #17372d;color:#80978e;font-size:11px}
     const email = $("email").value.trim();
     enableButtons(false);
     show("Sending a one-time sign-in link…");
-    const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: target } });
-    if (error) { show(error.message || "Could not send sign-in link.", true); enableButtons(true); }
-    else show("If this email is eligible, a secure sign-in link has been sent. Check your inbox.");
+    const { error } = await client.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: target, shouldCreateUser: false }
+    });
+    if (error) {
+      show("Could not start email sign-in. Confirm that this address is approved and try again.", true);
+    } else {
+      show("If this is an approved VORTEXT AI account, a secure sign-in link has been requested. Check your inbox.");
+    }
+    enableButtons(true);
   });
   init();
 })();
