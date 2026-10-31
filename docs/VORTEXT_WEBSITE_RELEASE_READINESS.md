@@ -24,6 +24,12 @@ The Production environment was inspected on 2026-10-31. These server-side variab
 
 The feed endpoint returns HTTP 503 when the required server configuration is missing. It must return a validated, fresh snapshot before the dashboard is described as operational.
 
+## Email sign-in delivery status
+
+The login page supports Google OAuth and an email magic-link flow for existing users only (`shouldCreateUser: false`). However, the email flow is not a production-ready customer delivery channel until an outbound SMTP sender is configured and tested.
+
+ImprovMX forwarding configured for inbound mail (if DNS is later completed) does not itself provide outbound SMTP. Supabase's built-in default mailer is subject to project/team recipient restrictions and low rate limits; do not treat it as customer-grade email delivery. Until a verified outbound sender is configured, keep the visible warning on the login page and use Google OAuth for approved testers. Never expose SMTP credentials in browser code or Git.
+
 ## Supabase security audit — production project
 
 A direct schema/grant and advisor inspection on 2026-10-31 found:
