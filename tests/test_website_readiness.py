@@ -70,3 +70,23 @@ def test_vercel_security_headers_are_configured() -> None:
     assert values["x-content-type-options"] == "nosniff"
     assert values["x-frame-options"] == "DENY"
     assert "frame-ancestors 'none'" in values["content-security-policy"]
+
+
+def test_dashboard_supports_authorized_multi_account_views() -> None:
+    dashboard = read_page("dashboard.html")
+    assert 'id="account-select"' in dashboard
+    assert "payload.authorized_account_ids" in (WEBSITE / "api" / "trades.js").read_text(encoding="utf-8")
+    assert "p.account_id || 'primary'" in dashboard
+    assert "d.account_id || 'primary'" in dashboard
+    assert "Multi-currency" in dashboard
+
+
+def test_trade_api_requires_operator_mapping_and_filters_account_ids() -> None:
+    api = (WEBSITE / "api" / "trades.js").read_text(encoding="utf-8")
+    assert "vortext_authorized_operators" in api
+    assert "user_id: 'eq.' + user.id" in api
+    assert "operator.is_active !== true" in api
+    assert "allowedAccountIds.includes(targetAccountId)" in api
+    assert "vortext_user_account_access" not in api
+    assert "validSignature" in api
+    assert "VORTEXT_BOT_HMAC_SECRET" in api
