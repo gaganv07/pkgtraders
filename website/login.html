@@ -30,20 +30,19 @@ footer{padding:18px 0;border-top:1px solid #17372d;color:#80978e;font-size:11px}
 <div id="status" class="notice show" role="status">Checking sign-in configuration…</div>
 <div class="providers" style="margin-top:16px">
 <button class="provider" id="google" type="button" disabled><span><svg viewBox="0 0 48 48" focusable="false" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.96 46.98 31.87 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.75 24c0-1.59.27-3.13.75-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.86.92 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.43-4.89 2.28-8.18 2.28-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 43.62 14.62 48 24 48z"/></svg>Continue with Google</span></button>
-<button class="provider" id="apple" type="button" disabled><span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.37 1.43c0 1.14-.42 2.2-1.2 3.06-.86.98-2.26 1.73-3.46 1.63-.15-1.1.4-2.27 1.18-3.11.86-.95 2.35-1.66 3.48-1.58zM20.99 17.6c-.5 1.14-.74 1.65-1.39 2.66-.9 1.4-2.17 3.14-3.74 3.15-1.4.02-1.76-.92-3.65-.91-1.9.01-2.3.94-3.7.92-1.57-.02-2.77-1.59-3.67-2.99C2.32 16.36 2.01 11.58 3.8 9.04c1.28-1.8 3.3-2.86 5.2-2.86 1.93 0 3.14 1 4.74 1 1.55 0 2.5-1 4.73-1 1.69 0 3.48.92 4.76 2.5-4.18 2.3-3.5 8.26-2.24 8.92z"/></svg>Continue with Apple</span></button>
 </div>
 <div class="or">OR CONTINUE WITH EMAIL</div>
 <form id="email-form"><label for="email">Email address</label><div class="email-row"><input id="email" name="email" type="email" autocomplete="email" placeholder="Enter your email address" required><button class="submit" id="email-submit" type="submit" disabled>Send secure sign-in link</button></div></form>
 <div class="legal">By continuing, you agree to use this service in accordance with our <a href="/#risk">risk disclosure</a>. Automated trading can result in losses.</div>
 <div class="tiny">Demo trading dashboard · Read-only website · No MT5 password collection</div>
 </section></main>
-<footer><div class="wrap row"><span>© VORTEXT AI</span><a href="/">Home</a></div></footer>
+<footer><div class="wrap row"><span>© VORTEXT AI</span><div class="row"><a href="/">Home</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/contact.html">Support</a></div></div></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
   const status = $("status");
-  const providerButtons = [$("google"), $("apple"), $("email-submit")];
+  const providerButtons = [$("google"), $("email-submit")];
   let client = null;
   const target = window.location.origin + "/dashboard.html";
   function show(message, warning = false) {
@@ -65,7 +64,7 @@ footer{padding:18px 0;border-top:1px solid #17372d;color:#80978e;font-size:11px}
       const { data } = await client.auth.getSession();
       if (data.session) { window.location.replace("/dashboard.html"); return; }
       enableButtons(true);
-      show("Sign in with Google or Apple, or request a one-time email link.");
+      show("Sign in with Google or request a one-time email link. Apple sign-in is not enabled yet.");
     } catch (error) {
       enableButtons(false);
       show("Sign-in service is unavailable. Please try again later.", true);
@@ -79,7 +78,6 @@ footer{padding:18px 0;border-top:1px solid #17372d;color:#80978e;font-size:11px}
     if (error) { show(error.message || "Could not start sign-in.", true); enableButtons(true); }
   }
   $("google").addEventListener("click", () => oauth("google"));
-  $("apple").addEventListener("click", () => oauth("apple"));
   $("email-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!client) return;
