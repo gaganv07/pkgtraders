@@ -108,7 +108,7 @@
       if (response.status === 401) { window.location.replace('/login.html?next=dashboard.html'); return; }
       if (!response.ok || !data.ok) {
         setStatus(response.status === 403 ? 'This signed-in account is not authorized to view trading data.' :
-          'Live feed is not configured or is unavailable. Restore Supabase and complete the feed setup.', 'warn');
+          'Authentication is working. The MT5 trade feed is not connected yet; complete the secure bot-feed setup to display live data.', 'warn');
         return;
       }
       if (!data.snapshot) {
