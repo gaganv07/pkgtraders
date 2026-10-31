@@ -237,6 +237,7 @@ class Orchestrator:
         self._running  = False
         self._shutdown = asyncio.Event()
         self._tasks    = []
+        self.vortext_publisher = None
 
         # Counters / tracking
         self._tick_count:     int   = 0
@@ -324,6 +325,23 @@ class Orchestrator:
             asyncio.create_task(self._daily_report(),  name="daily_report"),
             asyncio.create_task(self._backup_loop(),   name="backup_loop"),
         ]
+
+        # 6b. Start VORTEXT Live Feed Publisher if configured
+        try:
+            from app.vortext_dashboard import VortextDashboardPublisher
+            self.vortext_publisher = VortextDashboardPublisher(
+                account_manager=self.account_mgr,
+                mt5_client=self.client,
+            )
+            if self.vortext_publisher.enabled:
+                self._tasks.append(
+                    asyncio.create_task(self.vortext_publisher.run(), name="vortext_live_feed")
+                )
+                logger.info("[VORTEXT] Live feed publisher task started")
+            else:
+                logger.info("[VORTEXT] Live feed publisher is disabled in configuration")
+        except Exception as exc:
+            logger.warning(f"[VORTEXT] Live feed publisher init error: {exc}")
 
         self.db.log_event("SYSTEM_START", "Multi-Market Bot started",
                           data={"balance": account["balance"],

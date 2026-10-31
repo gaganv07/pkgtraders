@@ -12,6 +12,7 @@ Provides:
 from __future__ import annotations
 
 import logging
+import math
 import multiprocessing as mp
 import os
 import random
@@ -61,6 +62,16 @@ class IMT5Session(ABC):
     def get_positions(self, symbol: Optional[str] = None, all_magic: bool = False) -> List[PositionSnapshot]:
         """Fetch active positions. If all_magic=False, filters by account's magic number."""
         pass
+
+    def get_history_deals(
+        self,
+        start: Optional[Any] = None,
+        end: Optional[Any] = None,
+        all_magic: bool = False,
+        days: int = 7,
+    ) -> List[Dict[str, Any]]:
+        """Fetch closed deal history for this account. If all_magic=False, filters by account's magic number."""
+        return []
 
     @abstractmethod
     def get_symbol_spec(self, symbol: str) -> Optional[Dict[str, Any]]:
@@ -314,6 +325,107 @@ class MT5DirectSession(IMT5Session):
             )
         return res
 
+    def get_history_deals(
+        self,
+        start: Optional[Any] = None,
+        end: Optional[Any] = None,
+        all_magic: bool = False,
+        days: int = 7,
+    ) -> List[Dict[str, Any]]:
+        """Fetch closed deal history for this account."""
+        if not self._connected:
+            return []
+
+        if self.config.dry_run or not MT5_AVAILABLE:
+            return []
+
+        now_utc = datetime.now(timezone.utc)
+        if end is None:
+            end_dt = now_utc
+        elif isinstance(end, (int, float)):
+            end_dt = datetime.fromtimestamp(end, tz=timezone.utc)
+        elif isinstance(end, datetime):
+            end_dt = end if end.tzinfo else end.replace(tzinfo=timezone.utc)
+        else:
+            end_dt = now_utc
+
+        if start is None:
+            from datetime import timedelta
+            start_dt = end_dt - timedelta(days=days)
+        elif isinstance(start, (int, float)):
+            start_dt = datetime.fromtimestamp(start, tz=timezone.utc)
+        elif isinstance(start, datetime):
+            start_dt = start if start.tzinfo else start.replace(tzinfo=timezone.utc)
+        else:
+            from datetime import timedelta
+            start_dt = end_dt - timedelta(days=days)
+
+        try:
+            raw = mt5.history_deals_get(start_dt, end_dt)
+        except Exception as exc:
+            logger.warning(f"[{self.config.account_id}] Failed to get history deals: {exc}")
+            return []
+
+        if not raw:
+            return []
+
+        res: List[Dict[str, Any]] = []
+        for d in raw:
+            deal_magic = getattr(d, "magic", 0)
+            if not all_magic and deal_magic != self.config.magic_number:
+                continue
+
+            deal_type = getattr(d, "type", 0)
+            if deal_type == mt5.DEAL_TYPE_BUY:
+                side = "buy"
+            elif deal_type == mt5.DEAL_TYPE_SELL:
+                side = "sell"
+            else:
+                continue
+
+            entry_code = getattr(d, "entry", 0)
+            entry_map = {
+                mt5.DEAL_ENTRY_IN: "in",
+                mt5.DEAL_ENTRY_OUT: "out",
+                mt5.DEAL_ENTRY_INOUT: "inout",
+                mt5.DEAL_ENTRY_OUT_BY: "out_by",
+            }
+            entry_str = entry_map.get(entry_code, "other")
+
+            deal_time = getattr(d, "time", 0)
+            deal_time_iso = None
+            if deal_time:
+                try:
+                    deal_time_iso = datetime.fromtimestamp(deal_time, tz=timezone.utc).isoformat()
+                except Exception:
+                    pass
+
+            profit = float(getattr(d, "profit", 0.0) or 0.0)
+            commission = float(getattr(d, "commission", 0.0) or 0.0)
+            swap = float(getattr(d, "swap", 0.0) or 0.0)
+            fee = float(getattr(d, "fee", 0.0) or 0.0)
+
+            res.append({
+                "ticket": str(getattr(d, "ticket", "")),
+                "order": str(getattr(d, "order", "")),
+                "position_id": str(getattr(d, "position_id", getattr(d, "order", ""))),
+                "symbol": str(getattr(d, "symbol", "")),
+                "side": side,
+                "entry": entry_str,
+                "volume": float(getattr(d, "volume", 0.0) or 0.0),
+                "price": float(getattr(d, "price", 0.0) or 0.0),
+                "profit": profit,
+                "commission": commission,
+                "swap": swap,
+                "fee": fee,
+                "net_profit": profit + commission + swap + fee,
+                "time": deal_time_iso,
+                "reason": str(getattr(d, "reason", "")),
+                "magic": deal_magic,
+                "comment": str(getattr(d, "comment", "")),
+            })
+        return res
+
     def get_symbol_spec(self, symbol: str) -> Optional[Dict[str, Any]]:
         clean_sym = symbol.rstrip("m+.a").upper()
         if self.config.dry_run or not MT5_AVAILABLE:
@@ -322,7 +434,7 @@ class MT5DirectSession(IMT5Session):
                 "digits": spec["digits"],
                 "point": spec["point"],
                 "spread": 15,
-                "contract_size": 100.0 if "XAU" in clean_sym else 100000.0,
+                "contract_size": 100.0 if "XAU" in clean_sym else (5000.0 if "XAG" in clean_sym else (1.0 if any(k in clean_sym for k in ["NAS", "US30", "BTC", "ETH", "DJI", "TEC"]) else 100000.0)),
                 "vol_min": spec["vol_min"],
                 "vol_max": spec["vol_max"],
                 "vol_step": spec["vol_step"],
@@ -336,6 +448,17 @@ class MT5DirectSession(IMT5Session):
         info = mt5.symbol_info(broker_sym)
         if not info:
             return None
+        # P52-03: Strict validation of required monetary tick values (Fail-closed; NO point substitution)
+        if info.trade_tick_value is None or not math.isfinite(info.trade_tick_value) or info.trade_tick_value <= 0:
+            logger.warning(f"[{self.config.account_id}][{broker_sym}] Invalid trade_tick_value ({getattr(info, 'trade_tick_value', None)}). Point substitution strictly barred.")
+            return None
+        if info.trade_tick_size is None or not math.isfinite(info.trade_tick_size) or info.trade_tick_size <= 0:
+            logger.warning(f"[{self.config.account_id}][{broker_sym}] Invalid trade_tick_size ({getattr(info, 'trade_tick_size', None)}). Refusing spec.")
+            return None
+        if info.trade_contract_size is None or not math.isfinite(info.trade_contract_size) or info.trade_contract_size <= 0:
+            logger.warning(f"[{self.config.account_id}][{broker_sym}] Invalid trade_contract_size ({getattr(info, 'trade_contract_size', None)}). Refusing spec.")
+            return None
+
         return {
             "digits": info.digits,
             "point": info.point,
@@ -346,8 +469,8 @@ class MT5DirectSession(IMT5Session):
             "vol_step": info.volume_step,
             "bid": info.bid,
             "ask": info.ask,
-            "tick_size": info.trade_tick_size if info.trade_tick_size > 0 else info.point,
-            "tick_value": info.trade_tick_value if info.trade_tick_value > 0 else info.point,
+            "tick_size": info.trade_tick_size,
+            "tick_value": info.trade_tick_value,
         }
 
     def get_tick(self, symbol: str) -> Optional[Dict[str, Any]]:
@@ -821,6 +944,98 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
                                 })
                         pipe.send(res)
 
+            elif cmd == "GET_HISTORY_DEALS":
+                start_val, end_val, all_magic_flag, days_count = args
+                if dry_run or not has_mt5:
+                    pipe.send([])
+                else:
+                    now_utc = datetime.now(timezone.utc)
+                    if end_val is None:
+                        end_dt = now_utc
+                    elif isinstance(end_val, (int, float)):
+                        end_dt = datetime.fromtimestamp(end_val, tz=timezone.utc)
+                    elif isinstance(end_val, datetime):
+                        end_dt = end_val if end_val.tzinfo else end_val.replace(tzinfo=timezone.utc)
+                    else:
+                        end_dt = now_utc
+
+                    if start_val is None:
+                        from datetime import timedelta
+                        start_dt = end_dt - timedelta(days=days_count)
+                    elif isinstance(start_val, (int, float)):
+                        start_dt = datetime.fromtimestamp(start_val, tz=timezone.utc)
+                    elif isinstance(start_val, datetime):
+                        start_dt = start_val if start_val.tzinfo else start_val.replace(tzinfo=timezone.utc)
+                    else:
+                        from datetime import timedelta
+                        start_dt = end_dt - timedelta(days=days_count)
+
+                    try:
+                        raw = worker_mt5.history_deals_get(start_dt, end_dt)
+                    except Exception as e:
+                        logger.warning(f"[WORKER] history_deals_get error: {e}")
+                        raw = None
+
+                    if not raw:
+                        pipe.send([])
+                    else:
+                        res = []
+                        for d in raw:
+                            deal_magic = getattr(d, "magic", 0)
+                            if not all_magic_flag and deal_magic != magic:
+                                continue
+
+                            deal_type = getattr(d, "type", 0)
+                            if deal_type == worker_mt5.DEAL_TYPE_BUY:
+                                side = "buy"
+                            elif deal_type == worker_mt5.DEAL_TYPE_SELL:
+                                side = "sell"
+                            else:
+                                continue
+
+                            entry_code = getattr(d, "entry", 0)
+                            entry_map = {
+                                worker_mt5.DEAL_ENTRY_IN: "in",
+                                worker_mt5.DEAL_ENTRY_OUT: "out",
+                                worker_mt5.DEAL_ENTRY_INOUT: "inout",
+                                worker_mt5.DEAL_ENTRY_OUT_BY: "out_by",
+                            }
+                            entry_str = entry_map.get(entry_code, "other")
+
+                            deal_time = getattr(d, "time", 0)
+                            deal_time_iso = None
+                            if deal_time:
+                                try:
+                                    deal_time_iso = datetime.fromtimestamp(deal_time, tz=timezone.utc).isoformat()
+                                except Exception:
+                                    pass
+
+                            profit = float(getattr(d, "profit", 0.0) or 0.0)
+                            commission = float(getattr(d, "commission", 0.0) or 0.0)
+                            swap = float(getattr(d, "swap", 0.0) or 0.0)
+                            fee = float(getattr(d, "fee", 0.0) or 0.0)
+
+                            res.append({
+                                "ticket": str(getattr(d, "ticket", "")),
+                                "order": str(getattr(d, "order", "")),
+                                "position_id": str(getattr(d, "position_id", getattr(d, "order", ""))),
+                                "symbol": str(getattr(d, "symbol", "")),
+                                "side": side,
+                                "entry": entry_str,
+                                "volume": float(getattr(d, "volume", 0.0) or 0.0),
+                                "price": float(getattr(d, "price", 0.0) or 0.0),
+                                "profit": profit,
+                                "commission": commission,
+                                "swap": swap,
+                                "fee": fee,
+                                "net_profit": profit + commission + swap + fee,
+                                "time": deal_time_iso,
+                                "reason": str(getattr(d, "reason", "")),
+                                "magic": deal_magic,
+                                "comment": str(getattr(d, "comment", "")),
+                            })
+                        pipe.send(res)
+
             elif cmd == "GET_SYMBOL_SPEC":
                 sym = args[0] if (args and len(args) > 0) else "XAUUSD"
                 if dry_run or not has_mt5:
@@ -965,6 +1180,26 @@ class MT5ProcessSession(IMT5Session):
                 ]
         except Exception as e:
             logger.error(f"[{self.config.account_id}] get_positions failed: {e}")
+        return []
+
+    def get_history_deals(
+        self,
+        start: Optional[Any] = None,
+        end: Optional[Any] = None,
+        all_magic: bool = False,
+        days: int = 7,
+    ) -> List[Dict[str, Any]]:
+        """Fetch closed deal history for this account via process IPC."""
+        if not self._connected or not self._parent_conn:
+            return []
+        try:
+            self._parent_conn.send(("GET_HISTORY_DEALS", (start, end, all_magic, days)))
+            if self._parent_conn.poll(10.0):
+                res = self._parent_conn.recv()
+                if isinstance(res, list):
+                    return res
+        except Exception as e:
+            logger.warning(f"[{self.config.account_id}] ProcessSession get_history_deals error: {e}")
         return []
 
     def get_symbol_spec(self, symbol: str) -> Optional[Dict[str, Any]]:

@@ -297,6 +297,7 @@ class MLConfig:
     min_samples: int   = field(default_factory=lambda: _i("ML_MIN_SAMPLES", 50))
     model_path:  str   = "database/ml_model.json"
     retrain_every_n_trades: int = 20
+    online_training_enabled: bool = field(default_factory=lambda: _b("ML_ONLINE_TRAINING_ENABLED", False))
 
 
 # ── Telegram configuration ────────────────────────────────────────────────────
@@ -358,6 +359,34 @@ class BookmapConfig:
     license_key:       str   = field(default_factory=lambda: _s("BOOKMAP_LICENSE_KEY", ""))
 
 
+# ── Liquidity & Volume Profile configuration (Phase 1 — disabled by default) ──
+
+@dataclass
+class LiquidityConfig:
+    """Configuration for optional Fibonacci, Volume Profile, and Liquidity analysis."""
+    enabled:               bool  = field(default_factory=lambda: _b("LIQUIDITY_FILTERS_ENABLED", False))
+    fib_enabled:           bool  = field(default_factory=lambda: _b("FIB_FILTER_ENABLED", False))
+    vp_enabled:            bool  = field(default_factory=lambda: _b("VP_FILTER_ENABLED", False))
+    sweep_enabled:         bool  = field(default_factory=lambda: _b("SWEEP_FILTER_ENABLED", False))
+    eq_enabled:            bool  = field(default_factory=lambda: _b("EQ_FILTER_ENABLED", False))
+    displacement_enabled:  bool  = field(default_factory=lambda: _b("DISPLACEMENT_FILTER_ENABLED", False))
+    htf_context_enabled:   bool  = field(default_factory=lambda: _b("HTF_CONTEXT_ENABLED", False))
+    shadow_mode:           bool  = field(default_factory=lambda: _b("LIQUIDITY_SHADOW_MODE", False))
+    max_history_bars:      int   = field(default_factory=lambda: _i("LIQUIDITY_MAX_BARS", 150))
+    cache_results:         bool  = field(default_factory=lambda: _b("LIQUIDITY_CACHE_RESULTS", True))
+
+
+# ── VORTEXT Live Feed configuration ─────────────────────────────────────────
+
+@dataclass
+class VortextLiveFeedConfig:
+    enabled:            bool  = field(default_factory=lambda: _b("VORTEXT_DASHBOARD_SYNC_ENABLED", False))
+    ingest_url:         str   = field(default_factory=lambda: _s("VORTEXT_DASHBOARD_INGEST_URL", ""))
+    bot_hmac_secret:    str   = field(default_factory=lambda: _s("VORTEXT_BOT_HMAC_SECRET", ""))
+    bot_id:             str   = field(default_factory=lambda: _s("VORTEXT_BOT_ID", "vortext-fleet"))
+    publish_interval_s: float = field(default_factory=lambda: _f("VORTEXT_PUBLISH_INTERVAL_SECONDS", 5.0))
+
+
 # ── Root Settings ─────────────────────────────────────────────────────────────
 
 @dataclass
@@ -374,6 +403,8 @@ class Settings:
     dashboard: DashboardConfig    = field(default_factory=DashboardConfig)
     system:    SystemConfig       = field(default_factory=SystemConfig)
     bookmap:   BookmapConfig      = field(default_factory=BookmapConfig)
+    liquidity: LiquidityConfig    = field(default_factory=LiquidityConfig)
+    vortext:   VortextLiveFeedConfig = field(default_factory=VortextLiveFeedConfig)
 
 
 settings = Settings()
