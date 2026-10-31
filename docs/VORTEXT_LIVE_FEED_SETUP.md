@@ -1,137 +1,124 @@
-# VORTEXT AI Live Trade Feed Setup (Multi-Account Fleet & Single-Account)
+# VORTEXT AI read-only MT5 dashboard integration
 
-This integration is strictly read-only. The MT5 bot system publishes signed, authenticated snapshots of broker-confirmed open positions, deal history, and financial metrics across single accounts or the multi-terminal fleet. The website only retrieves this data after server-side verification of the user's Supabase session and configured email allowlist.
+This document describes the integration branch's staging path. It does not authorize live order execution, change the MT5 trading strategy, or deploy the public Production website.
 
-Zero order submission, modification, or cancellation capabilities are present in the feed publisher.
+## 1. Data flow
 
----
+1. The existing MT5 process connects to its configured real accounts on the trading PC.
+2. `app/vortext_dashboard.py` reads account state, bot-tagged open positions and recent deals from connected sessions. It refuses simulated/dry-run sessions.
+3. The publisher sends a JSON snapshot to the Vercel Preview `/api/trades` route over outbound HTTPS. It signs the raw body with HMAC-SHA256 and a timestamp.
+4. The Vercel route validates the signature and snapshot, then uses the server-side Supabase secret to call the staging multi-account snapshot RPC. A fresh single-account database can use the base snapshot RPC fallback.
+5. A dashboard user signs in through Supabase Auth. For every GET, the API validates the bearer token with `/auth/v1/user`, looks up `vortext_authorized_operators` by the immutable Auth user ID, checks the email and `is_active`, and filters the snapshot to the exact `allowed_accounts` list.
+6. The dashboard renders only the authorized accounts, positions and deals. The browser never receives the Supabase secret or bot HMAC secret.
 
-## 1. Supabase Project Setup & Database Migrations
+No inbound connection to the trading PC is required. No order submit, modify or close operation is available from the website.
 
-Apply the database migrations in order through the Supabase SQL Editor or the Supabase CLI:
+## 2. Supabase staging schema already provisioned
 
-1. **Fleet & Single-Account Snapshots:**
-   - Apply `supabase/migrations/20261028120000_vortext_trade_snapshots.sql`
-   - Creates `public.vortext_trade_snapshots` and `public.upsert_vortext_trade_snapshot()`.
-   - Enables Row Level Security (RLS) with service-role-only grants.
+Staging project: `xtyszeuvtfcgognkrwxv` (`VORTEXT AI Staging`).
 
-2. **Per-Account Granular Snapshots & Access Mapping:**
-   - Apply `supabase/migrations/20261031120000_vortext_multi_account_snapshots.sql`
-   - Creates `public.vortext_account_snapshots`, `public.vortext_user_account_access`, and `public.upsert_vortext_multi_account_snapshot()`.
-   - Allows granular per-account querying and user access controls.
+The remote staging project already has the following tables and functions from the separately applied durable-telemetry migrations:
 
----
+- `public.vortext_authorized_operators`: `user_id`, `email`, `role`, `allowed_accounts`, `is_active`, timestamps.
+- `public.vortext_trade_snapshots`: one row per `bot_id`, with `captured_at`, JSONB `snapshot`, and `updated_at`.
+- `public.upsert_vortext_multi_account_snapshot(text,timestamptz,jsonb)`: atomic, timestamp-ordered snapshot write.
 
-## 2. Website Environment Variables (Vercel)
+Observed staging controls:
+- RLS is enabled on both VORTEXT tables.
+- Browser roles do not have write access to the snapshot RPC or tables.
+- The multi-account RPC is executable by `service_role`; `anon` and `authenticated` cannot execute it.
+- The security advisor returned no staging security findings at inspection.
+- The operator table had zero rows and the snapshot table had zero rows at inspection.
 
-Project: `pkgtraders-demo`. Website Root Directory: `website`.
+**Do not apply the old PR #4 `20261031120000_vortext_multi_account_snapshots.sql` migration to this staging database.** It creates a second account-access table and assumes a `created_at` column that the existing staging snapshot table does not contain. The integration branch removes that obsolete migration and uses the already provisioned `vortext_authorized_operators` model. Do not change the Production database as part of this work.
 
-| Variable | Description |
-|---|---|
-| `SUPABASE_URL` | Dedicated PKG Traders HTTPS URL (e.g. `https://bucziqekzyrttgcoxtas.supabase.co`). |
-| `SUPABASE_PUBLISHABLE_KEY` | Public client key used to verify user sessions. |
-| `SUPABASE_SECRET_KEY` | Server-only secret key (or service_role key) used by API to read/write snapshots. Never expose to client. |
-| `VORTEXT_BOT_HMAC_SECRET` | 32+ character hex or random string shared with the trading bot. |
-| `VORTEXT_BOT_ID` | Identifier for the trading fleet (e.g. `vortext-fleet` or `vortext-main`). |
-| `VORTEXT_DASHBOARD_ALLOWED_EMAILS` | Comma-separated list of authorized email addresses. |
+## 3. Grant access to the existing website user
 
-Generate a shared secret on the bot machine:
-```bash
-python -c "import secrets; print(secrets.token_hex(32))"
+Access is a database-side grant, not a client-side email check. Obtain the exact login email from the Supabase Auth user and the stable `account_id` alias from the private trading PC account registry. Do not use the MT5 password or broker login number as the alias.
+
+In the Supabase SQL editor for **VORTEXT AI Staging**, replace both placeholders and run:
+
+```sql
+insert into public.vortext_authorized_operators
+  (user_id, email, role, allowed_accounts, is_active)
+select
+  u.id,
+  lower(u.email),
+  'SUPER_ADMIN',
+  jsonb_build_array('REPLACE_WITH_EXACT_ACCOUNT_ID'),
+  true
+from auth.users as u
+where lower(u.email) = lower('REPLACE_WITH_SUPABASE_LOGIN_EMAIL')
+on conflict (user_id) do update
+set email = excluded.email,
+    role = excluded.role,
+    allowed_accounts = excluded.allowed_accounts,
+    is_active = true,
+    updated_at = pg_catalog.now();
 ```
-Place the identical secret in Vercel and the bot's `.env`. Never commit secrets to Git.
 
----
+Then verify the grant without selecting any password or token fields:
 
-## 3. Trading Bot Environment Configuration
+```sql
+select user_id, email, role, allowed_accounts, is_active
+from public.vortext_authorized_operators
+where lower(email) = lower('REPLACE_WITH_SUPABASE_LOGIN_EMAIL');
+```
 
-Add the following settings to the bot machine's `.env` (or set in environment):
+The allowed account list must be a JSON array of exact registry IDs, for example `["mt5-primary"]`. Do not grant a wildcard or use an account alias copied from an example file. Grant each customer only the account(s) they are permitted to view.
+
+## 4. Vercel Preview environment
+
+Vercel project: `vortexbot-ai`, website root: `website`.
+
+Required **Preview-only** variables:
+
+| Variable | Value |
+|---|---|
+| `SUPABASE_URL` | `https://xtyszeuvtfcgognkrwxv.supabase.co` |
+| `SUPABASE_PUBLISHABLE_KEY` | Staging publishable key. |
+| `SUPABASE_SECRET_KEY` | Staging secret key; server-side only. |
+| `VORTEXT_BOT_HMAC_SECRET` | Random secret at least 32 characters; must match the trading PC. |
+| `VORTEXT_BOT_ID` | `vortext-fleet`. |
+
+`VORTEXT_DASHBOARD_ALLOWED_EMAILS` is optional as an additional restriction. If it is configured, the user's email must also be included. It does not replace the mandatory operator row and account mapping.
+
+Never decrypt, paste or send the secret values through chat. Verify presence in Vercel's Preview settings and keep all these variables out of Production until a separate production release review.
+
+## 5. Trading PC environment
+
+Add or verify these values in the local process environment on the Windows trading PC:
 
 ```env
-# Enable live dashboard sync
 VORTEXT_DASHBOARD_SYNC_ENABLED=true
-
-# Secure ingest endpoint hosted on Vercel
-VORTEXT_DASHBOARD_INGEST_URL=https://pkgtraders-demo.vercel.app/api/trades
-
-# Bot / Fleet identifier
+VORTEXT_DASHBOARD_INGEST_URL=https://<verified-preview-deployment>/api/trades
 VORTEXT_BOT_ID=vortext-fleet
-
-# Publish interval in seconds (3.0 to 60.0, default: 5.0)
 VORTEXT_PUBLISH_INTERVAL_SECONDS=5.0
-
-# 32+ character shared HMAC secret matching Vercel
-VORTEXT_BOT_HMAC_SECRET=<shared-32-char-secret>
+VORTEXT_BOT_HMAC_SECRET=<same-random-secret-as-vercel-preview>
 ```
 
-### Safety & Operational Notes:
-- The publisher is **disabled by default**. It will only activate when `VORTEXT_DASHBOARD_SYNC_ENABLED=true`, a valid `https://` ingest URL is specified, `VORTEXT_BOT_HMAC_SECRET` is at least 32 characters, and at least one real (non-simulated) MT5 account is connected.
-- If running simulated / dry-run accounts, the publisher **refuses** to publish mock or simulated data to protect production feed integrity.
-- Each snapshot is digitally signed using HMAC-SHA256 (`X-Vortext-Signature: hmac_sha256(secret, timestamp + "." + body)`).
-- Timeouts, clock skew checks (300 seconds), and payload validation protect against replay attacks and stale telemetry.
+Use the exact Preview deployment URL returned by Vercel after the branch preview is ready. Do not use `https://vortexbot.ai/api/trades`, `pkgtraders-demo.vercel.app` or another domain unless it has been verified to be the non-production Preview deployment for this branch.
 
----
+The MT5 username/password, broker server and terminal settings remain in the existing private account registry or local environment. Do not copy `accounts.json`, `.env`, broker login details or passwords into GitHub, Supabase, Vercel or this chat.
 
-## 4. Multi-Account Fleet Payload Structure
+## 6. Verification
 
-In multi-account fleet mode, the publisher aggregates telemetry across all enabled accounts in `MT5AccountManager`:
+1. Open the branch's Vercel Preview and verify the login page loads.
+2. Confirm the approved Supabase user can sign in. Email magic-link sign-in must not create new users.
+3. `GET /api/trades` without a bearer token must return `401`.
+4. A valid signed-in user without an active operator row must return `403`.
+5. A user mapped to account A must not be able to request account B by changing `?account_id=`; that request must return `403`.
+6. A user mapped to account A must receive only A's account snapshot, positions and deals; account B data must not appear in the response.
+7. Start the existing bot with the intended real MT5 account connected. The first signed snapshot should be stored and `captured_at` should advance on each publication.
+8. Verify fresh data is labelled `FEED FRESH`; stop the publisher and confirm data becomes `FEED STALE` after the freshness window.
+9. Confirm no website route can place, modify or close orders.
+10. Check Vercel environment scope, Supabase security advisor and the GitHub Preview CI/build result.
 
-```json
-{
-  "bot_id": "vortext-fleet",
-  "captured_at": "2026-10-31T12:00:00Z",
-  "account": {
-    "server": "Fleet (2 accounts)",
-    "currency": "USD",
-    "balance": 258.86,
-    "equity": 258.86,
-    "margin": 0.0,
-    "free_margin": 258.86,
-    "leverage": 100,
-    "trade_mode": "DEMO",
-    "total_accounts": 2
-  },
-  "accounts": [
-    {
-      "account_id": "account_003",
-      "login": 26179878,
-      "server": "VantageMarkets-Demo",
-      "currency": "USD",
-      "balance": 258.86,
-      "equity": 258.86,
-      "margin": 0.0,
-      "free_margin": 258.86,
-      "leverage": 100,
-      "trade_mode": "DEMO",
-      "enabled": true,
-      "trading_enabled": true,
-      "positions_count": 0,
-      "deals_count": 0
-    }
-  ],
-  "fleet_summary": {
-    "total_accounts": 1,
-    "total_balance": 258.86,
-    "total_equity": 258.86,
-    "total_floating_pnl": 0.0,
-    "total_positions": 0,
-    "total_recent_deals": 0
-  },
-  "positions": [],
-  "deals": [],
-  "bot_status": "running"
-}
-```
+## 7. Current blockers
 
-The top-level `account`, `positions`, and `deals` remain fully backward-compatible with single-account dashboards, while the `accounts` and `fleet_summary` objects power multi-account views.
+The code path is prepared, but live end-to-end verification is not complete yet:
 
----
-
-## 5. Verification Checklist
-
-1. **Unauthenticated GET:** `GET /api/trades` without Bearer token must return `401 Unauthorized` or safe `503`.
-2. **Unauthorized Email:** Authenticated user not in `VORTEXT_DASHBOARD_ALLOWED_EMAILS` must return `403 Forbidden`.
-3. **Invalid Signature:** POST with missing or incorrect HMAC must return `401 Unauthorized`.
-4. **Clock Skew:** POST with timestamp drifted >300s must return `401 Unauthorized`.
-5. **Fresh Telemetry:** Authenticated GET with allowlisted email returns `connected: true, stale: false` and live broker metrics.
-6. **No-Trade Guarantee:** Confirm terminal history has zero unauthorized orders placed or modified by the feed engine.
+- The staging operator table is empty; no specific Supabase Auth user is currently granted an account.
+- The staging snapshot table is empty; the bot has not published a verified live snapshot.
+- The real trading PC and its private MT5 account registry are not accessible from this repository session, so the exact current account alias and local HMAC match cannot be verified here.
+- Production environment variables and Production deployment remain untouched.
