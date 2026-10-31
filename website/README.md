@@ -4,12 +4,15 @@ This directory is the root of the VORTEXT AI customer-facing website.
 
 ## Current behavior
 
-- Responsive VORTEXT AI public pages use the approved logo and current product disclosures.
+- Product release status: limited access and integration testing; not generally available. Public onboarding is closed, and analytics/execution modules marked under validation are not represented as released customer features.
+
+- Responsive VORTEXT AI public pages use the approved logo and current product disclosures. The homepage includes an accessible mobile hamburger menu and links to the dedicated MT5 Getting Started guide.
 - Sign-in uses Google OAuth or an email magic link for existing Supabase users only. Email magic-link sign-up is disabled with `shouldCreateUser: false`.
 - The dashboard is private and read-only. It cannot submit, modify, or close MT5 orders.
 - `/api/auth-config` publishes only the browser-safe Supabase URL and publishable key.
 - `/api/trades` accepts bot snapshots only when the request has a valid HMAC-SHA256 signature.
 - Dashboard reads require a valid Supabase access token. Server-configured shared account IDs are visible to every signed-in user; additional account IDs can be granted through an active row in `public.vortext_authorized_operators`. The server checks Auth identity and filters every account, position and deal before returning it.
+- Dashboard status is split into feed connection/freshness, broker-reported DEMO/REAL account mode, and the last successful broker-update timestamp in UTC.
 - Account selectors and trade rows are restricted to the shared account IDs plus any additional IDs assigned to the signed-in user. An account ID in a query string is not an authorization grant.
 - Missing snapshots show an explicit waiting state. Old snapshots are marked stale. No sample or fabricated account values are rendered.
 
