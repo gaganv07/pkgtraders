@@ -13,10 +13,9 @@ This directory is the website root for the VORTEXT AI trading-bot demonstration.
 
 ## Vercel
 
-Project: `pkgtraders-demo`  
-Repository: `gaganv07/pkgtraders`  
-Development branch: `phase77-website`  
-Root directory: `website`
+Product: `VORTEXT AI`  
+Deployment project: `vortexbot-ai`  
+Website root: `website`
 
 Configure these Vercel environment variables only after the Supabase project is active:
 
