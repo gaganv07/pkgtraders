@@ -32,7 +32,7 @@ Observed staging controls:
 
 **Do not apply the old PR #4 `20261031120000_vortext_multi_account_snapshots.sql` migration to this staging database.** It creates a second account-access table and assumes a `created_at` column that the existing staging snapshot table does not contain. The integration branch removes that obsolete migration and uses the already provisioned `vortext_authorized_operators` model. Do not change the Production database as part of this work.
 
-## 3. Grant access to the existing website user
+## 3. Configure the shared read-only account feed\n\nTo make the same MT5 account visible to every signed-in VORTEXT AI user, add its exact private-registry alias to the Preview-only `VORTEXT_DASHBOARD_SHARED_ACCOUNTS` variable. Example: `account_003`. This is not a public/anonymous feed: every request must still carry a valid Supabase Auth access token. Do not configure `VORTEXT_DASHBOARD_ALLOWED_EMAILS` in shared mode unless you deliberately intend to restrict the audience to those exact emails. A user with an explicitly inactive operator record remains blocked.\n\nThe repository setup log previously recorded MT5 login `26179878` under alias `account_003` on `VantageMarkets-Demo`; verify that alias against the current private trading-PC registry before enabling publication. The numeric broker login is not the website account alias.\n\n## 4. Grant additional private account access to an individual user
 
 Access is a database-side grant, not a client-side email check. Obtain the exact login email from the Supabase Auth user and the stable `account_id` alias from the private trading PC account registry. Do not use the MT5 password or broker login number as the alias.
 
@@ -67,7 +67,7 @@ where lower(email) = lower('REPLACE_WITH_SUPABASE_LOGIN_EMAIL');
 
 The allowed account list must be a JSON array of exact registry IDs, for example `["mt5-primary"]`. Do not grant a wildcard or use an account alias copied from an example file. Grant each customer only the account(s) they are permitted to view.
 
-## 4. Vercel Preview environment
+## 5. Vercel Preview environment
 
 Vercel project: `vortexbot-ai`, website root: `website`.
 
@@ -79,13 +79,13 @@ Required **Preview-only** variables:
 | `SUPABASE_PUBLISHABLE_KEY` | Staging publishable key. |
 | `SUPABASE_SECRET_KEY` | Staging secret key; server-side only. |
 | `VORTEXT_BOT_HMAC_SECRET` | Random secret at least 32 characters; must match the trading PC. |
-| `VORTEXT_BOT_ID` | `vortext-fleet`. |
+| `VORTEXT_BOT_ID` | `vortext-fleet`. |\n| `VORTEXT_DASHBOARD_SHARED_ACCOUNTS` | Comma-separated stable registry IDs visible to all authenticated users, e.g. `account_003`. |
 
 `VORTEXT_DASHBOARD_ALLOWED_EMAILS` is optional as an additional restriction. If it is configured, the user's email must also be included. It does not replace the mandatory operator row and account mapping.
 
 Never decrypt, paste or send the secret values through chat. Verify presence in Vercel's Preview settings and keep all these variables out of Production until a separate production release review.
 
-## 5. Trading PC environment
+## 6. Trading PC environment
 
 Add or verify these values in the local process environment on the Windows trading PC:
 
@@ -101,12 +101,12 @@ Use the exact Preview deployment URL returned by Vercel after the branch preview
 
 The MT5 username/password, broker server and terminal settings remain in the existing private account registry or local environment. Do not copy `accounts.json`, `.env`, broker login details or passwords into GitHub, Supabase, Vercel or this chat.
 
-## 6. Verification
+## 7. Verification
 
 1. Open the branch's Vercel Preview and verify the login page loads.
-2. Confirm the approved Supabase user can sign in. Email magic-link sign-in must not create new users.
+2. Confirm each intended viewer exists in Supabase Auth and can sign in. Email magic-link sign-in must not create new users.
 3. `GET /api/trades` without a bearer token must return `401`.
-4. A valid signed-in user without an active operator row must return `403`.
+4. A valid signed-in user without an operator row must receive only the configured shared accounts; an explicitly inactive user must return `403`.
 5. A user mapped to account A must not be able to request account B by changing `?account_id=`; that request must return `403`.
 6. A user mapped to account A must receive only A's account snapshot, positions and deals; account B data must not appear in the response.
 7. Start the existing bot with the intended real MT5 account connected. The first signed snapshot should be stored and `captured_at` should advance on each publication.
@@ -114,11 +114,11 @@ The MT5 username/password, broker server and terminal settings remain in the exi
 9. Confirm no website route can place, modify or close orders.
 10. Check Vercel environment scope, Supabase security advisor and the GitHub Preview CI/build result.
 
-## 7. Current blockers
+## 8. Current blockers
 
 The code path is prepared, but live end-to-end verification is not complete yet:
 
-- The staging operator table is empty; no specific Supabase Auth user is currently granted an account.
+- The staging operator table and Auth lookup are empty for the supplied email. A shared account does not require an operator row, but the email must first exist as a Supabase Auth user to sign in.
 - The staging snapshot table is empty; the bot has not published a verified live snapshot.
 - The real trading PC and its private MT5 account registry are not accessible from this repository session, so the exact current account alias and local HMAC match cannot be verified here.
 - Production environment variables and Production deployment remain untouched.
