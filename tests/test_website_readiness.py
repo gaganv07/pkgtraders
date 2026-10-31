@@ -75,7 +75,8 @@ def test_vercel_security_headers_are_configured() -> None:
 def test_dashboard_supports_authorized_multi_account_views() -> None:
     dashboard = read_page("dashboard.html")
     assert 'id="account-select"' in dashboard
-    assert "payload.authorized_account_ids" in (WEBSITE / "api" / "trades.js").read_text(encoding="utf-8")
+    api = (WEBSITE / "api" / "trades.js").read_text(encoding="utf-8")
+    assert "authorized_account_ids: operatorAccess.allowedAccountIds" in api
     assert "p.account_id || 'primary'" in dashboard
     assert "d.account_id || 'primary'" in dashboard
     assert "Multi-currency" in dashboard
