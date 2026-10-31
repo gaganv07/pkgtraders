@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from app.mt5_client import FillResult, PositionSnapshot, _SIM_PRICES, _SIM_SPREADS, _SIM_TICK_SPECS
+from app.mt5_client import FillResult, PositionSnapshot, _SIM_CONTRACT, _SIM_PRICES, _SIM_SPREADS, _SIM_TICK_SPECS
 from app.multi_account.account_registry import AccountConfig, mask_credential
 
 logger = logging.getLogger(__name__)
@@ -33,6 +33,58 @@ try:
 except ImportError:
     mt5 = None
     MT5_AVAILABLE = False
+
+
+def _normalize_simulated_symbol(symbol: str) -> str:
+    """Normalize known broker suffixes before looking up local simulation data."""
+    return str(symbol or "").rstrip("m+.a").upper()
+
+
+def _simulated_symbol_spec(symbol: str) -> Optional[Dict[str, Any]]:
+    """Return a complete simulated contract spec, never borrowing another symbol's data."""
+    clean_symbol = _normalize_simulated_symbol(symbol)
+    spec = _SIM_TICK_SPECS.get(clean_symbol)
+    contract_size = _SIM_CONTRACT.get(clean_symbol)
+    bid = _SIM_PRICES.get(clean_symbol)
+    spread = _SIM_SPREADS.get(clean_symbol)
+    if spec is None or contract_size is None or bid is None or spread is None:
+        logger.warning(
+            "No complete simulation contract is configured for %s; refusing fallback data",
+            clean_symbol or "<empty>",
+        )
+        return None
+
+    return {
+        "digits": spec["digits"],
+        "point": spec["point"],
+        "spread": 15,
+        "contract_size": contract_size,
+        "vol_min": spec["vol_min"],
+        "vol_max": spec["vol_max"],
+        "vol_step": spec["vol_step"],
+        "bid": bid,
+        "ask": bid + spread,
+        "tick_size": spec["tick_size"],
+        "tick_value": spec["tick_value"],
+    }
+
+
+def _simulated_tick(symbol: str) -> Optional[Dict[str, Any]]:
+    """Return a simulated quote only when that symbol has explicit quote data."""
+    clean_symbol = _normalize_simulated_symbol(symbol)
+    bid = _SIM_PRICES.get(clean_symbol)
+    spread = _SIM_SPREADS.get(clean_symbol)
+    if bid is None or spread is None:
+        logger.warning(
+            "No simulated quote is configured for %s; refusing fallback price",
+            clean_symbol or "<empty>",
+        )
+        return None
+    return {
+        "bid": bid,
+        "ask": bid + spread,
+        "time": datetime.now(timezone.utc),
+    }
 
 
 class IMT5Session(ABC):
@@ -427,22 +479,8 @@ class MT5DirectSession(IMT5Session):
         return res
 
     def get_symbol_spec(self, symbol: str) -> Optional[Dict[str, Any]]:
-        clean_sym = symbol.rstrip("m+.a").upper()
         if self.config.dry_run or not MT5_AVAILABLE:
-            spec = _SIM_TICK_SPECS.get(clean_sym, _SIM_TICK_SPECS.get("XAUUSD"))
-            return {
-                "digits": spec["digits"],
-                "point": spec["point"],
-                "spread": 15,
-                "contract_size": 100.0 if "XAU" in clean_sym else (5000.0 if "XAG" in clean_sym else (1.0 if any(k in clean_sym for k in ["NAS", "US30", "BTC", "ETH", "DJI", "TEC"]) else 100000.0)),
-                "vol_min": spec["vol_min"],
-                "vol_max": spec["vol_max"],
-                "vol_step": spec["vol_step"],
-                "bid": _SIM_PRICES.get(clean_sym, 2000.0),
-                "ask": _SIM_PRICES.get(clean_sym, 2000.0) + _SIM_SPREADS.get(clean_sym, 0.20),
-                "tick_size": spec["tick_size"],
-                "tick_value": spec["tick_value"],
-            }
+            return _simulated_symbol_spec(symbol)
 
         broker_sym = self.resolve_symbol(symbol)
         info = mt5.symbol_info(broker_sym)
@@ -474,15 +512,8 @@ class MT5DirectSession(IMT5Session):
         }
 
     def get_tick(self, symbol: str) -> Optional[Dict[str, Any]]:
-        clean_sym = symbol.rstrip("m+.a").upper()
         if self.config.dry_run or not MT5_AVAILABLE:
-            base = _SIM_PRICES.get(clean_sym, 2000.0)
-            spread = _SIM_SPREADS.get(clean_sym, 0.20)
-            return {
-                "bid": base,
-                "ask": base + spread,
-                "time": datetime.now(timezone.utc),
-            }
+            return _simulated_tick(symbol)
 
         broker_sym = self.resolve_symbol(symbol)
         tick = mt5.symbol_info_tick(broker_sym)
@@ -1039,21 +1070,7 @@ def _mt5_worker_proc(pipe, config_dict: Dict[str, Any]):
             elif cmd == "GET_SYMBOL_SPEC":
                 sym = args[0] if (args and len(args) > 0) else "XAUUSD"
                 if dry_run or not has_mt5:
-                    clean_sym = sym.rstrip("m+.a").upper()
-                    spec = _SIM_TICK_SPECS.get(clean_sym, _SIM_TICK_SPECS.get("XAUUSD"))
-                    pipe.send({
-                        "digits": spec["digits"],
-                        "point": spec["point"],
-                        "spread": 15,
-                        "contract_size": 100.0 if "XAU" in clean_sym else (1.0 if any(k in clean_sym for k in ["NAS", "US30", "DJ", "BTC", "ETH"]) else 100000.0),
-                        "vol_min": spec["vol_min"],
-                        "vol_max": spec["vol_max"],
-                        "vol_step": spec["vol_step"],
-                        "bid": _SIM_PRICES.get(clean_sym, 2000.0),
-                        "ask": _SIM_PRICES.get(clean_sym, 2000.0) + _SIM_SPREADS.get(clean_sym, 0.20),
-                        "tick_size": spec["tick_size"],
-                        "tick_value": spec["tick_value"],
-                    })
+                    pipe.send(_simulated_symbol_spec(sym))
                 else:
                     bsym = _resolve_worker_sym(sym)
                     info = worker_mt5.symbol_info(bsym)
@@ -1204,16 +1221,7 @@ class MT5ProcessSession(IMT5Session):
 
     def get_symbol_spec(self, symbol: str) -> Optional[Dict[str, Any]]:
         if self.config.dry_run:
-            clean_sym = symbol.rstrip("m+.a").upper()
-            spec = _SIM_TICK_SPECS.get(clean_sym, _SIM_TICK_SPECS.get("XAUUSD"))
-            return {
-                "digits": spec["digits"], "point": spec["point"], "spread": 15,
-                "contract_size": 100.0 if "XAU" in clean_sym else 100000.0,
-                "vol_min": spec["vol_min"], "vol_max": spec["vol_max"], "vol_step": spec["vol_step"],
-                "bid": _SIM_PRICES.get(clean_sym, 2000.0),
-                "ask": _SIM_PRICES.get(clean_sym, 2000.0) + _SIM_SPREADS.get(clean_sym, 0.20),
-                "tick_size": spec["tick_size"], "tick_value": spec["tick_value"],
-            }
+            return _simulated_symbol_spec(symbol)
         if not self._connected:
             return None
         try:
@@ -1225,10 +1233,7 @@ class MT5ProcessSession(IMT5Session):
         return None
 
     def get_tick(self, symbol: str) -> Optional[Dict[str, Any]]:
-        clean_sym = symbol.rstrip("m+.a").upper()
-        base = _SIM_PRICES.get(clean_sym, 2000.0)
-        spread = _SIM_SPREADS.get(clean_sym, 0.20)
-        return {"bid": base, "ask": base + spread, "time": datetime.now(timezone.utc)}
+        return _simulated_tick(symbol)
 
     def buy(self, volume: float, sl: float, tp: float, comment: str = "", symbol: str = "XAUUSD") -> FillResult:
         if not self._connected:
