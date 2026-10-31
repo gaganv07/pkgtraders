@@ -417,3 +417,23 @@ def test_process_session_get_history_deals_disconnected():
     cfg = AccountConfig(account_id="proc", login=1, server="s", dry_run=False)
     session = MT5ProcessSession(cfg)
     assert session.get_history_deals() == []
+
+# ── Simulation symbol fail-closed tests ──────────────────────────────────────
+
+@pytest.mark.parametrize("session_type", [MT5DirectSession, MT5ProcessSession])
+def test_dry_run_sessions_do_not_fallback_to_another_symbols_contract(session_type):
+    cfg = AccountConfig(
+        account_id="sim_symbol_guard",
+        login=123456,
+        server="Simulation-Server",
+        dry_run=True,
+    )
+    session = session_type(cfg)
+
+    gold_spec = session.get_symbol_spec("XAUUSD")
+    assert gold_spec is not None
+    assert gold_spec["contract_size"] == 100.0
+
+    # No simulated quote/spec exists for symbols outside the explicit fixture map.
+    assert session.get_symbol_spec("XAGUSD") is None
+    assert session.get_tick("XAGUSD") is None
