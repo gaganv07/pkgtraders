@@ -95,7 +95,7 @@ form{width:100%}
       if (data.session) { window.location.replace("/dashboard.html"); return; }
 
       // Ask Supabase Auth which providers are enabled before exposing their actions.
-      const settingsResponse = await fetch(config.supabaseUrl.replace(/\\/$/, "") + "/auth/v1/settings", {
+      const settingsResponse = await fetch(config.supabaseUrl.replace(/\/+$/, "") + "/auth/v1/settings", {
         method: "GET",
         headers: { apikey: config.publishableKey },
         cache: "no-store"
