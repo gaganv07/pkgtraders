@@ -58,7 +58,7 @@ form{width:100%}
 <div class="or">OR CONTINUE WITH EMAIL</div>
 <form id="email-form"><label for="email">Email address</label><div class="email-row"><input id="email" name="email" type="email" autocomplete="email" placeholder="name@example.com" required><button class="submit" id="email-submit" type="submit" disabled>Send secure sign-in link</button></div></form>
 <div class="legal">By continuing, you agree to use this service in accordance with our <a href="/#risk">risk disclosure</a>. Automated trading can result in losses.</div>
-<div class="tiny">Email-link delivery is not production-ready until an outbound SMTP sender is configured and tested. Google sign-in is available for approved accounts. Demo trading dashboard · Read-only website · No MT5 password collection</div>
+<div class="tiny">Email-link delivery requires a configured outbound SMTP sender. Google sign-in stays unavailable until the Google provider is enabled in Supabase. Demo trading dashboard · Read-only website · No MT5 password collection</div>
 </section></main>
 <footer><div class="wrap row"><span>© VORTEX AI</span><div class="row"><a href="/">Home</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/contact.html">Support</a></div></div></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
@@ -66,47 +66,83 @@ form{width:100%}
 (function () {
   const $ = (id) => document.getElementById(id);
   const status = $("status");
-  const providerButtons = [$("google"), $("email-submit")];
+  const googleButton = $("google");
+  const emailButton = $("email-submit");
   let client = null;
+  let googleEnabled = false;
+  let emailEnabled = false;
   const target = window.location.origin + "/dashboard.html";
   function show(message, warning = false) {
     status.textContent = message;
     status.className = "notice show" + (warning ? " warn" : "");
   }
-  function enableButtons(enabled) { providerButtons.forEach((button) => button.disabled = !enabled); }
+  function setBusy(busy) {
+    googleButton.disabled = busy || !googleEnabled;
+    emailButton.disabled = busy || !emailEnabled;
+  }
   async function init() {
     try {
+      setBusy(true);
       const response = await fetch("/api/auth-config", { cache: "no-store" });
       const config = await response.json();
       if (!response.ok || !config.configured) {
-        enableButtons(false);
-        show("Login setup is not complete yet. The dashboard remains private until the authentication project and OAuth providers are configured.", true);
+        show("Login setup is not complete. The dashboard remains private until authentication is configured.", true);
         return;
       }
       if (!window.supabase || !window.supabase.createClient) throw new Error("Auth library unavailable");
       client = window.supabase.createClient(config.supabaseUrl, config.publishableKey);
       const { data } = await client.auth.getSession();
       if (data.session) { window.location.replace("/dashboard.html"); return; }
-      enableButtons(true);
-      show("Sign in with Google or request an email sign-in link. Access is limited to pre-approved accounts; email sign-in does not create new users.");
+
+      // Ask Supabase Auth which providers are enabled before exposing their actions.
+      const settingsResponse = await fetch(config.supabaseUrl.replace(/\\/$/, "") + "/auth/v1/settings", {
+        method: "GET",
+        headers: { apikey: config.publishableKey },
+        cache: "no-store"
+      });
+      if (!settingsResponse.ok) throw new Error("Could not verify enabled sign-in providers");
+      const settings = await settingsResponse.json();
+      googleEnabled = settings.external?.google === true;
+      emailEnabled = settings.external?.email === true;
+      setBusy(false);
+
+      if (googleEnabled && emailEnabled) {
+        show("Sign in with Google or request an email sign-in link. Access is limited to pre-approved accounts.");
+      } else if (googleEnabled) {
+        show("Google sign-in is available for approved accounts. Email sign-in is currently disabled.");
+      } else if (emailEnabled) {
+        show("Google sign-in is not enabled in Supabase yet. Email sign-in is available for approved accounts when outbound email delivery is configured.", true);
+      } else {
+        show("No sign-in provider is currently enabled. Contact the VORTEX AI administrator to complete authentication setup.", true);
+      }
+      googleButton.title = googleEnabled ? "Continue with Google" : "Google sign-in is not enabled in Supabase";
     } catch (error) {
-      enableButtons(false);
-      show("Sign-in service is unavailable. Please try again later.", true);
+      setBusy(true);
+      show("Could not verify the sign-in provider configuration. No OAuth redirect will be attempted. Please try again later.", true);
     }
   }
   async function oauth(provider) {
-    if (!client) return;
-    enableButtons(false);
-    show("Redirecting to " + (provider === "google" ? "Google" : "Apple") + "…");
+    if (!client || provider !== "google" || !googleEnabled) {
+      show("Google sign-in is not enabled in Supabase. Complete Google OAuth provider setup before trying again.", true);
+      return;
+    }
+    setBusy(true);
+    show("Redirecting to Google…");
     const { error } = await client.auth.signInWithOAuth({ provider, options: { redirectTo: target } });
-    if (error) { show(error.message || "Could not start sign-in.", true); enableButtons(true); }
+    if (error) {
+      setBusy(false);
+      show(error.message || "Could not start sign-in.", true);
+    }
   }
-  $("google").addEventListener("click", () => oauth("google"));
+  googleButton.addEventListener("click", () => oauth("google"));
   $("email-form").addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!client) return;
+    if (!client || !emailEnabled) {
+      show("Email sign-in is not enabled in Supabase.", true);
+      return;
+    }
     const email = $("email").value.trim();
-    enableButtons(false);
+    setBusy(true);
     show("Sending a one-time sign-in link…");
     const { error } = await client.auth.signInWithOtp({
       email,
@@ -117,7 +153,7 @@ form{width:100%}
     } else {
       show("If this is an approved VORTEX AI account, a secure sign-in link has been requested. Check your inbox.");
     }
-    enableButtons(true);
+    setBusy(false);
   });
   init();
 })();
