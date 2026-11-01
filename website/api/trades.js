@@ -278,8 +278,8 @@ async function getUser(c, token) {
 
 function serviceApiHeaders(c, extra) {
   const headers = Object.assign({ apikey: c.secretKey, Accept: 'application/json' }, extra || {});
-  // Legacy service_role JWTs need Authorization too. Modern sb_secret_* keys use apikey only.
-  if (c.secretKey.startsWith('eyJ')) headers.Authorization = 'Bearer ' + c.secretKey;
+  // Supabase REST requires the service key in both apikey and Bearer authorization headers.
+  headers.Authorization = 'Bearer ' + c.secretKey;
   return headers;
 }
 

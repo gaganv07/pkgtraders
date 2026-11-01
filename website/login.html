@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#050b09"><title>Sign in · VORTEXT AI</title>
+<meta name="theme-color" content="#050b09"><title>Sign in · VORTEX AI</title>
 <style>
 :root{color-scheme:dark;--bg:#050b09;--panel:#0c1513;--panel2:#101d1a;--line:#203c34;--text:#f2faf7;--muted:#a1b9b0;--teal:#00e6ad;--cyan:#bfffea;--amber:#ffd58a}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0,#123d32 0,transparent 48%),var(--bg);color:var(--text);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:grid;grid-template-rows:auto 1fr auto}
@@ -18,25 +18,49 @@ label{display:block;color:#d5e8e1;font-size:12px;font-weight:650;margin-bottom:7
 footer{padding:18px 0;border-top:1px solid #17372d;color:#80978e;font-size:11px}
 @media(max-width:480px){.panel{padding:23px 19px}h1{font-size:27px}.logo{width:136px;max-width:40vw}.provider{min-height:50px}}
 .back-to-top{position:fixed;right:16px;bottom:18px;z-index:20;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid #00e6ad;background:#00e6ad;color:#052019;font-size:25px;font-weight:850;line-height:1;box-shadow:0 8px 28px #0006;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease;cursor:pointer}.back-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}.back-to-top:hover{background:#bfffea;border-color:#bfffea}.back-to-top:focus-visible{outline:3px solid #bfffea;outline-offset:4px}@media(prefers-reduced-motion:reduce){.back-to-top{transition:none}}
+
+/* VORTEX responsive sign-in safeguards */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+img,svg{max-width:100%}
+.wrap,main,.panel,.providers,.email-row,form{min-width:0}
+header .row,footer .row{min-width:0;flex-wrap:wrap;gap:12px}
+.logo{height:auto;max-width:100%;object-fit:contain;image-rendering:auto}
+.panel{width:min(100%,450px);min-width:0}
+.providers{width:100%;min-width:0}
+.provider,.submit{display:flex;width:100%;min-width:0;max-width:100%;min-height:48px;height:auto;padding:12px 14px;align-items:center;justify-content:center;line-height:1.3;white-space:normal;overflow-wrap:anywhere;text-align:center}
+.provider span{width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;flex-wrap:wrap;justify-content:center;gap:10px}
+input{display:block;width:100%;min-width:0;max-width:100%;height:48px;padding-inline:13px;font-size:16px;line-height:1.3}
+.email-row{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+form{width:100%}
+.notice,.legal,.tiny{overflow-wrap:anywhere}
+@media(max-width:480px){
+ .wrap{width:calc(100% - 24px)}
+ header{padding:12px 0}
+ main{padding:24px 12px 36px}
+ .panel{width:100%;padding:22px 16px;border-radius:18px}
+ .logo{width:132px;max-width:44vw}
+ h1{font-size:clamp(25px,7vw,29px)}
+ .provider,.submit{font-size:14px}
+}
 </style>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
 <link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
 </head>
 <body>
-<header><div class="wrap row"><a href="/" aria-label="VORTEXT AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261028-1" alt="VORTEXT AI"></a><a class="back" href="/">← Back to home</a></div></header>
+<header><div class="wrap row"><a href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><a class="back" href="/">← Back to home</a></div></header>
 <main><section class="panel" aria-labelledby="heading">
-<div class="eyebrow">Secure dashboard access</div><h1 id="heading">Sign in to VORTEXT AI</h1>
+<div class="eyebrow">Secure dashboard access</div><h1 id="heading">Sign in to VORTEX AI</h1>
 <p>Sign in to view your authorized trading dashboard. Your MT5 password is never requested here.</p>
 <div id="status" class="notice show" role="status">Checking sign-in configuration…</div>
 <div class="providers" style="margin-top:16px">
 <button class="provider" id="google" type="button" disabled><span><svg viewBox="0 0 48 48" focusable="false" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.96 46.98 31.87 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.75 24c0-1.59.27-3.13.75-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.86.92 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.43-4.89 2.28-8.18 2.28-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 43.62 14.62 48 24 48z"/></svg>Continue with Google</span></button>
 </div>
 <div class="or">OR CONTINUE WITH EMAIL</div>
-<form id="email-form"><label for="email">Email address</label><div class="email-row"><input id="email" name="email" type="email" autocomplete="email" placeholder="Enter your email address" required><button class="submit" id="email-submit" type="submit" disabled>Send secure sign-in link</button></div></form>
+<form id="email-form"><label for="email">Email address</label><div class="email-row"><input id="email" name="email" type="email" autocomplete="email" placeholder="name@example.com" required><button class="submit" id="email-submit" type="submit" disabled>Send secure sign-in link</button></div></form>
 <div class="legal">By continuing, you agree to use this service in accordance with our <a href="/#risk">risk disclosure</a>. Automated trading can result in losses.</div>
 <div class="tiny">Email-link delivery is not production-ready until an outbound SMTP sender is configured and tested. Google sign-in is available for approved accounts. Demo trading dashboard · Read-only website · No MT5 password collection</div>
 </section></main>
-<footer><div class="wrap row"><span>© VORTEXT AI</span><div class="row"><a href="/">Home</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/contact.html">Support</a></div></div></footer>
+<footer><div class="wrap row"><span>© VORTEX AI</span><div class="row"><a href="/">Home</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/contact.html">Support</a></div></div></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
 <script>
 (function () {
@@ -91,7 +115,7 @@ footer{padding:18px 0;border-top:1px solid #17372d;color:#80978e;font-size:11px}
     if (error) {
       show("Could not start email sign-in. Confirm that this address is approved and try again.", true);
     } else {
-      show("If this is an approved VORTEXT AI account, a secure sign-in link has been requested. Check your inbox.");
+      show("If this is an approved VORTEX AI account, a secure sign-in link has been requested. Check your inbox.");
     }
     enableButtons(true);
   });

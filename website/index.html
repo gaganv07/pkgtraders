@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#050b09">
-<meta name="description" content="VORTEXT AI — transparent read-only monitoring for an automated MT5 trading system.">
-<title>VORTEXT AI | Markets Move. We Adapt.</title>
+<meta name="description" content="VORTEX AI — transparent read-only monitoring for an automated MT5 trading system.">
+<title>VORTEX AI | Markets Move. We Adapt.</title>
 <style>
 :root{color-scheme:dark;--bg:#050b09;--panel:#0c1513;--line:#203c34;--text:#f2faf7;--muted:#a1b9b0;--teal:#00e6ad;--cyan:#bfffea;--amber:#ffd58a}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 78% -8%,#123d32 0,transparent 45%),var(--bg);color:var(--text);font:16px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 32px));margin:auto}
@@ -16,16 +16,45 @@ section{padding:48px 0}.heading{max-width:700px;margin-bottom:24px}.heading h2{f
 footer{border-top:1px solid var(--line);padding:24px 0 30px;color:#81988e;font-size:11px}.foot{display:flex;justify-content:space-between;gap:18px}.footlinks{display:flex;gap:16px;flex-wrap:wrap}
 @media(max-width:850px){.hero{grid-template-columns:1fr;gap:32px;padding-top:50px}.brand-card{max-width:620px}.links{gap:14px}.cards{grid-template-columns:1fr 1fr}}@media(max-width:600px){.links{display:none}.links.is-open{display:grid;position:absolute;left:0;right:0;top:calc(100% + 1px);gap:0;padding:8px 14px;background:#07110e;border:1px solid #203c34;border-radius:0 0 12px 12px;box-shadow:0 16px 35px #0008;z-index:10}.links.is-open a{padding:10px 4px;border-bottom:1px solid #1b332b}.links.is-open a:last-child{border-bottom:0}.menu-toggle{display:inline-flex;align-items:center;justify-content:center}.logo{width:100px}nav{height:76px}.hero{padding:38px 0 25px}.lead{font-size:16px}.cards,.split{grid-template-columns:1fr}.access{grid-template-columns:1fr}.access .btn{width:100%}.foot{display:block}.footlinks{margin-top:13px}}
 .back-to-top{position:fixed;right:16px;bottom:18px;z-index:20;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid #00e6ad;background:#00e6ad;color:#052019;font-size:25px;font-weight:850;line-height:1;box-shadow:0 8px 28px #0006;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease;cursor:pointer}.back-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}.back-to-top:hover{background:#bfffea;border-color:#bfffea}.back-to-top:focus-visible{outline:3px solid #bfffea;outline-offset:4px}@media(prefers-reduced-motion:reduce){.back-to-top{transition:none}}
+
+/* VORTEX responsive safeguards */
+img,svg{max-width:100%}
+.wrap,nav,.hero,.brand-card,.actions,.card,.guide,.access{min-width:0}
+.logo{height:auto;object-fit:contain;image-rendering:auto}
+.brand-card{min-width:0;overflow:hidden}
+.brand-card img{display:block;width:100%;max-width:400px;height:auto;object-fit:contain;margin-inline:auto}
+.nav-cta,.btn{min-height:44px;line-height:1.3;text-align:center;white-space:normal;overflow-wrap:anywhere}
+.actions .btn{min-width:0;max-width:100%}
+.menu-toggle{flex:0 0 42px}
+@media(max-width:600px){
+ nav{height:76px;gap:9px}
+ .logo{width:94px;max-width:27vw}
+ .nav-cta{margin-left:auto;padding:10px 11px;font-size:12px;white-space:nowrap}
+ .menu-toggle{width:42px;min-height:42px}
+ .hero{grid-template-columns:minmax(0,1fr);gap:22px;padding:32px 0 24px}
+ .brand-card{width:100%;max-width:100%;padding:12px;border-radius:16px}
+ .brand-card img{max-width:100%;width:100%;height:auto}
+ h1{font-size:clamp(34px,10vw,46px)}
+ .lead{font-size:16px}
+ .actions{gap:10px}
+ .actions .btn{flex:1 1 100%;width:100%}
+ .access{grid-template-columns:minmax(0,1fr);gap:14px;padding:20px}
+ .access .btn{width:100%}
+ .cards,.split{grid-template-columns:minmax(0,1fr)}
+ .card,.guide{padding:18px}
+ .foot{display:block}
+ .footlinks{margin-top:13px}
+}
 </style>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
 <link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
 </head>
 <body>
-<header><div class="wrap"><nav aria-label="Main navigation"><a href="/" aria-label="VORTEXT AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261028-1" alt="VORTEXT AI"></a><button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-links" title="Open navigation"><span class="bar" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span></button><div class="links" id="site-links"><a href="#platform">Platform</a><a href="/getting-started.html">Getting started</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Support</a></div><a class="nav-cta" href="/login.html">Sign in ↗</a></nav></div></header>
+<header><div class="wrap"><nav aria-label="Main navigation"><a href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-links" title="Open navigation"><span class="bar" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span></button><div class="links" id="site-links"><a href="#platform">Platform</a><a href="/getting-started.html">Getting started</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Support</a></div><a class="nav-cta" href="/login.html">Sign in ↗</a></nav></div></header>
 <main>
-<div class="wrap hero"><div><div class="eyebrow">7 configured instruments · MT5 trading system</div><h1>Markets move.<br><span class="highlight">We adapt.</span></h1><p class="lead">VORTEXT AI is a trading-bot monitoring experience built to make system activity easier to understand: positions, execution states, verified trade history and system connection health.</p><div class="actions"><a class="btn primary" href="/login.html">Sign in to view trades →</a><a class="btn" href="#platform">Explore the platform</a></div><p class="fine">Trade viewing requires sign-in. The website is read-only and cannot submit, modify or close orders. Access is limited to pre-approved accounts while the secure broker feed is being validated; public onboarding is not open.</p></div>
-<aside class="brand-card"><img src="/vortext-ai-logo.webp?v=20261028-1" alt="VORTEXT AI — Markets Move. We Adapt."><div class="tag">Read-only dashboard preview · limited access</div></aside></div>
-<section id="release-status"><div class="wrap"><div class="access"><div><div class="eyebrow">Product release status</div><h2>Limited access · integration testing</h2><p>VORTEXT AI is not generally available. The current scope is a restricted, read-only dashboard preview for approved test accounts while MT5 broker connectivity, snapshot freshness and access controls are validated. Public customer onboarding is closed.</p><p class="fine">Market-analysis modules, automated execution features and multi-broker support are not being offered as generally available customer features.</p></div><a class="btn primary" href="/getting-started.html">Read Getting Started →</a></div></div></section>
+<div class="wrap hero"><div><div class="eyebrow">7 configured instruments · MT5 trading system</div><h1>Markets move.<br><span class="highlight">We adapt.</span></h1><p class="lead">VORTEX AI is a trading-bot monitoring experience built to make system activity easier to understand: positions, execution states, verified trade history and system connection health.</p><div class="actions"><a class="btn primary" href="/login.html">Sign in to view trades →</a><a class="btn" href="#platform">Explore the platform</a></div><p class="fine">Trade viewing requires sign-in. The website is read-only and cannot submit, modify or close orders. Access is limited to pre-approved accounts while the secure broker feed is being validated; public onboarding is not open.</p></div>
+<aside class="brand-card"><img src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI — Markets Move. We Adapt."><div class="tag">Read-only dashboard preview · limited access</div></aside></div>
+<section id="release-status"><div class="wrap"><div class="access"><div><div class="eyebrow">Product release status</div><h2>Limited access · integration testing</h2><p>VORTEX AI is not generally available. The current scope is a restricted, read-only dashboard preview for approved test accounts while MT5 broker connectivity, snapshot freshness and access controls are validated. Public customer onboarding is closed.</p><p class="fine">Market-analysis modules, automated execution features and multi-broker support are not being offered as generally available customer features.</p></div><a class="btn primary" href="/getting-started.html">Read Getting Started →</a></div></div></section>
 <section id="features"><div class="wrap" id="platform"><div class="heading"><h2>Trading visibility, with clear status</h2><p>The private dashboard preview is designed to show broker-verified values only. It must never present a signal as a fill or an old snapshot as current data.</p></div><div class="cards">
 <article class="card"><div class="icon">↗</div><h3>Open positions</h3><p>Side, symbol, volume, entry, current price, stop-loss, take-profit and floating P&amp;L when fresh broker data is verified.</p></article>
 <article class="card"><div class="icon">◷</div><h3>Closed trades</h3><p>Confirmed exit details, realized P&amp;L, entry/exit time and reconciliation status, separated by the broker-reported DEMO or REAL account mode.</p></article>
@@ -41,15 +70,15 @@ footer{border-top:1px solid var(--line);padding:24px 0 30px;color:#81988e;font-s
 <article class="card"><div class="icon">✓</div><h3>Execution &amp; reconciliation</h3><p>Tracks broker execution results, slippage/latency metrics and position reconciliation. The website is read-only and displays broker-confirmed data only when the secure feed is connected.</p></article>
 </div></div></section>
 <section id="access"><div class="wrap"><div class="access"><div><h2>Sign in to view the trading dashboard preview</h2><p>Open positions and trade history will be available to authenticated users after identity-provider setup and secure backend authorization are completed.</p></div><a class="btn primary" href="/login.html">Go to secure sign-in →</a></div></div></section>
-<section id="getting-started"><div class="wrap"><div class="access"><div><h2>New to VORTEXT AI and MT5?</h2><p>Review desktop installation, broker compatibility, demo testing, account connection and credential-safety steps before requesting test access.</p></div><a class="btn primary" href="/getting-started.html">Open Getting Started →</a></div></div></section>
-<section id="mobile"><div class="wrap"><div class="heading"><h2>Connect to MT5 on your phone</h2><p>Use the official MetaTrader 5 mobile app. Never enter your broker password on VORTEXT AI.</p></div><div class="split">
+<section id="getting-started"><div class="wrap"><div class="access"><div><h2>New to VORTEX AI and MT5?</h2><p>Review desktop installation, broker compatibility, demo testing, account connection and credential-safety steps before requesting test access.</p></div><a class="btn primary" href="/getting-started.html">Open Getting Started →</a></div></div></section>
+<section id="mobile"><div class="wrap"><div class="heading"><h2>Connect to MT5 on your phone</h2><p>Use the official MetaTrader 5 mobile app. Never enter your broker password on VORTEX AI.</p></div><div class="split">
 <article class="guide"><h3>Android</h3><p>Cannot find MT5 in Google Play? Download the APK directly from the download link provided by MetaTrader's official website.</p><div class="actions" style="margin:16px 0"><a class="btn primary" href="https://download.terminal.free/cdn/web/metaquotes.software.corp/mt5/metatrader5.apk?utm_campaign=install.metaquotes&utm_source=www.metatrader5.com" target="_blank" rel="noopener noreferrer" aria-label="Download official MetaTrader 5 Android APK">Download official MT5 APK ↓</a><a class="btn" href="https://www.metatrader5.com/en/mobile-trading/android" target="_blank" rel="noopener noreferrer">Official MT5 page ↗</a></div><ol><li>Download the APK from the official MetaTrader page's APK link.</li><li>Open the downloaded file and, if Android asks, allow this browser or file manager to install unknown apps.</li><li>Install MT5, then turn off that install permission again.</li><li>Open account management and add an existing account.</li><li>Search for your broker and select the exact server.</li><li>Enter broker credentials only inside the official MT5 app; check the Trade and History tabs.</li></ol><p class="fine">The link opens the APK download hosted by MetaTrader's linked download endpoint. Do not install APKs from third-party mirror sites.</p></article>
 <article class="guide"><h3>iPhone</h3><ol><li>Install MetaTrader 5 from the Apple App Store.</li><li>Open Settings or Accounts and add an existing account.</li><li>Search the broker, then select the correct server.</li><li>Enter trading-account credentials inside the official MT5 app.</li><li>Verify connection and review open positions and History.</li></ol></article>
 </div></div></section>
-<section id="pricing-preview"><div class="wrap"><div class="access"><div><h2>Starting trading capital: USD 200</h2><p>This is money held in your own broker account, not a VORTEXT AI fee. Software pricing is not published yet; confirm all charges before onboarding.</p></div><a class="btn primary" href="/pricing.html">View plans &amp; capital details →</a></div></div></section>
+<section id="pricing-preview"><div class="wrap"><div class="access"><div><h2>Starting trading capital: USD 200</h2><p>This is money held in your own broker account, not a VORTEX AI fee. Software pricing is not published yet; confirm all charges before onboarding.</p></div><a class="btn primary" href="/pricing.html">View plans &amp; capital details →</a></div></div></section>
 <section id="risk"><div class="wrap"><div class="heading"><h2>Risk &amp; transparency</h2><p>Automated trading involves substantial risk. Execution quality, spreads, commission, slippage and changing market conditions affect outcomes.</p></div><div class="callout">This website is an educational demonstration, not investment advice and not a guarantee of returns. Demo performance does not establish future profitability. Broker positions, account values and P&amp;L will not be displayed until the signed feed integration is verified.</div></div></section>
 </main>
-<footer><div class="wrap foot"><div>© VORTEXT AI · Educational and research demonstration.</div><div class="footlinks"><a href="#platform">Platform</a><a href="/getting-started.html">Getting started</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact &amp; support</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/login.html">Sign in</a><a href="#risk">Risk disclosure</a></div></div></footer>
+<footer><div class="wrap foot"><div>© VORTEX AI · Educational and research demonstration.</div><div class="footlinks"><a href="#platform">Platform</a><a href="/getting-started.html">Getting started</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact &amp; support</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/login.html">Sign in</a><a href="#risk">Risk disclosure</a></div></div></footer>
 <button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
 <script>
 (function(){

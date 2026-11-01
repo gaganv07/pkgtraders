@@ -1,12 +1,52 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#050b09"><title>Dashboard | VORTEXT AI</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#050b09"><title>Dashboard | VORTEX AI</title>
 <style>
 :root{color-scheme:dark;--bg:#050b09;--panel:#0b1512;--line:#244b3e;--text:#f2faf7;--muted:#a1b9b0;--teal:#00e6ad;--amber:#ffd58a}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0,#123d32,transparent 45%),var(--bg);color:var(--text);font:15px/1.55 system-ui,sans-serif}.wrap{width:min(1050px,calc(100% - 32px));margin:auto}header{border-bottom:1px solid var(--line)}nav{height:92px;display:flex;align-items:center;justify-content:space-between}.logo{width:116px;max-width:32vw;height:auto;display:block}button,.btn{border:1px solid #31564a;border-radius:10px;background:#12221d;color:var(--text);padding:10px 14px;font:inherit;font-weight:650;cursor:pointer}main{padding:42px 0 60px}.kicker{font-size:11px;letter-spacing:.16em;color:var(--teal);font-weight:800;text-transform:uppercase}h1{font-size:clamp(30px,4vw,42px);letter-spacing:-.04em;margin:8px 0}.muted{color:var(--muted)}.notice{border:1px solid #745a30;background:#261d0e;color:#ffe2b1;padding:12px 14px;border-radius:10px;margin-top:18px}.notice.ok{border-color:#236c53;background:#0b241b;color:#b8f6d9}.notice.warn{border-color:#745a30;background:#261d0e;color:#ffe2b1}.mode-badge[hidden]{display:none}.mode-badge{display:inline-flex;align-items:center;margin-top:12px;padding:5px 10px;border:1px solid #456257;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.08em}.mode-demo{border-color:#3b83b5;color:#a8ddff;background:#102331}.mode-real{border-color:#c28a39;color:#ffdc9c;background:#2a1f0d}.mode-unknown{border-color:#64746e;color:#c3d0cb;background:#17201c}.status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 22px}.status-tile{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 17px}.status-tile>span{display:block;color:var(--muted);font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}.status-tile .status-value{display:block;margin-top:7px;font-size:15px;font-weight:850;overflow-wrap:anywhere}.status-tile .status-note{display:block;margin-top:5px;color:var(--muted);font-size:11px}.feed-fresh{color:#b8f6d9}.feed-stale{color:#ffdfaa}.feed-offline{color:#c3d0cb}.account-mode-tile .mode-badge{margin-top:7px}.account-filter{display:flex;align-items:center;gap:10px;margin:18px 0 4px}.account-filter[hidden]{display:none}.account-filter label{font-size:12px;color:var(--muted);font-weight:700}.account-filter select{min-width:220px;max-width:100%;border:1px solid #35564b;border-radius:9px;background:#07100d;color:var(--text);padding:9px 12px;font:inherit}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}.metric,.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:19px}.metric span{display:block;color:var(--muted);font-size:12px}.metric strong{display:block;font-size:24px;margin-top:6px}.card{margin-top:14px}.table-empty{text-align:center;border:1px dashed #35574b;border-radius:10px;color:var(--muted);padding:26px;margin-top:14px}.fine{font-size:12px;color:var(--muted)}@media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.status-grid{grid-template-columns:1fr 1fr}}@media(max-width:480px){.grid{grid-template-columns:1fr 1fr;gap:8px}.status-grid{grid-template-columns:1fr}.metric{padding:12px}.metric strong{font-size:20px}.logo{width:94px}nav{height:76px}}
 .back-to-top{position:fixed;right:16px;bottom:18px;z-index:20;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid #00e6ad;background:#00e6ad;color:#052019;font-size:25px;font-weight:850;line-height:1;box-shadow:0 8px 28px #0006;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease;cursor:pointer}.back-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}.back-to-top:hover{background:#bfffea;border-color:#bfffea}.back-to-top:focus-visible{outline:3px solid #bfffea;outline-offset:4px}@media(prefers-reduced-motion:reduce){.back-to-top{transition:none}}
+
+/* VORTEX responsive dashboard: contain wide tables and prevent page overflow */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+img,svg{max-width:100%}
+.wrap,main,.topline,.status-grid,.grid,.metric,.card,.card-head,.table-wrap{min-width:0}
+nav{height:auto;min-height:76px;padding:8px 0;gap:12px;flex-wrap:wrap}
+nav>div{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;max-width:calc(100% - 130px);flex-wrap:wrap}
+.logo{width:116px;max-width:32vw;height:auto;object-fit:contain;image-rendering:auto}
+#user{max-width:38vw;overflow-wrap:anywhere;text-align:right}
+.grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.metric strong{max-width:100%;font-size:clamp(17px,2.5vw,24px);overflow-wrap:anywhere}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.table-wrap{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border-radius:10px}
+.table-wrap table{width:100%;min-width:760px;border-collapse:collapse}
+.table-wrap th,.table-wrap td{white-space:nowrap}
+button,.btn,select{min-height:44px;max-width:100%}
+.account-filter{align-items:flex-start;gap:10px;flex-wrap:wrap}
+.account-filter label{width:100%}
+.account-filter select{min-width:0;width:min(100%,340px)}
+@media(max-width:760px){
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:480px){
+ .wrap{width:calc(100% - 24px)}
+ nav{min-height:72px;padding:9px 0;gap:8px}
+ nav>div{max-width:calc(100% - 104px);gap:6px}
+ .logo{width:92px;max-width:28vw}
+ #user{max-width:32vw;font-size:11px}
+ nav>div .fine{font-size:11px;white-space:normal;overflow-wrap:anywhere}
+ main{padding:26px 0 44px}
+ h1{font-size:clamp(26px,8vw,34px);line-height:1.15}
+ .status-grid{grid-template-columns:minmax(0,1fr)}
+ .status-tile{padding:12px}
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .metric,.card{padding:12px}
+ .metric strong{font-size:clamp(16px,5vw,20px);line-height:1.25}
+ .card-head h2{font-size:18px;line-height:1.25}
+ .account-filter select{width:100%}
+}
 </style><link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
 <link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
 </head><body>
-<header><div class="wrap"><nav><a href="/"><img class="logo" src="/vortext-ai-logo.webp?v=20261028-1" alt="VORTEXT AI"></a><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><a class="fine" href="/contact.html">Support</a><a class="fine" href="/pricing.html">Plans</a><span id="user" class="fine">Checking sign-in…</span> <button id="logout" hidden>Sign out</button></div></nav></div></header>
+<header><div class="wrap"><nav><a href="/"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><a class="fine" href="/contact.html">Support</a><a class="fine" href="/pricing.html">Plans</a><span id="user" class="fine">Checking sign-in…</span> <button id="logout" hidden>Sign out</button></div></nav></div></header>
 <main class="wrap">
 <div class="topline"><div><div class="kicker">Private dashboard</div><h1>Your trading activity</h1><p class="muted">Read-only view of verified broker snapshots. Feed state, account mode and the broker-update timestamp are independent indicators.</p></div></div>
 <div class="status-grid" aria-label="Trading feed status">

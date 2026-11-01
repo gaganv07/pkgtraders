@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#050b09">
-<meta name="description" content="Getting started with VORTEXT AI and MetaTrader 5: installation, broker compatibility, demo testing and safe account setup.">
-<title>Getting Started | VORTEXT AI</title>
+<meta name="description" content="Getting started with VORTEX AI and MetaTrader 5: installation, broker compatibility, demo testing and safe account setup.">
+<title>Getting Started | VORTEX AI</title>
 <style>
 :root{color-scheme:dark;--bg:#050b09;--panel:#0c1513;--line:#203c34;--text:#f2faf7;--muted:#a1b9b0;--teal:#00e6ad;--cyan:#bfffea;--amber:#ffd58a}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 78% -8%,#123d32 0,transparent 45%),var(--bg);color:var(--text);font:15px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--cyan);text-decoration:none}.wrap{width:min(1050px,calc(100% - 32px));margin:auto}
@@ -15,12 +15,12 @@ main{padding:48px 0 70px}.kicker{color:var(--teal);font-size:11px;font-weight:80
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1"><link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
 </head>
 <body>
-<header><div class="wrap"><nav aria-label="Main navigation"><a href="/" aria-label="VORTEXT AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261028-1" alt="VORTEXT AI"></a><button id="menu-toggle" class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-links" title="Open navigation"><span class="bar" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span></button><div class="navlinks" id="site-links"><a href="/">Home</a><a href="/getting-started.html" aria-current="page">Getting started</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Support</a></div><a class="signin" href="/login.html">Sign in ↗</a></nav></div></header>
+<header><div class="wrap"><nav aria-label="Main navigation"><a href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><button id="menu-toggle" class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-links" title="Open navigation"><span class="bar" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span></button><div class="navlinks" id="site-links"><a href="/">Home</a><a href="/getting-started.html" aria-current="page">Getting started</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Support</a></div><a class="signin" href="/login.html">Sign in ↗</a></nav></div></header>
 <main class="wrap">
-<div class="kicker">VORTEXT AI · Setup guide</div>
-<h1>Getting started with MT5 and VORTEXT AI</h1>
+<div class="kicker">VORTEX AI · Setup guide</div>
+<h1>Getting started with MT5 and VORTEX AI</h1>
 <p class="lead">This guide covers MetaTrader 5 installation, broker compatibility, connecting a trading account, demo testing and safe credential handling. The website dashboard is read-only; it does not connect directly to your broker or place orders.</p>
-<div class="status"><strong>Release status: Limited access · integration testing.</strong> VORTEXT AI is not generally available and public customer onboarding is closed. Follow this guide to prepare an MT5 test environment only; do not treat completion as approval to use a real-money account with the bot.</div>
+<div class="status"><strong>Release status: Limited access · integration testing.</strong> VORTEX AI is not generally available and public customer onboarding is closed. Follow this guide to prepare an MT5 test environment only; do not treat completion as approval to use a real-money account with the bot.</div>
 
 <section class="panel">
 <h2>1. Install the official MetaTrader 5 terminal</h2>
@@ -32,7 +32,7 @@ main{padding:48px 0 70px}.kicker{color:var(--teal);font-size:11px;font-weight:80
 
 <section class="panel">
 <h2>2. Confirm broker and account compatibility</h2>
-<p>VORTEXT AI is built around MetaTrader 5 (MT5), not MetaTrader 4 (MT4). A broker being listed inside the MT5 terminal does not by itself prove that its account, server, symbols or execution settings have been tested with this VORTEXT build.</p>
+<p>VORTEX AI is built around MetaTrader 5 (MT5), not MetaTrader 4 (MT4). A broker being listed inside the MT5 terminal does not by itself prove that its account, server, symbols or execution settings have been tested with this VORTEXT build.</p>
 <ul><li>Ask the broker for the exact MT5 server name and whether your account is a demo or real account.</li><li>Confirm that the broker offers the instruments you intend to monitor. The current configured roster is XAUUSD, EURUSD, GBPUSD, USDJPY, NAS100, US30 and BTCUSD; brokers may use different symbol names or suffixes.</li><li>Check contract size, tick size, trading hours, margin rules, commissions, swaps and account type with the broker.</li><li>Confirm whether the account uses hedging or netting and whether the MT5 server provides the history and data required by the configured bot.</li><li>Compatibility must be verified for the specific broker server, account type and symbol mapping. No universal broker-compatibility claim is made.</li></ul>
 <p>MT5 login requires the account number, password and exact server name supplied by the broker. The wrong server can prevent a valid account from connecting. <a href="https://www.metatrader5.com/en/terminal/help/startworking/authorization" target="_blank" rel="noopener noreferrer">Official MT5 account-connection instructions ↗</a>.</p>
 </section>
@@ -55,7 +55,7 @@ main{padding:48px 0 70px}.kicker{color:var(--teal);font-size:11px;font-weight:80
 
 <section class="panel">
 <h2>5. Safe account and credential setup</h2>
-<ul><li>Use a dedicated demo account for testing. Keep it separate from personal savings, investment accounts and any real-money account.</li><li>Use a unique, strong password for the broker account and enable the broker's available security controls and two-factor authentication.</li><li>Enter broker credentials only in the official MT5 terminal or the broker's verified application. Never send passwords, one-time codes, recovery codes, HMAC secrets or Supabase keys to VORTEXT AI support, GitHub or chat.</li><li>The website login is separate from MT5 authentication. VORTEXT AI never needs your MT5 password in the browser.</li><li>Keep the Windows terminal, local account registry and environment secrets on the secured trading computer. Do not upload `.env`, `accounts.json`, terminal databases or credential screenshots.</li><li>Do not enable automated trading or attach the bot to a real account during this testing phase. A real account may lose money, and a demo result is not evidence of future performance.</li><li>Before any future real-account use, verify the broker, account mode, symbol mapping, risk limits, rollback/disable procedure and monitoring with the operator.</li></ul>
+<ul><li>Use a dedicated demo account for testing. Keep it separate from personal savings, investment accounts and any real-money account.</li><li>Use a unique, strong password for the broker account and enable the broker's available security controls and two-factor authentication.</li><li>Enter broker credentials only in the official MT5 terminal or the broker's verified application. Never send passwords, one-time codes, recovery codes, HMAC secrets or Supabase keys to VORTEX AI support, GitHub or chat.</li><li>The website login is separate from MT5 authentication. VORTEX AI never needs your MT5 password in the browser.</li><li>Keep the Windows terminal, local account registry and environment secrets on the secured trading computer. Do not upload `.env`, `accounts.json`, terminal databases or credential screenshots.</li><li>Do not enable automated trading or attach the bot to a real account during this testing phase. A real account may lose money, and a demo result is not evidence of future performance.</li><li>Before any future real-account use, verify the broker, account mode, symbol mapping, risk limits, rollback/disable procedure and monitoring with the operator.</li></ul>
 <p>MT5 offers an investor access type that is generally view-only at the terminal level; ask your broker whether it is available and whether it meets the specific data requirements. Do not assume an investor password is supported by the bot integration. <a href="https://www.metatrader5.com/en/terminal/help/startworking/authorization" target="_blank" rel="noopener noreferrer">MT5 access types ↗</a>.</p>
 </section>
 
@@ -66,7 +66,7 @@ main{padding:48px 0 70px}.kicker{color:var(--teal);font-size:11px;font-weight:80
 <div class="actions"><a class="btn" href="/faq.html">Read FAQs →</a><a class="btn secondary" href="/login.html">Open sign-in →</a></div>
 </section>
 </main>
-<footer><div class="wrap foot"><span>© VORTEXT AI · Testing only · Automated trading involves risk.</span><div class="footlinks"><a href="/">Home</a><a href="/getting-started.html">Getting started</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></div></div></footer>
+<footer><div class="wrap foot"><span>© VORTEX AI · Testing only · Automated trading involves risk.</span><div class="footlinks"><a href="/">Home</a><a href="/getting-started.html">Getting started</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></div></div></footer>
 <script>
 (function(){
  const button=document.getElementById("menu-toggle"),links=document.getElementById("site-links");
