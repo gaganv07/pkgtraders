@@ -3,8 +3,54 @@
 :root{color-scheme:dark;--bg:#050b09;--panel:#0c1513;--line:#203c34;--text:#f2faf7;--muted:#a1b9b0;--teal:#00e6ad;--cyan:#bfffea;--amber:#ffd58a}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 78% -8%,#123d32 0,transparent 45%),var(--bg);color:var(--text);font:15px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--cyan)}.wrap{width:min(1000px,calc(100% - 32px));margin:auto}header{border-bottom:1px solid #17372d;background:#050b09e8}nav{height:82px;display:flex;align-items:center;justify-content:space-between;gap:18px}.logo{width:118px;max-width:32vw;height:auto;display:block}.navlinks,.footlinks{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted)}.navlinks a,.footlinks a{color:var(--muted);text-decoration:none}.navlinks a:hover,.footlinks a:hover{color:var(--teal)}main{padding:52px 0 70px}.kicker{color:var(--teal);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}h1{font-size:clamp(32px,5vw,48px);line-height:1.08;letter-spacing:-.04em;margin:10px 0 12px}h2{font-size:21px;line-height:1.25;margin:25px 0 8px}h3{font-size:16px;margin:0 0 6px}p,li{color:var(--muted)}p{margin:8px 0 15px}.lead{font-size:17px;max-width:740px}.panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:22px;margin:15px 0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.grid .card{margin:0}.price{font-size:25px;color:var(--teal);font-weight:800;margin:12px 0}.pill{display:inline-block;border:1px solid #31564a;border-radius:99px;padding:4px 9px;color:var(--teal);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 15px;border-radius:10px;background:var(--teal);border:1px solid var(--teal);color:#061d15;text-decoration:none;font-weight:800;font-size:13px}.notice{border-left:3px solid var(--amber);background:#261d0e;color:#ffdfaa;padding:14px 16px;border-radius:0 10px 10px 0;margin:19px 0}.muted{color:var(--muted)}.faq{border-bottom:1px solid var(--line);padding:17px 0}.faq:last-child{border:0}.faq h3{font-size:15px}.faq p{margin-bottom:0}footer{border-top:1px solid var(--line);padding:24px 0 30px;color:#81988e;font-size:11px}.foot{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}.back{color:var(--muted);text-decoration:none;font-size:12px}
 @media(max-width:720px){.grid{grid-template-columns:1fr}.foot{display:block}.footlinks{margin-top:12px}.navlinks{gap:10px;font-size:11px}nav{height:74px}.logo{width:96px}main{padding-top:38px}}
+
+/* Shared responsive header and content safeguards */
+html{scroll-padding-top:88px}
+body{max-width:100%;overflow-x:hidden}
+.wrap,main,.panel,.card,.grid,.foot{min-width:0}
+header{position:sticky;top:0;z-index:30;background:#050b09ed;border-bottom:1px solid #17372d;backdrop-filter:blur(12px)}
+nav{position:relative;min-width:0;gap:clamp(8px,1.6vw,18px)}
+nav>a:first-child{flex:0 0 auto;min-width:0}
+.logo{width:116px;max-width:34vw;height:auto;object-fit:contain}
+.navlinks{display:flex;align-items:center;justify-content:center;gap:clamp(10px,1.4vw,18px);flex-wrap:nowrap;min-width:0}
+.navlinks a{display:inline-flex;align-items:center;min-height:44px;white-space:nowrap}
+.back{flex:0 0 auto;white-space:nowrap}
+.menu-toggle{display:none;flex:0 0 42px;width:42px;height:42px;align-items:center;justify-content:center;gap:4px;flex-direction:column;border:1px solid #31564a;border-radius:10px;background:#12221d;color:var(--text);padding:8px;cursor:pointer}
+.menu-toggle .bar{display:block;width:19px;height:2px;border-radius:2px;background:currentColor;transition:transform .18s ease,opacity .18s ease}
+.menu-toggle.is-open .bar:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.menu-toggle.is-open .bar:nth-child(2){opacity:0}
+.menu-toggle.is-open .bar:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+img,svg,video,iframe{max-width:100%}
+button,.btn{min-height:44px;max-width:100%;white-space:normal;text-align:center;touch-action:manipulation}
+p,li,h1,h2,h3{overflow-wrap:anywhere}
+pre,code{max-width:100%;overflow-wrap:anywhere}
+@media(max-width:760px){
+  html{scroll-padding-top:78px}
+  nav{height:72px;gap:10px}
+  .logo{width:96px;max-width:28vw}
+  .menu-toggle{display:inline-flex}
+  .navlinks{display:none}
+  .navlinks.is-open{display:grid;position:absolute;left:0;right:0;top:calc(100% + 1px);z-index:31;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;padding:8px 14px;border:1px solid #31564a;border-radius:0 0 14px 14px;background:#07110eef;box-shadow:0 16px 35px #0009;max-height:calc(100vh - 90px);overflow-y:auto}
+  .navlinks.is-open a{min-width:0;min-height:46px;padding:11px 8px;border-bottom:1px solid #1b382e;white-space:normal;overflow-wrap:anywhere}
+  .navlinks.is-open a:nth-last-child(-n+2){border-bottom:0}
+  .back{font-size:12px}
+  .wrap{width:calc(100% - 24px)}
+  main{padding:36px 0 48px}
+  .panel,.card{padding:18px}
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .foot{display:block}
+  .footlinks{margin-top:12px}
+}
+@media(max-width:360px){
+  nav{gap:7px}
+  .logo{width:88px}
+  .menu-toggle{flex-basis:40px;width:40px;height:40px}
+  .back{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){.menu-toggle .bar{transition:none}}
+
 </style></head>
-<body><header><div class="wrap"><nav aria-label="Main navigation"><a href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><div class="navlinks"><a href="/">Home</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Support</a></div><a class="back" href="/login.html">Sign in ↗</a></nav></div></header>
+<body><header><div class="wrap"><nav aria-label="Main navigation"><a href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><button id="menu-toggle" class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-links" title="Open navigation"><span class="bar" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span></button><div class="navlinks" id="site-links"><a href="/">Home</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact</a></div><a class="back" href="/login.html">Sign in ↗</a></nav></div></header>
 <main class="wrap">
 <div class="kicker">Terms</div><h1>Terms of use</h1><p class="lead">Last updated: October 31, 2026. These preliminary terms describe the current website and dashboard scope. They are not a final customer contract because the operator identity, jurisdiction and formal notice details have not yet been completed.</p>
 <div class="notice">PRE-LAUNCH NOTICE: VORTEX AI is not open for public customer onboarding. These terms are a working draft for product review and must not be treated as the final customer agreement.</div>
@@ -20,4 +66,38 @@
 <h2>10. Operator and governing law</h2><p>The legal operator identity, governing law, jurisdiction, dispute process and formal notice address have not yet been provided. These details must be completed and reviewed by qualified counsel before any public customer onboarding or commercial offering.</p></section>
 <div class="notice">PRE-LAUNCH DRAFT: do not use this document as the final customer contract. Operator identity, jurisdiction, dispute handling, commercial fees and applicable regulatory obligations still require confirmation and qualified legal review. Public onboarding must remain closed until those details are finalized.</div>
 </main>
-<footer><div class="wrap foot"><span>© VORTEX AI · Automated trading involves risk.</span><div class="footlinks"><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact & Support</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/">Home</a></div></div></footer></body></html>
+<footer><div class="wrap foot"><span>© VORTEX AI · Automated trading involves risk.</span><div class="footlinks"><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact & Support</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/">Home</a></div></div></footer>
+<script>
+(function(){
+  const button=document.getElementById("menu-toggle");
+  const links=document.getElementById("site-links");
+  const nav=button&&button.closest("nav");
+  if(!button||!links||!nav)return;
+  function setOpen(open){
+    button.setAttribute("aria-expanded",String(open));
+    button.setAttribute("aria-label",open?"Close navigation":"Open navigation");
+    button.title=open?"Close navigation":"Open navigation";
+    button.classList.toggle("is-open",open);
+    links.classList.toggle("is-open",open);
+  }
+  button.addEventListener("click",function(){
+    setOpen(button.getAttribute("aria-expanded")!=="true");
+  });
+  links.addEventListener("click",function(event){
+    if(event.target.closest("a"))setOpen(false);
+  });
+  document.addEventListener("click",function(event){
+    if(!nav.contains(event.target))setOpen(false);
+  });
+  document.addEventListener("keydown",function(event){
+    if(event.key==="Escape"&&button.getAttribute("aria-expanded")==="true"){
+      setOpen(false);button.focus();
+    }
+  });
+  window.addEventListener("resize",function(){
+    if(window.innerWidth>760)setOpen(false);
+  });
+})();
+</script>
+
+</body></html>
