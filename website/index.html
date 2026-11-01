@@ -1,120 +1,320 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#050b09">
-<meta name="description" content="VORTEX AI — transparent read-only monitoring for an automated MT5 trading system.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#03110e">
+<meta name="description" content="VORTEX AI — Intelligent. Adaptive. Automated. A private, read-only MT5 trading-system preview.">
 <title>VORTEX AI | Markets Move. We Adapt.</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261101-4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <style>
-:root{color-scheme:dark;--bg:#050b09;--panel:#0c1513;--line:#203c34;--text:#f2faf7;--muted:#a1b9b0;--teal:#00e6ad;--cyan:#bfffea;--amber:#ffd58a}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 78% -8%,#123d32 0,transparent 45%),var(--bg);color:var(--text);font:16px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 32px));margin:auto}
-header{position:sticky;top:0;z-index:3;background:#050b09e8;border-bottom:1px solid #17372d;backdrop-filter:blur(12px)}nav{height:96px;display:flex;align-items:center;justify-content:space-between;gap:20px;position:relative}.logo{width:126px;max-width:32vw;height:auto;display:block}.links{display:flex;gap:24px;color:var(--muted);font-size:13px}.links a:hover{color:var(--teal)}.menu-toggle{display:none;width:42px;height:40px;align-items:center;justify-content:center;gap:4px;flex-direction:column;border:1px solid #31564a;background:#12221d;color:var(--text);padding:8px;border-radius:9px;cursor:pointer}.menu-toggle .bar{display:block;width:19px;height:2px;border-radius:2px;background:currentColor;transition:transform .18s ease,opacity .18s ease}.menu-toggle.is-open .bar:nth-child(1){transform:translateY(6px) rotate(45deg)}.menu-toggle.is-open .bar:nth-child(2){opacity:0}.menu-toggle.is-open .bar:nth-child(3){transform:translateY(-6px) rotate(-45deg)}.nav-cta,.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid #31564a;background:#12221d;color:var(--text);padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px}.btn.primary,.nav-cta{background:var(--teal);border-color:var(--teal);color:#061d15}
-.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center;padding:76px 0 60px}.eyebrow{display:flex;align-items:center;gap:9px;color:var(--teal);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}.eyebrow:before{content:"";width:24px;height:1px;background:var(--teal)}h1{font-size:clamp(38px,5.4vw,64px);letter-spacing:-.05em;line-height:1.02;margin:19px 0}.highlight{color:var(--teal)}.lead{color:var(--muted);font-size:18px;max-width:590px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:27px 0 0}.fine{color:var(--muted);font-size:12px;margin-top:18px}
-.brand-card{padding:18px;background:linear-gradient(145deg,#0e1c17,#0b1210);border:1px solid #244b3e;border-radius:20px;box-shadow:0 25px 72px #0007}.brand-card img{display:block;width:100%;height:auto;border-radius:9px}.tag{color:var(--amber);font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;margin-top:14px}
-section{padding:48px 0}.heading{max-width:700px;margin-bottom:24px}.heading h2{font-size:clamp(26px,3.5vw,38px);letter-spacing:-.035em;margin:0 0 8px}.heading p{color:var(--muted);margin:0}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:22px}.icon{height:39px;width:39px;border-radius:12px;border:1px solid #31564a;display:grid;place-items:center;color:var(--teal);font-size:19px}.card h3{font-size:16px;margin:15px 0 6px}.card p{font-size:13px;color:var(--muted);margin:0}
-.access{display:grid;grid-template-columns:1fr auto;align-items:center;gap:22px;background:linear-gradient(120deg,#0d2019,#0b1412);border:1px solid #2a5747;padding:27px;border-radius:16px}.access h2{margin:0 0 6px;font-size:23px}.access p{margin:0;color:var(--muted);font-size:14px}
-.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}.guide{background:#0b1412;border:1px solid var(--line);padding:24px;border-radius:15px}.guide h3{margin:0 0 10px}.guide ol{padding-left:20px;color:var(--muted);font-size:13px}.guide li{padding:4px 0}.callout{border-left:3px solid var(--amber);border-radius:0 10px 10px 0;background:#261d0e;color:#ffdfaa;font-size:13px;padding:15px 17px}
-footer{border-top:1px solid var(--line);padding:24px 0 30px;color:#81988e;font-size:11px}.foot{display:flex;justify-content:space-between;gap:18px}.footlinks{display:flex;gap:16px;flex-wrap:wrap}
-@media(max-width:850px){.hero{grid-template-columns:1fr;gap:32px;padding-top:50px}.brand-card{max-width:620px}.links{gap:14px}.cards{grid-template-columns:1fr 1fr}}@media(max-width:600px){.links{display:none}.links.is-open{display:grid;position:absolute;left:0;right:0;top:calc(100% + 1px);gap:0;padding:8px 14px;background:#07110e;border:1px solid #203c34;border-radius:0 0 12px 12px;box-shadow:0 16px 35px #0008;z-index:10}.links.is-open a{padding:10px 4px;border-bottom:1px solid #1b332b}.links.is-open a:last-child{border-bottom:0}.menu-toggle{display:inline-flex;align-items:center;justify-content:center}.logo{width:100px}nav{height:76px}.hero{padding:38px 0 25px}.lead{font-size:16px}.cards,.split{grid-template-columns:1fr}.access{grid-template-columns:1fr}.access .btn{width:100%}.foot{display:block}.footlinks{margin-top:13px}}
-.back-to-top{position:fixed;right:16px;bottom:18px;z-index:20;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid #00e6ad;background:#00e6ad;color:#052019;font-size:25px;font-weight:850;line-height:1;box-shadow:0 8px 28px #0006;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease;cursor:pointer}.back-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}.back-to-top:hover{background:#bfffea;border-color:#bfffea}.back-to-top:focus-visible{outline:3px solid #bfffea;outline-offset:4px}@media(prefers-reduced-motion:reduce){.back-to-top{transition:none}}
-
-/* VORTEX responsive safeguards */
-img,svg{max-width:100%}
-.wrap,nav,.hero,.brand-card,.actions,.card,.guide,.access{min-width:0}
-.logo{height:auto;object-fit:contain;image-rendering:auto}
-.brand-card{min-width:0;overflow:hidden}
-.brand-card img{display:block;width:100%;max-width:400px;height:auto;object-fit:contain;margin-inline:auto}
-.nav-cta,.btn{min-height:44px;line-height:1.3;text-align:center;white-space:normal;overflow-wrap:anywhere}
-.actions .btn{min-width:0;max-width:100%}
-.menu-toggle{flex:0 0 42px}
-@media(max-width:600px){
- nav{height:76px;gap:9px}
- .logo{width:94px;max-width:27vw}
- .nav-cta{margin-left:auto;padding:10px 11px;font-size:12px;white-space:nowrap}
- .menu-toggle{width:42px;min-height:42px}
- .hero{grid-template-columns:minmax(0,1fr);gap:22px;padding:32px 0 24px}
- .brand-card{width:100%;max-width:100%;padding:12px;border-radius:16px}
- .brand-card img{max-width:100%;width:100%;height:auto}
- h1{font-size:clamp(34px,10vw,46px)}
- .lead{font-size:16px}
- .actions{gap:10px}
- .actions .btn{flex:1 1 100%;width:100%}
- .access{grid-template-columns:minmax(0,1fr);gap:14px;padding:20px}
- .access .btn{width:100%}
- .cards,.split{grid-template-columns:minmax(0,1fr)}
- .card,.guide{padding:18px}
- .foot{display:block}
- .footlinks{margin-top:13px}
+:root{
+ color-scheme:dark;--bg:#030b09;--panel:#071612;--panel-2:#091c16;
+ --line:#0c5542;--line-soft:#174337;--text:#f6fbf9;--muted:#c2d1cb;
+ --teal:#00e8ac;--mint:#8bfbd0;--deep:#001e16;--amber:#f7d99b;
+ --max:1450px
 }
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:110px}
+body{margin:0;min-width:320px;background:radial-gradient(ellipse at 73% 10%,#063b2b 0,transparent 36%),radial-gradient(ellipse at 10% 34%,#06241b 0,transparent 36%),var(--bg);color:var(--text);font:16px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button,a{-webkit-tap-highlight-color:transparent}
+img,svg{max-width:100%}
+.wrap{width:min(var(--max),calc(100% - 64px));margin-inline:auto}
+.site-header{position:sticky;top:0;z-index:30;border-bottom:1px solid #0b4032;background:rgba(2,13,10,.94);backdrop-filter:blur(18px)}
+.nav{height:112px;display:flex;align-items:center;justify-content:space-between;gap:22px;position:relative}
+.brand-link{display:flex;align-items:center;flex:0 0 auto;width:170px;min-width:0}
+.brand-logo{display:block;width:100%;height:auto;object-fit:contain;image-rendering:auto}
+.nav-links{display:flex;align-items:center;justify-content:center;gap:clamp(14px,2vw,32px);color:#e5eee9;font-size:15px;white-space:nowrap}
+.nav-links a{transition:color .18s ease}
+.nav-links a:hover,.nav-links a[aria-current=page]{color:var(--teal)}
+.nav-actions{display:flex;align-items:center;gap:12px;flex:0 0 auto}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:12px 22px;border:1px solid #00d9a3;border-radius:12px;background:rgba(2,25,19,.72);color:#f5fffb;font-size:15px;font-weight:750;line-height:1.2;text-align:center;transition:transform .18s ease,box-shadow .18s ease,background .18s ease,border-color .18s ease}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px #00e8ac22;border-color:var(--mint)}
+.btn-primary{background:linear-gradient(105deg,#00d99f,#00f0ac);color:#00261b;border-color:#00e8a8;box-shadow:0 0 22px #00df9c18}
+.btn-primary:hover{background:linear-gradient(105deg,#13e7ad,#65ffd0);color:#00261b}
+.btn-outline{background:rgba(0,15,12,.72)}
+.btn-small{min-width:106px;min-height:46px;padding:10px 18px}
+.menu-toggle{display:none;width:46px;height:44px;flex:0 0 46px;align-items:center;justify-content:center;flex-direction:column;gap:5px;border:1px solid #17684f;border-radius:10px;background:#061b14;color:#f5fffb;cursor:pointer}
+.menu-toggle span{width:20px;height:2px;background:currentColor;border-radius:3px;transition:transform .18s ease,opacity .18s ease}
+.menu-toggle[aria-expanded=true] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.menu-toggle[aria-expanded=true] span:nth-child(2){opacity:0}
+.menu-toggle[aria-expanded=true] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.hero{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:34px;min-height:620px;padding:62px 0 38px}
+.hero:before{content:"";position:absolute;z-index:-2;inset:0;background:radial-gradient(ellipse at 76% 67%,#00a8761b,transparent 42%),linear-gradient(180deg,transparent 75%,#020b09 100%);pointer-events:none}
+.hero-copy{min-width:0;padding:12px 0 25px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;padding:9px 20px;border:1px solid #00b982;border-radius:999px;background:rgba(0,34,25,.5);color:#f2fff9;font-size:15px;font-weight:650}
+.eyebrow:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 12px var(--teal)}
+h1{margin:24px 0 0;font-size:clamp(56px,6.2vw,94px);font-weight:850;line-height:.98;letter-spacing:-.065em}
+h1 span{color:#00e6a5}
+.tagline{margin:10px 0 16px;font-size:clamp(23px,2.5vw,36px);font-weight:750;line-height:1.2;letter-spacing:-.035em}
+.tagline .soft{color:#8bfbd0}
+.hero-description{max-width:650px;margin:0;color:#e1eae5;font-size:clamp(17px,1.35vw,21px);line-height:1.52}
+.hero-actions{display:flex;flex-wrap:wrap;gap:16px;margin-top:27px}
+.hero-actions .btn{min-width:210px;min-height:56px;font-size:18px}
+.arrow{font-size:22px;line-height:1}
+.play-icon{display:inline-grid;place-items:center;width:21px;height:21px;border:1.7px solid currentColor;border-radius:50%;font-size:10px;padding-left:2px}
+.benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:42px}
+.benefit{display:flex;align-items:center;gap:12px;min-width:0}
+.benefit-icon{display:grid;place-items:center;width:52px;height:52px;flex:0 0 52px;border:1px solid #00a778;border-radius:14px;background:linear-gradient(145deg,#06271d,#04120f);color:var(--teal);box-shadow:inset 0 0 18px #00e6a41a}
+.benefit-icon svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.benefit-copy{min-width:0;line-height:1.3}
+.benefit-copy strong{display:block;font-size:14px;white-space:nowrap}
+.benefit-copy span{display:block;margin-top:4px;color:#c1d0c9;font-size:13px}
+.hero-visual{position:relative;display:grid;place-items:center;min-width:0;min-height:500px}
+.visual-grid{position:absolute;inset:8% 2% 7%;z-index:-1;opacity:.42;background-image:linear-gradient(#00b78012 1px,transparent 1px),linear-gradient(90deg,#00b78012 1px,transparent 1px);background-size:34px 34px;mask-image:radial-gradient(ellipse at center,#000 10%,transparent 72%)}
+.chart-line{position:absolute;inset:12% 0 13%;width:100%;height:78%;z-index:-1;opacity:.8;filter:drop-shadow(0 0 9px #00d899)}
+.logo-glow{position:absolute;width:76%;height:55%;bottom:7%;left:12%;z-index:-1;border-radius:50%;background:radial-gradient(ellipse,#00f1a329 0,transparent 68%);filter:blur(18px)}
+.market-globe{position:absolute;z-index:-1;left:0;right:0;bottom:-5%;height:33%;border-top:2px solid #00d88c66;border-radius:50% 50% 0 0/25% 25% 0 0;background:radial-gradient(ellipse at 50% 0,#00d98d34,transparent 58%),repeating-linear-gradient(90deg,transparent 0 22px,#00d88b14 23px 24px),repeating-linear-gradient(0deg,transparent 0 18px,#00d88b12 19px 20px);transform:perspective(260px) rotateX(14deg);box-shadow:0 -12px 42px #00d98b19;mask-image:linear-gradient(#000 0%,transparent 95%)}
+.candles{position:absolute;right:7%;top:5%;display:flex;align-items:flex-end;gap:12px;height:140px;opacity:.55;filter:drop-shadow(0 0 8px #00e8ac55);z-index:-1}
+.candle{position:relative;width:26px;border:2px solid #00da9b;background:linear-gradient(180deg,#00e9a4,#006c53)}
+.candle:before,.candle:after{content:"";position:absolute;left:50%;width:2px;background:#00d99a;transform:translateX(-50%)}
+.candle:before{height:24px;bottom:100%}.candle:after{height:22px;top:100%}
+.candle:nth-child(1){height:56px}.candle:nth-child(2){height:85px}.candle:nth-child(3){height:72px}.candle:nth-child(4){height:112px}
+.hero-logo{display:block;width:min(100%,540px);max-height:470px;height:auto;object-fit:contain;filter:drop-shadow(0 18px 42px #00d88a24)}
+.metrics-shell{position:relative;margin:6px auto 42px;padding:18px;border:1px solid #0e4938;border-radius:25px;background:linear-gradient(120deg,rgba(3,20,15,.94),rgba(3,15,12,.9));box-shadow:0 20px 65px #0008,inset 0 1px #29ffbe0a}
+.metrics-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.metric{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:146px;padding:18px 10px;border:1px solid #0b5a42;border-radius:18px;background:linear-gradient(150deg,#061c15,#03110d);text-align:center}
+.metric-icon{width:39px;height:39px;margin-bottom:5px;color:var(--teal)}
+.metric-icon svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.metric strong{font-size:27px;line-height:1.2;letter-spacing:-.03em}
+.metric span{margin-top:4px;color:#f0f7f3;font-size:16px}
+.preview-note{margin:18px auto 0;max-width:1000px;color:#a8bdb4;font-size:12px;line-height:1.55;text-align:center}
+.content-section{padding:58px 0}
+.section-heading{max-width:760px;margin:0 auto 28px;text-align:center}
+.section-heading .eyebrow{font-size:11px;padding:7px 14px}
+.section-heading h2{margin:14px 0 8px;font-size:clamp(28px,4vw,42px);line-height:1.1;letter-spacing:-.04em}
+.section-heading p{margin:0;color:var(--muted)}
+.feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.feature-card{min-width:0;padding:24px;border:1px solid var(--line-soft);border-radius:18px;background:linear-gradient(145deg,rgba(8,28,21,.96),rgba(4,15,12,.96));}
+.feature-card h3{margin:13px 0 5px;font-size:18px}
+.feature-card p{margin:0;color:var(--muted);font-size:14px}
+.feature-card .benefit-icon{width:46px;height:46px;flex-basis:46px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.step{padding:23px;border:1px solid var(--line-soft);border-radius:17px;background:#061710}
+.step-number{color:var(--teal);font-size:12px;font-weight:800;letter-spacing:.14em}
+.step h3{margin:9px 0 6px;font-size:18px}
+.step p{margin:0;color:var(--muted);font-size:14px}
+.release-note{margin-top:24px;padding:18px 20px;border-left:3px solid var(--amber);border-radius:0 12px 12px 0;background:#211b0e;color:#ffe8bf;font-size:13px}
+.final-cta{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:28px;border:1px solid #126146;border-radius:20px;background:linear-gradient(105deg,#08281c,#061510)}
+.final-cta h2{margin:0 0 6px;font-size:24px}
+.final-cta p{margin:0;color:var(--muted);font-size:14px}
+footer{margin-top:46px;padding:24px 0 30px;border-top:1px solid #12392d;color:#8ba59a;font-size:12px}
+.footer-row{display:flex;justify-content:space-between;align-items:center;gap:22px}
+.footer-links{display:flex;gap:16px;flex-wrap:wrap}
+.footer-links a:hover{color:var(--teal)}
+.back-to-top{position:fixed;right:18px;bottom:18px;z-index:20;display:grid;place-items:center;width:46px;height:46px;border:1px solid var(--teal);border-radius:50%;background:var(--teal);color:#00271b;font-size:24px;font-weight:850;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s,transform .18s,visibility .18s;cursor:pointer}
+.back-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}
+:focus-visible{outline:3px solid #9dffda;outline-offset:3px}
+@media(max-width:1120px){
+ .wrap{width:min(var(--max),calc(100% - 44px))}
+ .nav{gap:14px}
+ .brand-link{width:132px}
+ .nav-links{gap:14px;font-size:13px}
+ .hero{gap:18px}
+ .benefits{gap:10px}
+ .benefit{gap:8px}
+ .benefit-icon{width:44px;height:44px;flex-basis:44px}
+ .benefit-copy strong{font-size:12px}
+ .benefit-copy span{font-size:12px}
+}
+@media(max-width:760px){
+ html{scroll-padding-top:82px}
+ .wrap{width:calc(100% - 32px)}
+ .nav{height:78px;gap:12px}
+ .brand-link{width:118px}
+ .nav-links{display:none;position:absolute;left:0;right:0;top:calc(100% + 1px);padding:10px 14px;border:1px solid #14533f;border-radius:0 0 15px 15px;background:#03110deb;box-shadow:0 18px 35px #0009;white-space:normal}
+ .nav-links.is-open{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
+ .nav-links a{padding:12px 8px;border-bottom:1px solid #123b2e}
+ .nav-links a:nth-last-child(-n+2){border-bottom:0}
+ .nav-actions{margin-left:auto}
+ .nav-actions .btn{display:none}
+ .menu-toggle{display:flex}
+ .hero{grid-template-columns:minmax(0,1fr);gap:15px;min-height:auto;padding:42px 0 24px}
+ .hero-copy{padding:0}
+ .eyebrow{font-size:13px;padding:8px 15px}
+ h1{font-size:clamp(46px,11vw,66px);margin-top:18px}
+ .tagline{font-size:clamp(22px,5.7vw,29px)}
+ .hero-description{font-size:16px}
+ .hero-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
+ .hero-actions .btn{min-width:0;min-height:52px;padding:12px 10px;font-size:15px}
+ .benefits{gap:10px;margin-top:27px}
+ .benefit{align-items:flex-start;flex-direction:column;gap:8px}
+ .benefit-icon{width:43px;height:43px;flex-basis:43px}
+ .benefit-copy strong{font-size:12px;white-space:normal}
+ .benefit-copy span{font-size:11px}
+ .hero-visual{min-height:0;padding:12px 0 22px}
+ .hero-logo{width:min(100%,430px);max-height:310px}
+ .candles{right:4%;top:0;transform:scale(.72);transform-origin:top right}
+ .market-globe{height:26%;bottom:0}
+ .metrics-shell{margin:0 auto 24px;padding:11px;border-radius:19px}
+ .metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .metric{min-height:120px;padding:14px 7px;border-radius:14px}
+ .metric-icon{width:31px;height:31px}
+ .metric strong{font-size:23px}
+ .metric span{font-size:13px}
+ .preview-note{text-align:left;padding:0 5px;font-size:11px}
+ .content-section{padding:42px 0}
+ .feature-grid,.steps{grid-template-columns:1fr}
+ .feature-card,.step{padding:19px}
+ .final-cta{align-items:stretch;flex-direction:column;padding:22px}
+ .final-cta .btn{width:100%}
+ .footer-row{align-items:flex-start;flex-direction:column}
+}
+@media(max-width:390px){
+ .wrap{width:calc(100% - 24px)}
+ .brand-link{width:105px}
+ .menu-toggle{width:42px;height:42px;flex-basis:42px}
+ .benefits{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+ .benefit-icon{width:39px;height:39px;flex-basis:39px}
+ .benefit-copy strong{font-size:11px}
+ .benefit-copy span{font-size:10px}
+ .hero-actions .btn{font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}}
 </style>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
-<link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
 </head>
 <body>
-<header><div class="wrap"><nav aria-label="Main navigation"><a href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-links" title="Open navigation"><span class="bar" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span></button><div class="links" id="site-links"><a href="#platform">Platform</a><a href="/getting-started.html">Getting started</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Support</a></div><a class="nav-cta" href="/login.html">Sign in ↗</a></nav></div></header>
-<main>
-<div class="wrap hero"><div><div class="eyebrow">7 configured instruments · MT5 trading system</div><h1>Markets move.<br><span class="highlight">We adapt.</span></h1><p class="lead">VORTEX AI is a trading-bot monitoring experience built to make system activity easier to understand: positions, execution states, verified trade history and system connection health.</p><div class="actions"><a class="btn primary" href="/login.html">Sign in to view trades →</a><a class="btn" href="#platform">Explore the platform</a></div><p class="fine">Trade viewing requires sign-in. The website is read-only and cannot submit, modify or close orders. Access is limited to pre-approved accounts while the secure broker feed is being validated; public onboarding is not open.</p></div>
-<aside class="brand-card"><img src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI — Markets Move. We Adapt."><div class="tag">Read-only dashboard preview · limited access</div></aside></div>
-<section id="release-status"><div class="wrap"><div class="access"><div><div class="eyebrow">Product release status</div><h2>Limited access · integration testing</h2><p>VORTEX AI is not generally available. The current scope is a restricted, read-only dashboard preview for approved test accounts while MT5 broker connectivity, snapshot freshness and access controls are validated. Public customer onboarding is closed.</p><p class="fine">Market-analysis modules, automated execution features and multi-broker support are not being offered as generally available customer features.</p></div><a class="btn primary" href="/getting-started.html">Read Getting Started →</a></div></div></section>
-<section id="features"><div class="wrap" id="platform"><div class="heading"><h2>Trading visibility, with clear status</h2><p>The private dashboard preview is designed to show broker-verified values only. It must never present a signal as a fill or an old snapshot as current data.</p></div><div class="cards">
-<article class="card"><div class="icon">↗</div><h3>Open positions</h3><p>Side, symbol, volume, entry, current price, stop-loss, take-profit and floating P&amp;L when fresh broker data is verified.</p></article>
-<article class="card"><div class="icon">◷</div><h3>Closed trades</h3><p>Confirmed exit details, realized P&amp;L, entry/exit time and reconciliation status, separated by the broker-reported DEMO or REAL account mode.</p></article>
-<article class="card"><div class="icon">⌁</div><h3>Feed connection status</h3><p>Separate feed freshness, DEMO or REAL account mode, and the timestamp of the last successful broker update.</p></article>
-</div>
-<div class="heading" style="margin-top:42px"><h2>Research modules under validation — not generally available</h2><p>The following items describe internal development and testing scope. They are not represented as customer-ready or released features. Availability and accuracy depend on broker data, instrument specifications and completed validation.</p></div>
-<div class="cards">
-<article class="card"><div class="icon">≋</div><h3>Depth of Market (DOM) · under validation</h3><p>Internal test scope only; not released for general customer use. Uses broker-provided bid/ask levels when available: order-book imbalance, liquidity concentration, walls, thin zones and price-ladder pressure. When Level II data is unavailable, a tick-based fallback estimates pressure; it is not a real order book.</p></article>
-<article class="card"><div class="icon">⇄</div><h3>Order-flow analytics · under validation</h3><p>Internal test scope only; not released for general customer use. Tick imbalance, price velocity and acceleration, rolling cumulative-delta approximation, estimated aggressive buy/sell pressure and participation-rate analysis.</p></article>
-<article class="card"><div class="icon">⌁</div><h3>Market microstructure · under validation</h3><p>Internal test scope only; not released for general customer use. Detects structure breaks (BOS), change of character (CHoCH), potential liquidity grabs, failed breakouts, absorption patterns, Fair Value Gaps and momentum exhaustion.</p></article>
-<article class="card"><div class="icon">◷</div><h3>Multi-timeframe &amp; volume</h3><p>Uses M1, M5, M15 and H1 market data, EMA trend alignment, ATR volatility checks, relative-volume changes, spikes and directional-volume estimates.</p></article>
-<article class="card"><div class="icon">◇</div><h3>Risk management · under validation</h3><p>Internal test scope only; not released for general customer use. ATR-based stop-loss/take-profit distances, configured risk-per-trade sizing, exposure checks, drawdown/circuit-breaker controls, trailing stops, breakeven and time-stop management.</p></article>
-<article class="card"><div class="icon">✓</div><h3>Execution &amp; reconciliation</h3><p>Tracks broker execution results, slippage/latency metrics and position reconciliation. The website is read-only and displays broker-confirmed data only when the secure feed is connected.</p></article>
-</div></div></section>
-<section id="access"><div class="wrap"><div class="access"><div><h2>Sign in to view the trading dashboard preview</h2><p>Open positions and trade history will be available to authenticated users after identity-provider setup and secure backend authorization are completed.</p></div><a class="btn primary" href="/login.html">Go to secure sign-in →</a></div></div></section>
-<section id="getting-started"><div class="wrap"><div class="access"><div><h2>New to VORTEX AI and MT5?</h2><p>Review desktop installation, broker compatibility, demo testing, account connection and credential-safety steps before requesting test access.</p></div><a class="btn primary" href="/getting-started.html">Open Getting Started →</a></div></div></section>
-<section id="mobile"><div class="wrap"><div class="heading"><h2>Connect to MT5 on your phone</h2><p>Use the official MetaTrader 5 mobile app. Never enter your broker password on VORTEX AI.</p></div><div class="split">
-<article class="guide"><h3>Android</h3><p>Cannot find MT5 in Google Play? Download the APK directly from the download link provided by MetaTrader's official website.</p><div class="actions" style="margin:16px 0"><a class="btn primary" href="https://download.terminal.free/cdn/web/metaquotes.software.corp/mt5/metatrader5.apk?utm_campaign=install.metaquotes&utm_source=www.metatrader5.com" target="_blank" rel="noopener noreferrer" aria-label="Download official MetaTrader 5 Android APK">Download official MT5 APK ↓</a><a class="btn" href="https://www.metatrader5.com/en/mobile-trading/android" target="_blank" rel="noopener noreferrer">Official MT5 page ↗</a></div><ol><li>Download the APK from the official MetaTrader page's APK link.</li><li>Open the downloaded file and, if Android asks, allow this browser or file manager to install unknown apps.</li><li>Install MT5, then turn off that install permission again.</li><li>Open account management and add an existing account.</li><li>Search for your broker and select the exact server.</li><li>Enter broker credentials only inside the official MT5 app; check the Trade and History tabs.</li></ol><p class="fine">The link opens the APK download hosted by MetaTrader's linked download endpoint. Do not install APKs from third-party mirror sites.</p></article>
-<article class="guide"><h3>iPhone</h3><ol><li>Install MetaTrader 5 from the Apple App Store.</li><li>Open Settings or Accounts and add an existing account.</li><li>Search the broker, then select the correct server.</li><li>Enter trading-account credentials inside the official MT5 app.</li><li>Verify connection and review open positions and History.</li></ol></article>
-</div></div></section>
-<section id="pricing-preview"><div class="wrap"><div class="access"><div><h2>Starting trading capital: USD 200</h2><p>This is money held in your own broker account, not a VORTEX AI fee. Software pricing is not published yet; confirm all charges before onboarding.</p></div><a class="btn primary" href="/pricing.html">View plans &amp; capital details →</a></div></div></section>
-<section id="risk"><div class="wrap"><div class="heading"><h2>Risk &amp; transparency</h2><p>Automated trading involves substantial risk. Execution quality, spreads, commission, slippage and changing market conditions affect outcomes.</p></div><div class="callout">This website is an educational demonstration, not investment advice and not a guarantee of returns. Demo performance does not establish future profitability. Broker positions, account values and P&amp;L will not be displayed until the signed feed integration is verified.</div></div></section>
+<header class="site-header">
+ <div class="wrap">
+  <nav class="nav" aria-label="Main navigation">
+   <a class="brand-link" href="/" aria-label="VORTEX AI home"><img class="brand-logo" src="/vortext-ai-logo.webp?v=20261101-4" alt="VORTEX AI logo"></a>
+   <div class="nav-links" id="site-links">
+    <a href="#home" aria-current="page">Home</a>
+    <a href="#about">About</a>
+    <a href="#features">Features</a>
+    <a href="#performance">Performance</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="/faq.html">FAQ</a>
+   </div>
+   <div class="nav-actions">
+    <a class="btn btn-outline btn-small" href="/login.html">Login</a>
+    <a class="btn btn-primary btn-small" href="/login.html">Get Access</a>
+    <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-links"><span></span><span></span><span></span></button>
+   </div>
+  </nav>
+ </div>
+</header>
+<main id="home">
+ <section class="wrap hero" id="about">
+  <div class="hero-copy">
+   <div class="eyebrow">AI-Powered Trading Automation</div>
+   <h1>VORTEX <span>AI</span></h1>
+   <p class="tagline">Intelligent. Adaptive. <span class="soft">Automated.</span></p>
+   <p class="hero-description">An advanced AI trading bot engineered to analyze multiple markets, adapt to changing conditions, and execute high-probability opportunities with precision and discipline.</p>
+   <div class="hero-actions">
+    <a class="btn btn-primary" href="/login.html">Get Access <span class="arrow" aria-hidden="true">→</span></a>
+    <a class="btn btn-outline" href="#how-it-works">Watch Demo <span class="play-icon" aria-hidden="true">▶</span></a>
+   </div>
+   <div class="benefits" aria-label="Platform highlights">
+    <div class="benefit">
+     <span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 3.5 6v5.3c0 5.2 3.5 8.6 8.5 10.7 5-2.1 8.5-5.5 8.5-10.7V6L12 2Z"/><path d="m8 12 2.5 2.5L16.5 8"/></svg></span>
+     <span class="benefit-copy"><strong>AI Market Analysis</strong><span>Real-time insights</span></span>
+    </div>
+    <div class="benefit">
+     <span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.2 8 11 4.6-2.8 8-6 8-11V5l-8-3Z"/><path d="M9 12h6M12 9v6"/></svg></span>
+     <span class="benefit-copy"><strong>Smart Risk Control</strong><span>Capital protection</span></span>
+    </div>
+    <div class="benefit">
+     <span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V12h4v8H4ZM10 20V7h4v13h-4ZM16 20V3h4v17h-4Z"/></svg></span>
+     <span class="benefit-copy"><strong>Multi-Market</strong><span>8 trading pairs</span></span>
+    </div>
+   </div>
+  </div>
+  <div class="hero-visual" aria-label="VORTEX AI brand artwork">
+   <div class="visual-grid"></div>
+   <svg class="chart-line" viewBox="0 0 640 430" aria-hidden="true">
+    <path d="M12 348 92 302 150 330 213 268 270 286 330 210 387 236 447 157 506 178 575 92 628 112" fill="none" stroke="#00e6a5" stroke-width="2" opacity=".65"/>
+    <path d="M12 377 92 331 150 359 213 297 270 315 330 239 387 265 447 186 506 207 575 121 628 141" fill="none" stroke="#00e6a5" stroke-width="1" opacity=".18"/>
+    <g fill="#00e6a5"><circle cx="92" cy="302" r="4"/><circle cx="213" cy="268" r="4"/><circle cx="330" cy="210" r="4"/><circle cx="447" cy="157" r="4"/><circle cx="575" cy="92" r="4"/></g>
+   </svg>
+   <div class="candles" aria-hidden="true"><i class="candle"></i><i class="candle"></i><i class="candle"></i><i class="candle"></i></div>
+   <div class="logo-glow"></div>
+   <img class="hero-logo" src="/vortext-ai-logo.webp?v=20261101-4" alt="VORTEX AI — Markets Move. We Adapt. — 8 Pairs | AI Trading Bot">
+   <div class="market-globe"></div>
+  </div>
+ </section>
+
+ <section class="wrap" id="performance" aria-label="Platform overview">
+  <div class="metrics-shell">
+   <div class="metrics-grid">
+    <article class="metric">
+     <span class="metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V12h4v8H4ZM10 20V7h4v13h-4ZM16 20V3h4v17h-4Z"/></svg></span>
+     <strong>8</strong><span>Trading Pairs</span>
+    </article>
+    <article class="metric">
+     <span class="metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 3a3 3 0 0 0-3 3v1a3 3 0 0 0 0 6 3 3 0 0 0 3 6h2V3H9ZM15 3a3 3 0 0 1 3 3v1a3 3 0 0 1 0 6 3 3 0 0 1-3 6h-2V3h2Z"/><path d="M9 8h2m-2 5h2m2-5h2m-2 5h2"/></svg></span>
+     <strong>AI</strong><span>Driven Strategy</span>
+    </article>
+    <article class="metric">
+     <span class="metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.2 8 11 4.6-2.8 8-6 8-11V5l-8-3Z"/><path d="m8.5 12 2.3 2.3 4.7-5"/></svg></span>
+     <strong>Automated</strong><span>Execution</span>
+    </article>
+    <article class="metric">
+     <span class="metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2M19 19l3 3"/></svg></span>
+     <strong>24/7</strong><span>Market Monitoring</span>
+    </article>
+   </div>
+  </div>
+  <p class="preview-note">VORTEX AI is currently in a restricted preview. Dashboard access is limited to approved users and is read-only; this website cannot submit, modify, or close broker orders. Product modules remain subject to validation and availability.</p>
+ </section>
+
+ <section class="content-section" id="features">
+  <div class="wrap">
+   <div class="section-heading"><div class="eyebrow">Platform capabilities</div><h2>Built for clarity and control</h2><p>Clear information, system awareness, and transparent status at each stage.</p></div>
+   <div class="feature-grid">
+    <article class="feature-card"><span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 17 5-5 4 3 8-9"/><path d="M14 6h6v6"/></svg></span><h3>AI Market Analysis</h3><p>Market context, technical indicators and opportunity analysis are part of the system's research scope and remain under validation.</p></article>
+    <article class="feature-card"><span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.2 8 11 4.6-2.8 8-6 8-11V5l-8-3Z"/><path d="m8.5 12 2.3 2.3 4.7-5"/></svg></span><h3>Smart Risk Control</h3><p>Risk limits and account-protection mechanisms are developed for controlled testing. They do not remove trading risk or guarantee outcomes.</p></article>
+    <article class="feature-card"><span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V12h4v8H4ZM10 20V7h4v13h-4ZM16 20V3h4v17h-4Z"/></svg></span><h3>Multi-Market</h3><p>Eight configured instruments are part of the current system scope. Instrument availability depends on the connected broker.</p></article>
+   </div>
+  </div>
+ </section>
+
+ <section class="content-section" id="how-it-works">
+  <div class="wrap">
+   <div class="section-heading"><div class="eyebrow">How it works</div><h2>From broker connection to clear visibility</h2><p>The private dashboard separates broker-confirmed activity from system status and feed freshness.</p></div>
+   <div class="steps">
+    <article class="step"><span class="step-number">01 / CONNECT</span><h3>Connect your MT5 account</h3><p>The trading terminal connects to the broker using the broker's own platform and credentials.</p></article>
+    <article class="step"><span class="step-number">02 / VERIFY</span><h3>Verify broker data</h3><p>Account status, positions and trade history are read from broker-confirmed snapshots when the signed feed is available.</p></article>
+    <article class="step"><span class="step-number">03 / MONITOR</span><h3>View your dashboard</h3><p>Approved users sign in to view read-only trading information and the last successful broker-update time.</p></article>
+   </div>
+   <div class="release-note">Access is currently restricted to approved preview users. The website is not an order-entry terminal and does not offer public live-trading activation.</div>
+  </div>
+ </section>
+
+ <section class="wrap" id="access">
+  <div class="final-cta"><div><h2>Get access to VORTEX AI</h2><p>Sign in to view the private trading dashboard preview.</p></div><a class="btn btn-primary" href="/login.html">Get Access <span class="arrow" aria-hidden="true">→</span></a></div>
+ </section>
 </main>
-<footer><div class="wrap foot"><div>© VORTEX AI · Educational and research demonstration.</div><div class="footlinks"><a href="#platform">Platform</a><a href="/getting-started.html">Getting started</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact &amp; support</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/login.html">Sign in</a><a href="#risk">Risk disclosure</a></div></div></footer>
+<footer>
+ <div class="wrap footer-row"><div>© VORTEX AI · Markets Move. We Adapt.</div><div class="footer-links"><a href="/getting-started.html">Getting started</a><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Support</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/login.html">Login</a></div></div>
+</footer>
 <button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
 <script>
 (function(){
-  const menuButton=document.getElementById("menu-toggle");
-  const links=document.getElementById("site-links");
-  if(menuButton && links){
-    function closeMenu(){menuButton.setAttribute("aria-expanded","false");menuButton.setAttribute("aria-label","Open navigation");menuButton.title="Open navigation";menuButton.classList.remove("is-open");links.classList.remove("is-open");}
-    menuButton.addEventListener("click",function(){
-      const isOpen=menuButton.getAttribute("aria-expanded")==="true";
-      menuButton.setAttribute("aria-expanded",String(!isOpen));
-      menuButton.setAttribute("aria-label",isOpen?"Open navigation":"Close navigation");
-      menuButton.title=isOpen?"Open navigation":"Close navigation";
-      menuButton.classList.toggle("is-open",!isOpen);
-      links.classList.toggle("is-open",!isOpen);
-    });
-    links.addEventListener("click",function(event){if(event.target.closest("a"))closeMenu();});
-    document.addEventListener("keydown",function(event){if(event.key==="Escape")closeMenu();});
-    window.addEventListener("resize",function(){if(window.innerWidth>600)closeMenu();});
-  }
-})();
-(function(){
-  const button=document.getElementById("back-to-top");
-  if(!button)return;
-  let queued=false;
-  function sync(){
-    button.classList.toggle("is-visible",window.scrollY>320);
-    queued=false;
-  }
-  window.addEventListener("scroll",function(){
-    if(!queued){queued=true;window.requestAnimationFrame(sync);}
-  },{passive:true});
-  button.addEventListener("click",function(){
-    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({top:0,behavior:reduced?"auto":"smooth"});
+ const menu=document.getElementById("menu-toggle");
+ const links=document.getElementById("site-links");
+ function closeMenu(){menu.setAttribute("aria-expanded","false");menu.setAttribute("aria-label","Open navigation");links.classList.remove("is-open");}
+ if(menu&&links){
+  menu.addEventListener("click",function(){
+   const open=menu.getAttribute("aria-expanded")==="true";
+   menu.setAttribute("aria-expanded",String(!open));
+   menu.setAttribute("aria-label",open?"Open navigation":"Close navigation");
+   links.classList.toggle("is-open",!open);
   });
-  sync();
+  links.addEventListener("click",function(e){if(e.target.closest("a"))closeMenu();});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenu();});
+  window.addEventListener("resize",function(){if(window.innerWidth>760)closeMenu();});
+ }
+ const top=document.getElementById("back-to-top");
+ if(top){
+  function update(){top.classList.toggle("is-visible",window.scrollY>320);}
+  window.addEventListener("scroll",update,{passive:true});
+  top.addEventListener("click",function(){window.scrollTo({top:0,behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});});
+  update();
+ }
 })();
 </script>
-</body></html>
+</body>
+</html>
