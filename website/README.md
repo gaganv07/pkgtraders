@@ -1,56 +1,69 @@
 # VORTEXT AI Website
 
-This directory is the website root for the VORTEXT AI trading-bot demonstration.
+This directory is the root of the VORTEXT AI customer-facing website.
 
-## Current implementation
+## Current behavior
 
-- Responsive VORTEXT AI landing page using the supplied VORTEXT AI logo asset.
-- Sign-in page with Google, Apple and email magic-link options wired to Supabase Auth when configured.
-- Dashboard page checks the Supabase session before showing the dashboard shell.
-- Serverless `/api/auth-config` endpoint publishes only the browser-safe Supabase URL and publishable key; it never returns a service-role key.
-- Dashboard trade values remain empty until a verified, server-side, read-only broker data feed is built and connected.
-- No trading order submission, modification or closure endpoints are provided by this website.
+- Product release status: limited access and integration testing; not generally available. Public onboarding is closed, and analytics/execution modules marked under validation are not represented as released customer features.
 
-## Vercel
+- Responsive VORTEXT AI public pages use the approved logo and current product disclosures. The homepage includes an accessible mobile hamburger menu and links to the dedicated MT5 Getting Started guide.
+- Sign-in uses Google OAuth or an email magic link for existing Supabase users only. Email magic-link sign-up is disabled with `shouldCreateUser: false`.
+- The dashboard is private and read-only. It cannot submit, modify, or close MT5 orders.
+- `/api/auth-config` publishes only the browser-safe Supabase URL and publishable key.
+- `/api/trades` accepts bot snapshots only when the request has a valid HMAC-SHA256 signature.
+- Dashboard reads require a valid Supabase access token. Server-configured shared account IDs are visible to every signed-in user; additional account IDs can be granted through an active row in `public.vortext_authorized_operators`. The server checks Auth identity and filters every account, position and deal before returning it.
+- Dashboard status is split into feed connection/freshness, broker-reported DEMO/REAL account mode, and the last successful broker-update timestamp in UTC.
+- Account selectors and trade rows are restricted to the shared account IDs plus any additional IDs assigned to the signed-in user. An account ID in a query string is not an authorization grant.
+- Missing snapshots show an explicit waiting state. Old snapshots are marked stale. No sample or fabricated account values are rendered.
 
-Product: `VORTEXT AI`  
-Deployment project: `vortexbot-ai`  
-Website root: `website`
+## Vercel project
 
-Configure these Vercel environment variables only after the Supabase project is active:
+- Project: `vortexbot-ai`
+- Website root: `website`
+- Git branch deployments are Preview deployments. Production is not changed by this branch.
 
-- `SUPABASE_URL`
-- `SUPABASE_PUBLISHABLE_KEY`
+## Preview environment variables
 
-The publishable key is intended for browser use; never configure a service-role key as this value. Apply variables to Preview first, then Production only after review.
+Configure these only in the Vercel **Preview** environment for this integration:
 
-## Supabase Auth provider setup
+| Variable | Purpose |
+|---|---|
+| `SUPABASE_URL` | Supabase staging project URL. |
+| `SUPABASE_PUBLISHABLE_KEY` | Browser-safe key used by Supabase Auth. |
+| `SUPABASE_SECRET_KEY` | Server-only secret used by `/api/trades` to read authorization records and snapshots. |
+| `VORTEXT_BOT_HMAC_SECRET` | At least 32 random characters; must exactly match the bot's local setting. |
+| `VORTEXT_BOT_ID` | `vortext-fleet` for the current publisher. |
+| `VORTEXT_DASHBOARD_SHARED_ACCOUNTS` | Comma-separated server-side account aliases visible to every valid signed-in user, e.g. `account_003`. |\n| `VORTEXT_DASHBOARD_ALLOWED_EMAILS` | Optional restrictive email fence. Leave unset for the intended all-signed-in-users shared feed. |
 
-1. Restore or provision an active Supabase project; the existing PKG Traders project was inactive when this scaffold was prepared.
-2. In Supabase Auth, enable Google and Apple only after you have their provider credentials configured. Email OTP/magic-link sign-in also requires valid URL and email settings.
-3. Set the production Site URL to the deployed public website URL.
-4. Add the exact sign-in callback URL, including `https://<domain>/dashboard.html`, to the allowed redirect URLs. Add localhost only for local development. Restrict production redirects to domains you control.
-5. Add the two Vercel environment variables above and redeploy the Preview branch.
-6. Test provider sign-in, email link sign-in, session persistence, sign-out, expired sessions and direct navigation to the dashboard before enabling Production.
+Never expose `SUPABASE_SECRET_KEY` or `VORTEXT_BOT_HMAC_SECRET` to browser code, Git, logs or screenshots. Never place an MT5 password in Vercel.
 
-Until these steps are complete, sign-in controls fail closed and the dashboard displays no trading data. A working sign-in page alone is not server-side authorization for private trade records.
+## Operator and account authorization
 
-## Required next work for private trades
+The staging project already contains `public.vortext_authorized_operators`. Shared read-only account IDs are configured only on the server through `VORTEXT_DASHBOARD_SHARED_ACCOUNTS`; no per-user row is required for those shared IDs. Any explicitly inactive operator row blocks that account. Additional non-shared accounts are visible only when the signed-in Supabase Auth user has an active record with:
 
-Implement a secure server-side data bridge from the staging MT5 bot to a backend API. Authenticate the bot-to-backend request, validate and deduplicate trade events, reconcile positions with broker state, and enforce authorization on every data API request. Never expose SQLite, MT5 credentials or raw account data directly to the browser. A missing or stale feed must show a visible warning rather than old values as live.
+- `user_id`: the exact `auth.users.id` value for the signed-in account;
+- `email`: the same email as the Auth user;
+- `is_active = true`;
+- `allowed_accounts`: a JSON array of exact MT5 registry `account_id` strings.
 
-## Git safety
+The database table is read by the server using the secret key. It is not queried directly by browser JavaScript. Do not use editable user metadata as an authorization source.
 
-Never commit real `.env` files, credentials, service-role keys, account databases, logs with account details or backups. Keep secrets in Vercel/Supabase provider settings and use placeholder-only templates in Git.
+Example seeding SQL is documented in `docs/VORTEXT_LIVE_FEED_SETUP.md`. Replace the placeholders only after confirming the Supabase login email and the stable `account_id` in the trading PC's private account registry.
 
+## MT5 publisher
 
-## Live trades feed (read-only)
+The optional publisher in `app/vortext_dashboard.py` reads connected real MT5 sessions and emits broker-confirmed read-only snapshots over outbound HTTPS. It does not expose the terminal, local database or credentials to the website. The publisher is disabled by default and refuses simulated/dry-run accounts.
 
-The optional publisher in app/vortext_dashboard.py emits signed, broker-confirmed MT5 snapshots. The /api/trades endpoint validates HMAC signatures for bot ingestion and verifies Supabase sessions plus an email allowlist for dashboard reads. No browser order endpoints exist. Follow docs/VORTEXT_LIVE_FEED_SETUP.md to restore the dedicated Supabase project and configure secrets before enabling the feed.
+For staging, set the publisher's ingest URL to the verified Vercel **Preview deployment** URL for this branch, not `vortexbot.ai` or another production domain. See `docs/VORTEXT_LIVE_FEED_SETUP.md`.
 
+## Operational limitations
 
-## Android APK and technical feature disclosure
+- The trading PC must be running with the intended real MT5 account connected for new snapshots to arrive.
+- The local account registry's `account_id` must be granted to the correct website user.
+- The Supabase staging operator table and trade snapshot table were empty at the last inspection; the first live snapshot has not yet been verified.
+- Email magic-link delivery is not customer-grade until a monitored outbound SMTP sender is configured and tested. Google OAuth is the configured sign-in provider.
+- Public support, legal identity, jurisdiction, privacy contact, retention and legal review gates remain open. Public customer onboarding must remain closed.
 
-- The landing page's Android guide links directly to the APK linked by MetaTrader's official Android page, and also offers the official product page as a fallback.
-- Market feature cards describe the implemented bot modules: DOM when broker Level II data is available; estimated tick-based fallback otherwise; tick order-flow metrics; market-microstructure detectors; multi-timeframe/volume analysis; risk controls; and execution reconciliation.
-- Do not represent a tick-based DOM fallback as true Level II/exchange order-book data. Availability varies by broker and instrument.
+## Git and credential safety
+
+Never commit real `.env` files, `accounts.json`, MT5 passwords, service secrets, broker databases, logs with account details or backups. Keep account credentials on the trading PC. Only the stable non-secret account alias should be used in `allowed_accounts`.
