@@ -57,15 +57,15 @@ def get_dir_size_bytes(path: str) -> int:
 
 async def benchmark_tier(account_count: int) -> Dict[str, Any]:
     """Run benchmark for a specific account count tier."""
-    logger.info(f"--- Running Benchmark for Tier: {account_count} Account(s) ---")
-    
     proc = psutil.Process()
     mem_before_mb = proc.memory_info().rss / (1024 * 1024)
-    disk_d_usage_before = psutil.disk_usage("D:\\")
+    terminal_supervisor = get_terminal_supervisor()
+    base_dir = str(terminal_supervisor.base_dir)
+    drive_letter = Path(base_dir).drive or "C:"
+    disk_usage_before = psutil.disk_usage(drive_letter)
 
     reg = AccountRegistry()
     manager = MT5AccountManager(registry=reg, max_accounts=max(account_count, 10))
-    terminal_supervisor = get_terminal_supervisor()
 
     # 1. Total setup time
     t_start = time.perf_counter()
@@ -138,7 +138,7 @@ async def benchmark_tier(account_count: int) -> Dict[str, Any]:
     mem_after_mb = proc.memory_info().rss / (1024 * 1024)
     mem_delta_mb = mem_after_mb - mem_before_mb
 
-    terminals_base_dir = r"D:\MT5_Terminals"
+    terminals_base_dir = str(terminal_supervisor.base_dir)
     disk_terminals_kb = get_dir_size_bytes(terminals_base_dir) / 1024.0
 
     # 6. Clean disconnect
@@ -172,13 +172,20 @@ async def benchmark_tier(account_count: int) -> Dict[str, Any]:
 async def main():
     tiers = [1, 2, 3, 5, 10]
     all_results = {}
+
+    term_sup = get_terminal_supervisor()
+    base_dir = str(term_sup.base_dir)
+    drive_letter = Path(base_dir).drive or "C:"
+    drive_free_gb = round(psutil.disk_usage(drive_letter).free / (1024**3), 2)
+
     system_spec = {
         "os": "Windows",
         "cpu_count_logical": psutil.cpu_count(logical=True),
         "cpu_count_physical": psutil.cpu_count(logical=False),
         "total_ram_gb": round(psutil.virtual_memory().total / (1024**3), 2),
         "available_ram_gb": round(psutil.virtual_memory().available / (1024**3), 2),
-        "disk_d_free_gb": round(psutil.disk_usage("D:\\").free / (1024**3), 2),
+        "terminal_fleet_root": base_dir,
+        "terminal_drive_free_gb": drive_free_gb,
         "disk_c_free_mb": round(psutil.disk_usage("C:\\").free / (1024**2), 2),
     }
 

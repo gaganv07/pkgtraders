@@ -76,8 +76,8 @@ class SafetyEngine:
                     code="ACCOUNT_DD_LIMIT",
                 )
 
-        # 3. Maximum simultaneous open trades
-        if open_trade_count >= max_open_trades:
+        # 3. Maximum simultaneous open trades (0 or <= 0 = unlimited)
+        if max_open_trades > 0 and open_trade_count >= max_open_trades:
             return SafetyCheckResult(
                 passed=False,
                 reason=f"Maximum simultaneous open trades reached ({open_trade_count}/{max_open_trades})",

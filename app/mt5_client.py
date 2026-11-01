@@ -488,6 +488,12 @@ class MT5Client:
         info = mt5.account_info()
         if info is None:
             return None
+        bal = getattr(info, "balance", 0.0) or 0.0
+        eq  = getattr(info, "equity", 0.0) or 0.0
+        pnl = getattr(info, "profit", 0.0) or 0.0
+        if eq <= 0.0 and bal > 0.0:
+            eq = bal + pnl
+
         return {
             "login": info.login,
             "broker": info.company,
@@ -495,10 +501,12 @@ class MT5Client:
             "trade_mode": getattr(info, "trade_mode", 0),
             "leverage": getattr(info, "leverage", 1),
             "name": getattr(info, "name", ""),
-            "balance": info.balance, "equity": info.equity,
-            "margin": info.margin, "free_margin": info.margin_free,
-            "margin_level": info.margin_level, "profit": info.profit,
-            "currency": info.currency,
+            "balance": bal, "equity": eq,
+            "margin": getattr(info, "margin", 0.0) or 0.0,
+            "free_margin": getattr(info, "margin_free", 0.0) or 0.0,
+            "margin_level": getattr(info, "margin_level", 0.0) or 0.0,
+            "profit": pnl,
+            "currency": getattr(info, "currency", "USD"),
         }
 
     def get_symbol_spec(self, symbol: Optional[str] = None) -> Optional[Dict[str, Any]]:

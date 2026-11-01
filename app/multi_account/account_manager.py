@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import os
 import psutil
 import time
@@ -192,16 +193,35 @@ class MT5AccountManager:
             return 0.0, 0.0
 
         balance = ctx.risk_state.current_balance
-        if balance <= 0:
-            balance = 1000.0  # Fallback baseline
+        if not isinstance(balance, (int, float)) or not math.isfinite(balance) or balance <= 0:
+            logger.error(
+                f"[{account_id}][{signal.symbol}] Balance is non-positive or non-finite ({balance}) — refusing execution (fails closed)"
+            )
+            return 0.0, 0.0
 
         spec_dict = ctx.session.get_symbol_spec(signal.symbol)
         if not spec_dict:
-            spec_dict = {
-                "digits": 2, "point": 0.01, "spread": 15, "contract_size": 100.0,
-                "vol_min": 0.01, "vol_max": 50.0, "vol_step": 0.01,
-                "tick_size": 0.01, "tick_value": 0.01,
-            }
+            logger.error(
+                f"[{account_id}][{signal.symbol}] Failed to fetch broker symbol spec — refusing execution (fails closed)"
+            )
+            return 0.0, 0.0
+
+        # Validate required fields before sizing
+        required_positive = ["point", "contract_size", "tick_size", "tick_value", "vol_min", "vol_max", "vol_step"]
+        for field_name in required_positive:
+            val = spec_dict.get(field_name)
+            if val is None or not isinstance(val, (int, float)) or not math.isfinite(val) or val <= 0:
+                logger.error(
+                    f"[{account_id}][{signal.symbol}] Invalid spec field '{field_name}'={val} — refusing execution (fails closed)"
+                )
+                return 0.0, 0.0
+
+        digits_val = spec_dict.get("digits")
+        if digits_val is None or not isinstance(digits_val, (int, float)) or not math.isfinite(digits_val) or digits_val < 0:
+            logger.error(
+                f"[{account_id}][{signal.symbol}] Invalid spec field 'digits'={digits_val} — refusing execution (fails closed)"
+            )
+            return 0.0, 0.0
 
         broker_spec = BrokerSpec.from_spec_dict(spec_dict, symbol=signal.symbol)
         effective_risk_pct = ctx.config.risk_per_trade_pct * ctx.config.risk_multiplier
@@ -290,7 +310,7 @@ class MT5AccountManager:
         # 1. Pre-trade check
         allowed, reason = ctx.is_trading_allowed(signal.symbol, signal_id=signal.signal_id)
         if not allowed:
-            ctx.record_rejection(reason)
+            ctx.record_rejection(reason, is_exec_failure=False)
             log_account_event(
                 account_id,
                 ctx.login,
@@ -327,7 +347,7 @@ class MT5AccountManager:
         volume, risk_usd = self.calculate_position_size(account_id, signal)
         if volume <= 0:
             reason = "Calculated volume is 0.0"
-            ctx.record_rejection(reason)
+            ctx.record_rejection(reason, is_exec_failure=False)
             log_execution_event(
                 account_id=account_id,
                 mt5_login=ctx.login,
@@ -430,7 +450,7 @@ class MT5AccountManager:
             return report
         else:
             reason = fill.error or f"Broker retcode {fill.retcode}"
-            ctx.record_rejection(reason, error_code=fill.retcode)
+            ctx.record_rejection(reason, error_code=fill.retcode, is_exec_failure=True)
             log_account_event(
                 account_id,
                 ctx.login,

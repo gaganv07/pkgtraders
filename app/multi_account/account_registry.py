@@ -54,11 +54,18 @@ class AccountConfig:
     daily_drawdown_limit_pct: float = 3.0
     weekly_drawdown_limit_pct: float = 6.0
     account_drawdown_limit_pct: float = 10.0
-    max_open_trades: int = 3
-    max_risk_exposure_pct: float = 3.0
+    max_open_trades: int = 0                          # 0 or <= 0 = unlimited
+    max_risk_exposure_pct: float = 100.0              # 100.0 = unlimited exposure
     initial_balance: float = 10000.0
+    bridge_port: int = 0                              # Port for isolated MQL5 EA bridge
     dry_run: bool = False                             # If True, simulate execution without placing real orders
     execution_status: str = "INITIALIZING"
+
+    def get_bridge_endpoint(self) -> str:
+        """Return full HTTP bridge URL if bridge_port is set, else empty string."""
+        if self.bridge_port and self.bridge_port > 0:
+            return f"http://127.0.0.1:{self.bridge_port}"
+        return ""
 
     def __post_init__(self):
         if not self.portable_terminal_directory and self.data_directory:
@@ -234,11 +241,18 @@ class AccountRegistry:
                 symbols=list(item.get("symbols") or []),
                 risk_per_trade_pct=float(trading_block.get("risk_per_trade_pct") or item.get("risk_per_trade_pct") or settings.risk.risk_per_trade_pct),
                 risk_multiplier=float(trading_block.get("risk_multiplier") or item.get("risk_multiplier") or 1.0),
-                daily_drawdown_limit_pct=float(trading_block.get("max_daily_loss") or item.get("daily_drawdown_limit_pct") or settings.risk.daily_dd_limit),
+                daily_drawdown_limit_pct=float(trading_block.get("max_daily_loss") or item.get("daily_drawdown_limit_pct") or item.get("daily_drawdown_limit_usd") or settings.risk.daily_dd_limit),
                 weekly_drawdown_limit_pct=float(item.get("weekly_drawdown_limit_pct") or settings.risk.weekly_dd_limit),
                 account_drawdown_limit_pct=float(item.get("account_drawdown_limit_pct") or settings.risk.account_dd_limit),
-                max_open_trades=int(trading_block.get("max_positions") or item.get("max_open_trades") or settings.risk.max_open_trades),
-                max_risk_exposure_pct=float(item.get("max_risk_exposure_pct") or settings.risk.max_risk_exposure),
+                max_open_trades=(
+                    0 if str(trading_block.get("max_positions") if trading_block.get("max_positions") is not None else item.get("max_open_trades")).strip().lower() in ("unlimited", "inf", "none", "0")
+                    else int(trading_block.get("max_positions") if trading_block.get("max_positions") is not None else (item.get("max_open_trades") if item.get("max_open_trades") is not None else settings.risk.max_open_trades))
+                ),
+                max_risk_exposure_pct=(
+                    100.0 if str(item.get("max_risk_exposure_pct")).strip().lower() in ("unlimited", "inf", "none", "0")
+                    else float(item.get("max_risk_exposure_pct") if item.get("max_risk_exposure_pct") is not None else settings.risk.max_risk_exposure)
+                ),
+                bridge_port=int(item.get("bridge_port") or mt5_block.get("bridge_port") or 0),
                 dry_run=bool(item.get("dry_run", os.getenv("DRY_RUN", "false").lower() in ("true", "1", "yes"))),
             )
             self.register(cfg)
@@ -271,12 +285,12 @@ class AccountRegistry:
         Constructs and registers a single default AccountConfig from current .env settings.
         Ensures existing `python main.py` runs with zero additional setup.
         """
-        login = settings.mt5.login
+        login = settings.mt5.login or 10000
         server = settings.mt5.server
         password = settings.mt5.password
         terminal_path = settings.mt5.path
         magic = settings.mt5.magic
-        dry_run = os.getenv("DRY_RUN", "false").lower() in ("true", "1", "yes")
+        dry_run = os.getenv("DRY_RUN", "false").lower() in ("true", "1", "yes") or not password
 
         default_cfg = AccountConfig(
             account_id="account_default",

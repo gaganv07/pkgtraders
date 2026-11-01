@@ -280,9 +280,9 @@ class AccountContext:
                 if not any(clean_sym.startswith(s) or s.startswith(clean_sym) for s in allowed):
                     return False, f"Symbol '{symbol}' is not in permitted list for '{self.account_id}'"
 
-            # Check open trades count against account limit
+            # Check open trades count against account limit (0 or <= 0 = unlimited)
             open_count = len(self.exec_state.open_positions)
-            if open_count >= self.config.max_open_trades:
+            if self.config.max_open_trades > 0 and open_count >= self.config.max_open_trades:
                 return False, (
                     f"Max open trades ({self.config.max_open_trades}) reached for '{self.account_id}' "
                     f"(currently {open_count})"
@@ -326,14 +326,15 @@ class AccountContext:
                 f"vol={report.executed_volume}, price={report.executed_price:.5f}"
             )
 
-    def record_rejection(self, reason: str, error_code: int = 0) -> None:
+    def record_rejection(self, reason: str, error_code: int = 0, is_exec_failure: bool = False) -> None:
         """Update execution state on rejected order."""
         with self._lock:
             self.exec_state.total_trades_count += 1
             self.exec_state.rejected_trades += 1
             self.exec_state.last_rejection_reason = reason
             self.exec_state.last_error = f"[{error_code}] {reason}" if error_code else reason
-            self.risk_manager.on_exec_failure()
+            if is_exec_failure:
+                self.risk_manager.on_exec_failure()
             logger.warning(f"[{self.account_id}] Recorded rejection: {reason}")
 
     def record_close(self, ticket: int, pnl: float) -> None:

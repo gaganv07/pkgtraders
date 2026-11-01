@@ -149,7 +149,7 @@ class OrderExecutor:
         positions = mt5.positions_get(group=f"*{self.magic}*") or mt5.positions_get()
         if positions:
             magic_positions = [p for p in positions if p.magic == self.magic]
-            if len(magic_positions) >= self.max_open_trades:
+            if self.max_open_trades > 0 and len(magic_positions) >= self.max_open_trades:
                 return (
                     False,
                     f"Max simultaneous positions limit reached ({len(magic_positions)}/{self.max_open_trades})",

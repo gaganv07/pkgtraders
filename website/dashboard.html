@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#050b09"><title>Dashboard | VORTEX AI</title>
+<style>
+:root{color-scheme:dark;--bg:#050b09;--panel:#0b1512;--line:#244b3e;--text:#f2faf7;--muted:#a1b9b0;--teal:#00e6ad;--amber:#ffd58a}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0,#123d32,transparent 45%),var(--bg);color:var(--text);font:15px/1.55 system-ui,sans-serif}.wrap{width:min(1050px,calc(100% - 32px));margin:auto}header{border-bottom:1px solid var(--line)}nav{height:92px;display:flex;align-items:center;justify-content:space-between}.logo{width:116px;max-width:32vw;height:auto;display:block}button,.btn{border:1px solid #31564a;border-radius:10px;background:#12221d;color:var(--text);padding:10px 14px;font:inherit;font-weight:650;cursor:pointer}main{padding:42px 0 60px}.kicker{font-size:11px;letter-spacing:.16em;color:var(--teal);font-weight:800;text-transform:uppercase}h1{font-size:clamp(30px,4vw,42px);letter-spacing:-.04em;margin:8px 0}.muted{color:var(--muted)}.notice{border:1px solid #745a30;background:#261d0e;color:#ffe2b1;padding:12px 14px;border-radius:10px;margin-top:18px}.notice.ok{border-color:#236c53;background:#0b241b;color:#b8f6d9}.notice.warn{border-color:#745a30;background:#261d0e;color:#ffe2b1}.mode-badge[hidden]{display:none}.mode-badge{display:inline-flex;align-items:center;margin-top:12px;padding:5px 10px;border:1px solid #456257;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.08em}.mode-demo{border-color:#3b83b5;color:#a8ddff;background:#102331}.mode-real{border-color:#c28a39;color:#ffdc9c;background:#2a1f0d}.mode-unknown{border-color:#64746e;color:#c3d0cb;background:#17201c}.status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 22px}.status-tile{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 17px}.status-tile>span{display:block;color:var(--muted);font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}.status-tile .status-value{display:block;margin-top:7px;font-size:15px;font-weight:850;overflow-wrap:anywhere}.status-tile .status-note{display:block;margin-top:5px;color:var(--muted);font-size:11px}.feed-fresh{color:#b8f6d9}.feed-stale{color:#ffdfaa}.feed-offline{color:#c3d0cb}.account-mode-tile .mode-badge{margin-top:7px}.account-filter{display:flex;align-items:center;gap:10px;margin:18px 0 4px}.account-filter[hidden]{display:none}.account-filter label{font-size:12px;color:var(--muted);font-weight:700}.account-filter select{min-width:220px;max-width:100%;border:1px solid #35564b;border-radius:9px;background:#07100d;color:var(--text);padding:9px 12px;font:inherit}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}.metric,.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:19px}.metric span{display:block;color:var(--muted);font-size:12px}.metric strong{display:block;font-size:24px;margin-top:6px}.card{margin-top:14px}.table-empty{text-align:center;border:1px dashed #35574b;border-radius:10px;color:var(--muted);padding:26px;margin-top:14px}.fine{font-size:12px;color:var(--muted)}@media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.status-grid{grid-template-columns:1fr 1fr}}@media(max-width:480px){.grid{grid-template-columns:1fr 1fr;gap:8px}.status-grid{grid-template-columns:1fr}.metric{padding:12px}.metric strong{font-size:20px}.logo{width:94px}nav{height:76px}}
+.back-to-top{position:fixed;right:16px;bottom:18px;z-index:20;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid #00e6ad;background:#00e6ad;color:#052019;font-size:25px;font-weight:850;line-height:1;box-shadow:0 8px 28px #0006;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease;cursor:pointer}.back-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}.back-to-top:hover{background:#bfffea;border-color:#bfffea}.back-to-top:focus-visible{outline:3px solid #bfffea;outline-offset:4px}@media(prefers-reduced-motion:reduce){.back-to-top{transition:none}}
+
+/* VORTEX responsive dashboard: contain wide tables and prevent page overflow */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+img,svg{max-width:100%}
+.wrap,main,.topline,.status-grid,.grid,.metric,.card,.card-head,.table-wrap{min-width:0}
+nav{height:auto;min-height:76px;padding:8px 0;gap:12px;flex-wrap:wrap}
+nav>div{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;max-width:calc(100% - 130px);flex-wrap:wrap}
+.logo{width:116px;max-width:32vw;height:auto;object-fit:contain;image-rendering:auto}
+#user{max-width:38vw;overflow-wrap:anywhere;text-align:right}
+.grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.metric strong{max-width:100%;font-size:clamp(17px,2.5vw,24px);overflow-wrap:anywhere}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.table-wrap{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border-radius:10px}
+.table-wrap table{width:100%;min-width:760px;border-collapse:collapse}
+.table-wrap th,.table-wrap td{white-space:nowrap}
+button,.btn,select{min-height:44px;max-width:100%}
+.account-filter{align-items:flex-start;gap:10px;flex-wrap:wrap}
+.account-filter label{width:100%}
+.account-filter select{min-width:0;width:min(100%,340px)}
+@media(max-width:760px){
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:480px){
+ .wrap{width:calc(100% - 24px)}
+ nav{min-height:72px;padding:9px 0;gap:8px}
+ nav>div{max-width:calc(100% - 104px);gap:6px}
+ .logo{width:92px;max-width:28vw}
+ #user{max-width:32vw;font-size:11px}
+ nav>div .fine{font-size:11px;white-space:normal;overflow-wrap:anywhere}
+ main{padding:26px 0 44px}
+ h1{font-size:clamp(26px,8vw,34px);line-height:1.15}
+ .status-grid{grid-template-columns:minmax(0,1fr)}
+ .status-tile{padding:12px}
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .metric,.card{padding:12px}
+ .metric strong{font-size:clamp(16px,5vw,20px);line-height:1.25}
+ .card-head h2{font-size:18px;line-height:1.25}
+ .account-filter select{width:100%}
+}
+</style><link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
+<link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
+</head><body>
+<header><div class="wrap"><nav><a href="/"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><a class="fine" href="/contact.html">Support</a><a class="fine" href="/pricing.html">Plans</a><span id="user" class="fine">Checking sign-in…</span> <button id="logout" hidden>Sign out</button></div></nav></div></header>
+<main class="wrap">
+<div class="topline"><div><div class="kicker">Private dashboard</div><h1>Your trading activity</h1><p class="muted">Read-only view of verified broker snapshots. Feed state, account mode and the broker-update timestamp are independent indicators.</p></div></div>
+<div class="status-grid" aria-label="Trading feed status">
+<div class="status-tile"><span>Feed connection</span><strong id="feed-connection" class="status-value feed-offline">CHECKING…</strong><small id="feed-connection-note" class="status-note">Waiting for the first API response</small></div>
+<div class="status-tile account-mode-tile"><span>Account mode</span><strong id="account-mode" class="mode-badge mode-unknown" hidden>ACCOUNT MODE UNKNOWN</strong><small id="account-mode-note" class="status-note">Awaiting broker account metadata</small></div>
+<div class="status-tile"><span>Last successful broker update</span><strong id="broker-updated" class="status-value">Not received</strong><small id="broker-updated-note" class="status-note">Timestamp displayed in UTC</small></div>
+</div>
+<div id="status" class="notice" role="status" aria-live="polite">Verifying your session and feed access…</div>
+<div id="private-content" hidden>
+<div class="grid">
+<div class="metric"><span>Open positions</span><strong id="metric-positions">—</strong><div class="fine">Current bot positions</div></div>
+<div class="metric"><span>Floating P&amp;L</span><strong id="metric-floating">—</strong><div class="fine">Broker-reported open P&amp;L</div></div>
+<div class="metric"><span>Balance</span><strong id="metric-balance">—</strong><div class="fine">Last broker snapshot</div></div>
+<div class="metric"><span>Equity</span><strong id="metric-equity">—</strong><div class="fine">Last broker snapshot</div></div>
+</div>
+<div id="account-filter" class="account-filter" hidden><label for="account-select">Trading account</label><select id="account-select" aria-label="Trading account"></select></div>
+<section class="card"><div class="card-head"><h2>Open positions</h2><span id="account-meta" class="fine">Waiting for broker data</span></div>
+<div class="table-wrap"><table><thead><tr><th>Account</th><th>Ticket</th><th>Symbol</th><th>Side</th><th>Volume</th><th>Entry</th><th>Current</th><th>Stop loss</th><th>Take profit</th><th>Floating P&amp;L</th></tr></thead><tbody id="positions-body"><tr><td colspan="10">Waiting for verified feed…</td></tr></tbody></table></div>
+</section>
+<section class="card"><div class="card-head"><h2>Recent bot deals</h2><span class="fine">Last seven days · up to 100 deals</span></div>
+<div class="table-wrap"><table><thead><tr><th>Time (UTC)</th><th>Account</th><th>Ticket</th><th>Symbol</th><th>Side</th><th>Entry / exit</th><th>Volume</th><th>Price</th><th>Net deal P&amp;L</th></tr></thead><tbody id="deals-body"><tr><td colspan="9">Waiting for verified feed…</td></tr></tbody></table></div>
+</section>
+<p class="fine">Read-only. This dashboard cannot submit, modify or close MT5 orders. Figures are sourced from the broker.</p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
+<script>
+(function () {
+  const $ = function (id) { return document.getElementById(id); };
+  const status = $('status'), content = $('private-content'), user = $('user'), logout = $('logout');
+  let auth = null, timer = null, refreshing = false, refreshQueued = false, selectedAccountId = '', lastSuccessfulBrokerUpdate = '';
+  function setStatus(message, mode) {
+    status.hidden = false;
+    status.className = 'notice' + (mode ? ' ' + mode : '');
+    status.textContent = message;
+  }
+  function setFeedConnection(label, state, note) {
+    const value = $('feed-connection'), detail = $('feed-connection-note');
+    value.textContent = label;
+    value.className = 'status-value ' + (state === 'fresh' ? 'feed-fresh' : state === 'stale' ? 'feed-stale' : 'feed-offline');
+    detail.textContent = note || '';
+  }
+  function setLastBrokerUpdate(value, note) {
+    if (value) lastSuccessfulBrokerUpdate = value;
+    const output = $('broker-updated');
+    output.textContent = lastSuccessfulBrokerUpdate ? when(lastSuccessfulBrokerUpdate) : 'Not received';
+    $('broker-updated-note').textContent = note || (lastSuccessfulBrokerUpdate ? 'Latest accepted broker snapshot · UTC' : 'No broker snapshot has been received');
+  }
+  function n(value) { const v = Number(value); return Number.isFinite(v) ? v : 0; }
+  function cash(value, currency) {
+    const code = /^[A-Z]{3}$/.test(currency || '') ? currency : 'USD';
+    try { return new Intl.NumberFormat(undefined, {style:'currency',currency:code,minimumFractionDigits:2,maximumFractionDigits:2}).format(n(value)); }
+    catch (_) { return code + ' ' + n(value).toFixed(2); }
+  }
+  function when(value) {
+    if (!value) return '—';
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return '—';
+    return date.toLocaleString(undefined, { timeZone: 'UTC', year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) + ' UTC';
+  }
+  function cell(row, value, cls) {
+    const td = document.createElement('td');
+    td.textContent = value === null || value === undefined || value === '' ? '—' : String(value);
+    if (cls) td.className = cls;
+    row.appendChild(td);
+  }
+  function empty(id, span, message) {
+    const body = $(id), row = document.createElement('tr'), td = document.createElement('td');
+    td.colSpan = span; td.className = 'muted'; td.textContent = message;
+    row.appendChild(td); body.replaceChildren(row);
+  }
+  function clearDashboardData() {
+    $('metric-positions').textContent = '—';
+    $('metric-floating').textContent = '—';
+    $('metric-balance').textContent = '—';
+    $('metric-equity').textContent = '—';
+    $('metric-floating').className = '';
+    $('account-meta').textContent = 'No current broker snapshot';
+    $('account-mode').hidden = true;
+    $('account-mode-note').textContent = 'Awaiting broker account metadata';
+    empty('positions-body', 10, 'No current verified broker data.');
+    empty('deals-body', 9, 'No current verified broker data.');
+  }
+  function updateAccountSelector(authorizedIds, accountRows) {
+    const wrap = $('account-filter'), select = $('account-select');
+    const ids = Array.isArray(authorizedIds) ? authorizedIds.filter(function (id) { return typeof id === 'string' && id; }) : [];
+    const rows = Array.isArray(accountRows) ? accountRows : [];
+    const byId = new Map(rows.map(function (item) { return [item.account_id, item]; }));
+    if (selectedAccountId && !ids.includes(selectedAccountId)) selectedAccountId = '';
+    select.replaceChildren();
+    if (ids.length > 1) {
+      const all = document.createElement('option');
+      all.value = '';
+      all.textContent = 'All authorized accounts';
+      select.appendChild(all);
+    }
+    ids.forEach(function (id) {
+      const item = byId.get(id), option = document.createElement('option');
+      option.value = id;
+      option.textContent = item
+        ? (item.server || id) + ' · ' + id + (item.login ? ' · #' + item.login : '')
+        : id + ' · waiting for MT5 feed';
+      select.appendChild(option);
+    });
+    select.value = selectedAccountId;
+    wrap.hidden = ids.length < 2;
+  }
+  function render(payload) {
+    const s = payload.snapshot, account = s.account || {}, currency = account.currency || 'USD';
+    const positions = Array.isArray(s.positions) ? s.positions : [];
+    const deals = Array.isArray(s.deals) ? s.deals : [];
+    updateAccountSelector(payload.authorized_account_ids, payload.authorized_accounts || s.accounts);
+    const floating = positions.reduce(function (total, item) { return total + n(item.profit) + n(item.swap); }, 0);
+    const money = function (value) {
+      if (currency === 'MULTI') return 'Multi-currency';
+      if (value === null || value === undefined) return '—';
+      return cash(value, currency);
+    };
+    $('metric-positions').textContent = String(positions.length);
+    $('metric-floating').textContent = money(currency === 'MULTI' ? null : floating);
+    $('metric-floating').className = floating >= 0 ? 'positive' : 'negative';
+    $('metric-balance').textContent = money(account.balance);
+    $('metric-equity').textContent = money(account.equity);
+    $('account-meta').textContent = (account.server || 'Broker') + ' · ' + (account.trade_mode || 'UNKNOWN') + ' · ' + currency;
+    const mode = String(account.trade_mode || 'UNKNOWN').toUpperCase();
+    const modeLabel = mode === 'REAL' ? 'REAL ACCOUNT' : mode === 'DEMO' ? 'DEMO ACCOUNT' : mode === 'CONTEST' ? 'CONTEST ACCOUNT' : (n(account.total_accounts) > 1 ? 'MIXED ACCOUNT MODES' : 'ACCOUNT MODE UNKNOWN');
+    const modeBadge = $('account-mode');
+    modeBadge.textContent = modeLabel;
+    modeBadge.className = 'mode-badge ' + (mode === 'REAL' ? 'mode-real' : mode === 'DEMO' ? 'mode-demo' : 'mode-unknown');
+    modeBadge.hidden = false;
+    $('account-mode-note').textContent = 'Broker-reported account classification';
+    if (!positions.length) empty('positions-body', 10, 'No bot-tagged open positions in the latest broker snapshot.');
+    else {
+      const body = $('positions-body'); body.replaceChildren();
+      positions.forEach(function (p) {
+        const row = document.createElement('tr'), pnl = n(p.profit) + n(p.swap);
+        cell(row,p.account_id || 'primary'); cell(row,p.ticket); cell(row,p.symbol); cell(row,String(p.side || '').toUpperCase(),'side ' + p.side);
+        cell(row,n(p.volume).toFixed(2)); cell(row,n(p.entry_price).toFixed(5));
+        cell(row,n(p.current_price).toFixed(5)); cell(row,n(p.sl) ? n(p.sl).toFixed(5) : '—');
+        cell(row,n(p.tp) ? n(p.tp).toFixed(5) : '—'); cell(row,cash(pnl,currency),pnl >= 0 ? 'positive' : 'negative');
+        body.appendChild(row);
+      });
+    }
+    if (!deals.length) empty('deals-body', 9, 'No matching bot deals in the last seven days.');
+    else {
+      const body = $('deals-body'); body.replaceChildren();
+      deals.slice(0,100).forEach(function (d) {
+        const row = document.createElement('tr'), pnl = n(d.net_profit);
+        cell(row,when(d.time)); cell(row,d.account_id || 'primary'); cell(row,d.ticket); cell(row,d.symbol);
+        cell(row,String(d.side || '').toUpperCase(),'side ' + d.side);
+        cell(row,String(d.entry || '').toUpperCase()); cell(row,n(d.volume).toFixed(2));
+        cell(row,n(d.price).toFixed(5)); cell(row,cash(pnl,currency),pnl >= 0 ? 'positive' : 'negative');
+        body.appendChild(row);
+      });
+    }
+    const captured = payload.captured_at || s.captured_at;
+    setLastBrokerUpdate(captured, captured ? 'Latest accepted broker snapshot · UTC' : 'No broker snapshot has been received');
+    if (payload.connected) {
+      setFeedConnection('FEED CONNECTED · FRESH', 'fresh', 'Snapshot is inside the 30-second freshness window');
+      setStatus(s.bot_status === 'running' ? 'The MT5 publisher reports that its process is running.' : 'The MT5 publisher status is not confirmed by the latest snapshot.', s.bot_status === 'running' ? 'ok' : 'warn');
+    } else {
+      setFeedConnection('FEED STALE', 'stale', 'The most recent snapshot is older than the freshness window');
+      setStatus('The latest broker snapshot is not current. Verify the account directly in the MT5 terminal before relying on these values.', 'warn');
+    }
+  }
+  async function refresh() {
+    if (!auth) return;
+    if (refreshing) { refreshQueued = true; return; }
+    refreshing = true;
+    try {
+      const sessionResult = await auth.auth.getSession(), session = sessionResult.data && sessionResult.data.session;
+      if (!session) { window.location.replace('/login.html?next=dashboard.html'); return; }
+      const query = selectedAccountId ? '?account_id=' + encodeURIComponent(selectedAccountId) : '';
+      const response = await fetch('/api/trades' + query, {method:'GET',headers:{Authorization:'Bearer ' + session.access_token,Accept:'application/json'},cache:'no-store'});
+      const data = await response.json().catch(function () { return {}; });
+      if (response.status === 401) { window.location.replace('/login.html?next=dashboard.html'); return; }
+      if (!response.ok || !data.ok) {
+        setFeedConnection(response.status === 503 ? 'FEED UNAVAILABLE' : 'FEED REQUEST FAILED', 'offline', 'The dashboard could not retrieve a verified snapshot');
+        updateAccountSelector([], []);
+        clearDashboardData();
+        if (response.status === 403) {
+          content.hidden = true;
+          setFeedConnection('ACCESS DENIED', 'offline', 'This account is not authorized to view the dashboard');
+          setStatus('This signed-in account is not authorized to view trading data.', 'warn');
+        } else if (response.status === 503) {
+          setStatus('The secure MT5 trade feed is not configured or is temporarily unavailable. No trading figures are displayed.', 'warn');
+        } else {
+          setStatus('The trade feed request failed. No trading figures are displayed until a verified response is available.', 'warn');
+        }
+        return;
+      }
+      if (!data.snapshot) {
+        setFeedConnection('AWAITING FIRST UPDATE', 'offline', 'No signed broker snapshot has been stored yet');
+        setLastBrokerUpdate('', 'No broker snapshot has been received');
+        updateAccountSelector(data.authorized_account_ids, []);
+        clearDashboardData();
+        setStatus('Waiting for the bot to publish the first verified MT5 snapshot. No sample trades are displayed.', 'warn');
+        return;
+      }
+      render(data);
+    } catch (_) {
+      setFeedConnection('FEED UNAVAILABLE', 'offline', 'Network or API request failed');
+      clearDashboardData();
+      setLastBrokerUpdate('', lastSuccessfulBrokerUpdate ? 'Last accepted snapshot retained · UTC' : 'No broker snapshot has been received');
+      setStatus('The feed request failed. No trading figures are displayed until a verified response is available.', 'warn');
+    } finally {
+      refreshing = false;
+      if (refreshQueued) { refreshQueued = false; refresh(); }
+    }
+  }
+  async function init() {
+    try {
+      const response = await fetch('/api/auth-config',{cache:'no-store'}), cfg = await response.json();
+      if (!response.ok || !cfg.configured) { window.location.replace('/login.html?auth=pending'); return; }
+      if (!window.supabase || !window.supabase.createClient) throw new Error('Auth library unavailable');
+      auth = window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey);
+      const result = await auth.auth.getSession();
+      if (!result.data.session) { window.location.replace('/login.html?next=dashboard.html'); return; }
+      user.textContent = 'Signed in';
+      logout.hidden = false; content.hidden = false;
+      logout.onclick = async function () { if (timer) window.clearInterval(timer); await auth.auth.signOut(); window.location.href='/login.html'; };
+      $('account-select').addEventListener('change', function () { selectedAccountId = this.value; clearDashboardData(); refresh(); });
+      await refresh();
+      timer = window.setInterval(refresh,5000);
+    } catch (_) { setFeedConnection('FEED UNAVAILABLE', 'offline', 'Authentication or API configuration unavailable'); window.location.replace('/login.html?auth=unavailable'); }
+  }
+  init();
+})();
+</script></main><button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
+<script>
+(function(){
+  const button=document.getElementById("back-to-top");
+  if(!button)return;
+  let queued=false;
+  function sync(){
+    button.classList.toggle("is-visible",window.scrollY>320);
+    queued=false;
+  }
+  window.addEventListener("scroll",function(){
+    if(!queued){queued=true;window.requestAnimationFrame(sync);}
+  },{passive:true});
+  button.addEventListener("click",function(){
+    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({top:0,behavior:reduced?"auto":"smooth"});
+  });
+  sync();
+})();
+</script>
+</body></html>

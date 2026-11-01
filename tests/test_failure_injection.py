@@ -273,7 +273,7 @@ def test_stale_terminal_detection():
 
 
 def test_corrupted_account_state_isolation():
-    """11. Account A has corrupted financial numbers; falls back safely, B unaffected."""
+    """11. Corrupted Account A fails closed while healthy Account B remains unaffected."""
     cfg_a = AccountConfig(account_id="acc_A", login=10001, magic_number=20250701, dry_run=True)
     cfg_b = AccountConfig(account_id="acc_B", login=10002, magic_number=20250702, dry_run=True)
     reg = AccountRegistry()
@@ -281,17 +281,16 @@ def test_corrupted_account_state_isolation():
     ctx_a = mgr.add_account(cfg_a)
     ctx_b = mgr.add_account(cfg_b)
 
-    # Corrupt Account A balance
+    # Corrupt Account A balance; no fallback trade volume is permitted.
     ctx_a.risk_state.current_balance = -500.0
     ctx_b.update_snapshot(balance=10000.0, equity=10000.0)
 
     vol_a, _ = mgr.calculate_position_size("acc_A", make_signal("sig_corrupt"))
     vol_b, _ = mgr.calculate_position_size("acc_B", make_signal("sig_corrupt"))
 
-    # Account A falls back to baseline safely
-    assert vol_a > 0.0
+    # Reject the corrupted account while preserving the healthy account's sizing.
+    assert vol_a == 0.0
     assert vol_b > 0.0
-    assert vol_b > vol_a
 
 
 def test_restart_during_active_position():

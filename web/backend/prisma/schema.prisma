@@ -1,0 +1,464 @@
+// PKG Traders Relational Database Schema
+// Central Backend & Web Platform Schema (PostgreSQL / Prisma ORM)
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum RoleType {
+  CLIENT
+  ADMIN
+  SUPER_ADMIN
+  COMPLIANCE_OFFICER
+  SUPPORT
+}
+
+enum KYCStatus {
+  NOT_SUBMITTED
+  PENDING
+  APPROVED
+  REJECTED
+  ADDITIONAL_DOCS_REQUESTED
+}
+
+enum DocumentType {
+  PASSPORT
+  DRIVERS_LICENSE
+  NATIONAL_ID
+  PROOF_OF_ADDRESS
+  UTILITY_BILL
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  READ_ONLY
+  DISABLED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  ADJUSTMENT
+  TRANSFER
+}
+
+enum TransactionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  FAILED
+}
+
+enum TradeDirection {
+  BUY
+  SELL
+}
+
+enum BotStatus {
+  ONLINE
+  OFFLINE
+  DEGRADED
+  MAINTENANCE
+}
+
+// ---------------------------------------------------------
+// 1. USERS & ADMIN AUTHENTICATION
+// ---------------------------------------------------------
+
+model User {
+  id                    String                @id @default(uuid())
+  email                 String                @unique
+  passwordHash          String
+  firstName             String
+  lastName              String
+  phone                 String?
+  country               String?
+  isEmailVerified       Boolean               @default(false)
+  isSuspended           Boolean               @default(false)
+  twoFactorEnabled      Boolean               @default(false)
+  twoFactorSecret       String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  kycProfile            KYCProfile?
+  accountMappings       AccountUserMapping[]
+  deposits              Deposit[]
+  withdrawals           Withdrawal[]
+  transactions          Transaction[]
+  notifications         Notification[]
+  auditLogs             AuditLog[]            @relation("UserAuditLogs")
+
+  @@map("users")
+}
+
+model AdminUser {
+  id                    String                @id @default(uuid())
+  email                 String                @unique
+  passwordHash          String
+  firstName             String
+  lastName              String
+  roleType              RoleType              @default(ADMIN)
+  isActive              Boolean               @default(true)
+  twoFactorEnabled      Boolean               @default(false)
+  twoFactorSecret       String?
+  lastLoginAt           DateTime?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  adminRoles            AdminUserRole[]
+  approvedKYCs          KYCProfile[]          @relation("KYCReviewer")
+  approvedDeposits      Deposit[]             @relation("DepositReviewer")
+  reviewedWithdrawals   Withdrawal[]          @relation("WithdrawalReviewer")
+  auditLogs             AuditLog[]            @relation("AdminAuditLogs")
+
+  @@map("admin_users")
+}
+
+model Role {
+  id                    String                @id @default(uuid())
+  name                  String                @unique
+  description           String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  adminUserRoles        AdminUserRole[]
+  rolePermissions       RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id                    String                @id @default(uuid())
+  action                String                @unique // e.g. "kyc:approve", "trades:view_all"
+  description           String?
+  createdAt             DateTime              @default(now())
+
+  rolePermissions       RolePermission[]
+
+  @@map("permissions")
+}
+
+model AdminUserRole {
+  adminUserId           String
+  roleId                String
+  assignedAt            DateTime              @default(now())
+
+  adminUser             AdminUser             @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  role                  Role                  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([adminUserId, roleId])
+  @@map("admin_user_roles")
+}
+
+model RolePermission {
+  roleId                String
+  permissionId          String
+  assignedAt            DateTime              @default(now())
+
+  role                  Role                  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission            Permission            @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ---------------------------------------------------------
+// 2. KYC & COMPLIANCE
+// ---------------------------------------------------------
+
+model KYCProfile {
+  id                    String                @id @default(uuid())
+  userId                String                @unique
+  status                KYCStatus             @default(NOT_SUBMITTED)
+  rejectionReason       String?
+  reviewedByAdminId     String?
+  reviewedAt            DateTime?
+  submittedAt           DateTime?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewedByAdmin       AdminUser?            @relation("KYCReviewer", fields: [reviewedByAdminId], references: [id])
+  documents             KYCDocument[]
+
+  @@map("kyc_profiles")
+}
+
+model KYCDocument {
+  id                    String                @id @default(uuid())
+  kycProfileId          String
+  documentType          DocumentType
+  fileUrl               String
+  fileHash              String
+  uploadedAt            DateTime              @default(now())
+
+  kycProfile            KYCProfile            @relation(fields: [kycProfileId], references: [id], onDelete: Cascade)
+
+  @@map("kyc_documents")
+}
+
+// ---------------------------------------------------------
+// 3. TRADING ACCOUNTS, BROKERS & MAPPINGS
+// ---------------------------------------------------------
+
+model Broker {
+  id                    String                @id @default(uuid())
+  name                  String                @unique
+  serverName            String
+  company               String
+  website               String?
+  createdAt             DateTime              @default(now())
+
+  tradingAccounts       TradingAccount[]
+
+  @@map("brokers")
+}
+
+model TradingAccount {
+  id                    String                @id @default(uuid())
+  mt5Login              BigInt                @unique
+  brokerId              String
+  accountName           String
+  magicNumber           Int                   @unique
+  currency              String                @default("USD")
+  balance               Decimal               @default(0.0) @db.Decimal(18, 2)
+  equity                Decimal               @default(0.0) @db.Decimal(18, 2)
+  margin                Decimal               @default(0.0) @db.Decimal(18, 2)
+  freeMargin            Decimal               @default(0.0) @db.Decimal(18, 2)
+  marginLevel           Decimal               @default(0.0) @db.Decimal(18, 2)
+  status                AccountStatus         @default(ACTIVE)
+  botInstanceId         String?
+  lastSyncAt            DateTime?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  broker                Broker                @relation(fields: [brokerId], references: [id])
+  botInstance           BotInstance?          @relation(fields: [botInstanceId], references: [id])
+  userMappings          AccountUserMapping[]
+  trades                Trade[]
+  openPositions         OpenPosition[]
+  snapshots             AccountSnapshot[]
+
+  @@map("trading_accounts")
+}
+
+model AccountUserMapping {
+  id                    String                @id @default(uuid())
+  userId                String
+  tradingAccountId      String
+  assignedAt            DateTime              @default(now())
+
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tradingAccount        TradingAccount        @relation(fields: [tradingAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tradingAccountId])
+  @@map("account_user_mappings")
+}
+
+model BotInstance {
+  id                    String                @id @default(uuid())
+  instanceName          String                @unique
+  pcHostname            String
+  ipAddress             String?
+  botVersion            String
+  status                BotStatus             @default(ONLINE)
+  lastHeartbeat         DateTime              @default(now())
+  activeAccountCount    Int                   @default(0)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  tradingAccounts       TradingAccount[]
+  apiKeys               ApiKey[]
+
+  @@map("bot_instances")
+}
+
+// ---------------------------------------------------------
+// 4. TRADING DATA & SNAPSHOTS
+// ---------------------------------------------------------
+
+model Trade {
+  id                    String                @id @default(uuid())
+  tradingAccountId      String
+  dealTicket            BigInt                @unique
+  orderTicket           BigInt
+  symbol                String
+  direction             TradeDirection
+  volume                Decimal               @db.Decimal(12, 4)
+  entryPrice            Decimal               @db.Decimal(18, 5)
+  exitPrice             Decimal?              @db.Decimal(18, 5)
+  stopLoss              Decimal?              @db.Decimal(18, 5)
+  takeProfit            Decimal?              @db.Decimal(18, 5)
+  realizedPnL           Decimal               @db.Decimal(18, 2)
+  commission            Decimal               @default(0.0) @db.Decimal(18, 2)
+  swap                  Decimal               @default(0.0) @db.Decimal(18, 2)
+  executedAt            DateTime
+  closedAt              DateTime?
+  comment               String?
+
+  tradingAccount        TradingAccount        @relation(fields: [tradingAccountId], references: [id], onDelete: Cascade)
+
+  @@index([tradingAccountId, executedAt])
+  @@map("trades")
+}
+
+model OpenPosition {
+  id                    String                @id @default(uuid())
+  tradingAccountId      String
+  positionTicket        BigInt                @unique
+  symbol                String
+  direction             TradeDirection
+  volume                Decimal               @db.Decimal(12, 4)
+  entryPrice            Decimal               @db.Decimal(18, 5)
+  currentPrice          Decimal               @db.Decimal(18, 5)
+  stopLoss              Decimal?              @db.Decimal(18, 5)
+  takeProfit            Decimal?              @db.Decimal(18, 5)
+  unrealizedPnL         Decimal               @db.Decimal(18, 2)
+  swap                  Decimal               @default(0.0) @db.Decimal(18, 2)
+  openedAt              DateTime
+  updatedAt             DateTime              @updatedAt
+
+  tradingAccount        TradingAccount        @relation(fields: [tradingAccountId], references: [id], onDelete: Cascade)
+
+  @@index([tradingAccountId])
+  @@map("open_positions")
+}
+
+model AccountSnapshot {
+  id                    String                @id @default(uuid())
+  tradingAccountId      String
+  balance               Decimal               @db.Decimal(18, 2)
+  equity                Decimal               @db.Decimal(18, 2)
+  margin                Decimal               @db.Decimal(18, 2)
+  freeMargin            Decimal               @db.Decimal(18, 2)
+  openPositionsCount    Int
+  snapshotAt            DateTime              @default(now())
+
+  tradingAccount        TradingAccount        @relation(fields: [tradingAccountId], references: [id], onDelete: Cascade)
+
+  @@index([tradingAccountId, snapshotAt])
+  @@map("account_snapshots")
+}
+
+// ---------------------------------------------------------
+// 5. FINANCIAL TRANSACTIONS (DEPOSITS & WITHDRAWALS)
+// ---------------------------------------------------------
+
+model Deposit {
+  id                    String                @id @default(uuid())
+  transactionId         String                @unique @default(uuid())
+  userId                String
+  amount                Decimal               @db.Decimal(18, 2)
+  currency              String                @default("USD")
+  status                TransactionStatus     @default(PENDING)
+  paymentMethod         String
+  proofUrl              String?
+  reviewedByAdminId     String?
+  rejectionReason       String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewedByAdmin       AdminUser?            @relation("DepositReviewer", fields: [reviewedByAdminId], references: [id])
+  transactions          Transaction[]
+
+  @@map("deposits")
+}
+
+model Withdrawal {
+  id                    String                @id @default(uuid())
+  transactionId         String                @unique @default(uuid())
+  userId                String
+  amount                Decimal               @db.Decimal(18, 2)
+  currency              String                @default("USD")
+  status                TransactionStatus     @default(PENDING)
+  destinationAddress    String
+  paymentMethod         String
+  reviewedByAdminId     String?
+  rejectionReason       String?
+  processedRefId        String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewedByAdmin       AdminUser?            @relation("WithdrawalReviewer", fields: [reviewedByAdminId], references: [id])
+  transactions          Transaction[]
+
+  @@map("withdrawals")
+}
+
+model Transaction {
+  id                    String                @id @default(uuid())
+  referenceId           String                @unique
+  userId                String
+  type                  TransactionType
+  amount                Decimal               @db.Decimal(18, 2)
+  currency              String                @default("USD")
+  status                TransactionStatus
+  depositId             String?
+  withdrawalId          String?
+  createdAt             DateTime              @default(now())
+
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deposit               Deposit?              @relation(fields: [depositId], references: [id])
+  withdrawal            Withdrawal?           @relation(fields: [withdrawalId], references: [id])
+
+  @@map("transactions")
+}
+
+// ---------------------------------------------------------
+// 6. NOTIFICATIONS, AUDIT & API KEYS
+// ---------------------------------------------------------
+
+model Notification {
+  id                    String                @id @default(uuid())
+  userId                String
+  title                 String
+  message               String
+  isRead                Boolean               @default(false)
+  type                  String                @default("INFO") // INFO, WARNING, SUCCESS, ALERT
+  createdAt             DateTime              @default(now())
+
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id                    String                @id @default(uuid())
+  actorUserId           String?
+  actorAdminId          String?
+  action                String                // e.g. "KYC_APPROVED", "WITHDRAWAL_REJECTED"
+  targetEntity          String                // e.g. "Withdrawal:123"
+  ipAddress             String?
+  metadata              String?               // JSON stringified payload
+  createdAt             DateTime              @default(now())
+
+  actorUser             User?                 @relation("UserAuditLogs", fields: [actorUserId], references: [id])
+  actorAdmin            AdminUser?            @relation("AdminAuditLogs", fields: [actorAdminId], references: [id])
+
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+model ApiKey {
+  id                    String                @id @default(uuid())
+  botInstanceId         String
+  keyHash               String                @unique
+  name                  String
+  isRevoked             Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  expiresAt             DateTime?
+
+  botInstance           BotInstance           @relation(fields: [botInstanceId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+}
