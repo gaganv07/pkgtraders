@@ -42,12 +42,26 @@ form{width:100%}
  h1{font-size:clamp(25px,7vw,29px)}
  .provider,.submit{font-size:14px}
 }
+
+header .row{min-width:0;flex-wrap:wrap}
+header .row>a:first-child{margin-right:auto}
+header .row>.back{white-space:nowrap;min-height:40px;display:inline-flex;align-items:center}
+img,svg,video{max-width:100%;height:auto}
+.panel{min-width:0;max-width:100%}
+p,h1,h2{overflow-wrap:anywhere}
+input,button{max-width:100%;min-width:0}
+@media(max-width:480px){
+ header{padding:12px 0}
+ header .row{row-gap:8px}
+ .logo{width:132px;max-width:40vw}
+ header .row>.back{font-size:12px}
+}
 </style>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
 <link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
 </head>
 <body>
-<header><div class="wrap row"><a href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><a class="back" href="/">← Back to home</a></div></header>
+<header><div class="wrap row"><a href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><a class="back" href="/contact.html">Contact</a><a class="back" href="/">← Back to home</a></div></header>
 <main><section class="panel" aria-labelledby="heading">
 <div class="eyebrow">Secure dashboard access</div><h1 id="heading">Sign in to VORTEX AI</h1>
 <p>Sign in to view your authorized trading dashboard. Your MT5 password is never requested here.</p>
