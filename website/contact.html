@@ -43,18 +43,5 @@
 </section>
 </main>
 <footer><div class="wrap foot"><span>© VORTEX AI · Automated trading involves risk.</span><div class="footlinks"><a href="/pricing.html">Plans</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact & Support</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/">Home</a></div></div></footer>
-<script>
-(function(){
-  const profileUrl = ""; // Keep disabled until the exact official profile URL is verified by the operator.
-  const link = document.getElementById("instagram-link");
-  const status = document.getElementById("social-status");
-  if (!profileUrl) return;
-  try {
-    const url = new URL(profileUrl);
-    if (url.protocol !== "https:" || url.hostname !== "www.instagram.com" || !/^\/[A-Za-z0-9._]+\/?$/.test(url.pathname)) return;
-    link.href = url.href; link.hidden = false;
-    status.textContent = "Use this verified official VORTEX AI Instagram profile for support enquiries.";
-  } catch (_) {}
-})();
-</script>
+
 </body></html>
