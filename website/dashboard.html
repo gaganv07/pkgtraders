@@ -156,7 +156,7 @@ button,.btn,select{min-height:44px;max-width:100%}
     const rawName = [profile.display_name, metadata.full_name, metadata.name].find(function (value) {
       return typeof value === 'string' && value.trim();
     }) || '';
-    const displayName = String(rawName).replace(/[\\u0000-\\u001f\\u007f]/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 80);
+    const displayName = String(rawName).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
     $('welcome-title').textContent = displayName ? 'Welcome back, ' + displayName : 'Welcome back to VORTEX AI';
     $('welcome-detail').textContent = 'Your trading dashboard is ready. Broker figures and trade history below are shown only when verified MT5 data is available.';
     $('welcome-note').hidden = false;
