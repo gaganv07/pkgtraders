@@ -46,13 +46,13 @@ button,.btn,select{min-height:44px;max-width:100%}
 </style><link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
 <link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
 </head><body>
-<header><div class="wrap"><nav><a href="/"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><a class="fine" href="/contact.html">Contact</a><a class="fine" href="/pricing.html">Plans</a><span id="user" class="fine">Checking sign-in…</span> <button id="logout" hidden>Sign out</button></div></nav></div></header>
+<header><div class="wrap"><nav><a href="/"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><a class="fine" href="/contact.html">Contact</a><a class="fine" href="/pricing.html">Plans</a><a class="fine" href="/account.html">Profile &amp; settings</a><span id="user" class="fine">Checking sign-in…</span> <button id="logout" hidden>Sign out</button></div></nav></div></header>
 <main class="wrap">
-<div class="topline"><div><div class="kicker">Private dashboard</div><h1>Your trading activity</h1><p class="muted">Read-only view of verified broker snapshots. Feed state, account mode and the broker-update timestamp are independent indicators.</p></div></div>
+<div class="topline" style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><div class="kicker">Private dashboard</div><h1>Your trading activity</h1><p class="muted">Read-only view of verified broker snapshots. Feed state, account mode and the broker-update timestamp are independent indicators.</p></div><div style="display:grid;justify-items:end;gap:4px"><button id="refresh-now" type="button">Refresh now</button><small id="refresh-mode" class="fine">Loading display preferences…</small></div></div>
 <div class="status-grid" aria-label="Trading feed status">
 <div class="status-tile"><span>Feed connection</span><strong id="feed-connection" class="status-value feed-offline">CHECKING…</strong><small id="feed-connection-note" class="status-note">Waiting for the first API response</small></div>
 <div class="status-tile account-mode-tile"><span>Account mode</span><strong id="account-mode" class="mode-badge mode-unknown" hidden>ACCOUNT MODE UNKNOWN</strong><small id="account-mode-note" class="status-note">Awaiting broker account metadata</small></div>
-<div class="status-tile"><span>Last successful broker update</span><strong id="broker-updated" class="status-value">Not received</strong><small id="broker-updated-note" class="status-note">Timestamp displayed in UTC</small></div>
+<div class="status-tile"><span>Last successful broker update</span><strong id="broker-updated" class="status-value">Not received</strong><small id="broker-updated-note" class="status-note">Timestamp shown in your selected time zone</small></div>
 </div>
 <div id="status" class="notice" role="status" aria-live="polite">Verifying your session and feed access…</div>
 <div id="private-content" hidden>
@@ -67,7 +67,7 @@ button,.btn,select{min-height:44px;max-width:100%}
 <div class="table-wrap"><table><thead><tr><th>Account</th><th>Ticket</th><th>Symbol</th><th>Side</th><th>Volume</th><th>Entry</th><th>Current</th><th>Stop loss</th><th>Take profit</th><th>Floating P&amp;L</th></tr></thead><tbody id="positions-body"><tr><td colspan="10">Waiting for verified feed…</td></tr></tbody></table></div>
 </section>
 <section class="card"><div class="card-head"><h2>Recent bot deals</h2><span class="fine">Last seven days · up to 100 deals</span></div>
-<div class="table-wrap"><table><thead><tr><th>Time (UTC)</th><th>Account</th><th>Ticket</th><th>Symbol</th><th>Side</th><th>Entry / exit</th><th>Volume</th><th>Price</th><th>Net deal P&amp;L</th></tr></thead><tbody id="deals-body"><tr><td colspan="9">Waiting for verified feed…</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th id="deals-time-label">Time</th><th>Account</th><th>Ticket</th><th>Symbol</th><th>Side</th><th>Entry / exit</th><th>Volume</th><th>Price</th><th>Net deal P&amp;L</th></tr></thead><tbody id="deals-body"><tr><td colspan="9">Waiting for verified feed…</td></tr></tbody></table></div>
 </section>
 <p class="fine">Read-only. This dashboard cannot submit, modify or close MT5 orders. Figures are sourced from the broker.</p>
 </div>
@@ -76,7 +76,7 @@ button,.btn,select{min-height:44px;max-width:100%}
 (function () {
   const $ = function (id) { return document.getElementById(id); };
   const status = $('status'), content = $('private-content'), user = $('user'), logout = $('logout');
-  let auth = null, timer = null, refreshing = false, refreshQueued = false, selectedAccountId = '', lastSuccessfulBrokerUpdate = '';
+  let auth = null, timer = null, refreshing = false, refreshQueued = false, selectedAccountId = '', lastSuccessfulBrokerUpdate = '', userTimezone = 'browser', timezoneLabel = 'device time', autoRefresh = true, refreshSeconds = 5;
   function setStatus(message, mode) {
     status.hidden = false;
     status.className = 'notice' + (mode ? ' ' + mode : '');
@@ -92,9 +92,25 @@ button,.btn,select{min-height:44px;max-width:100%}
     if (value) lastSuccessfulBrokerUpdate = value;
     const output = $('broker-updated');
     output.textContent = lastSuccessfulBrokerUpdate ? when(lastSuccessfulBrokerUpdate) : 'Not received';
-    $('broker-updated-note').textContent = note || (lastSuccessfulBrokerUpdate ? 'Latest accepted broker snapshot · UTC' : 'No broker snapshot has been received');
+    $('broker-updated-note').textContent = note || (lastSuccessfulBrokerUpdate ? 'Latest accepted broker snapshot · ' + timezoneLabel : 'No broker snapshot has been received');
   }
   function n(value) { const v = Number(value); return Number.isFinite(v) ? v : 0; }
+  function applyUserPreferences(userRecord) {
+    const metadata = userRecord && userRecord.user_metadata && typeof userRecord.user_metadata === 'object' ? userRecord.user_metadata : {};
+    const preferences = metadata.vortex_preferences && typeof metadata.vortex_preferences === 'object' ? metadata.vortex_preferences : {};
+    const allowedZones = ['browser','UTC','Asia/Kolkata','Europe/London','America/New_York','Asia/Singapore'];
+    const allowedIntervals = [5,10,15,30];
+    userTimezone = allowedZones.includes(preferences.timezone) ? preferences.timezone : 'browser';
+    autoRefresh = preferences.auto_refresh !== false;
+    const interval = Number(preferences.refresh_seconds);
+    refreshSeconds = allowedIntervals.includes(interval) ? interval : 5;
+    const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'device time';
+    const zoneLabels = {'browser':'Device time (' + deviceZone + ')','UTC':'UTC','Asia/Kolkata':'India Standard Time','Europe/London':'London time','America/New_York':'New York time','Asia/Singapore':'Singapore time'};
+    timezoneLabel = zoneLabels[userTimezone] || deviceZone;
+    $('broker-updated-note').textContent = 'Times displayed in ' + timezoneLabel;
+    $('deals-time-label').textContent = 'Time · ' + timezoneLabel;
+    $('refresh-mode').textContent = autoRefresh ? 'Automatic refresh every ' + refreshSeconds + ' seconds' : 'Automatic refresh off · use Refresh now';
+  }
   function cash(value, currency) {
     const code = /^[A-Z]{3}$/.test(currency || '') ? currency : 'USD';
     try { return new Intl.NumberFormat(undefined, {style:'currency',currency:code,minimumFractionDigits:2,maximumFractionDigits:2}).format(n(value)); }
@@ -104,7 +120,9 @@ button,.btn,select{min-height:44px;max-width:100%}
     if (!value) return '—';
     const date = new Date(value);
     if (!Number.isFinite(date.getTime())) return '—';
-    return date.toLocaleString(undefined, { timeZone: 'UTC', year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) + ' UTC';
+    const formatOptions = { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZoneName: 'short' };
+    if (userTimezone !== 'browser') formatOptions.timeZone = userTimezone;
+    return date.toLocaleString(undefined, formatOptions);
   }
   function cell(row, value, cls) {
     const td = document.createElement('td');
@@ -202,7 +220,7 @@ button,.btn,select{min-height:44px;max-width:100%}
       });
     }
     const captured = payload.captured_at || s.captured_at;
-    setLastBrokerUpdate(captured, captured ? 'Latest accepted broker snapshot · UTC' : 'No broker snapshot has been received');
+    setLastBrokerUpdate(captured, captured ? 'Latest accepted broker snapshot · ' + timezoneLabel : 'No broker snapshot has been received');
     if (payload.connected) {
       setFeedConnection('FEED CONNECTED · FRESH', 'fresh', 'Snapshot is inside the 30-second freshness window');
       setStatus(s.bot_status === 'running' ? 'The MT5 publisher reports that its process is running.' : 'The MT5 publisher status is not confirmed by the latest snapshot.', s.bot_status === 'running' ? 'ok' : 'warn');
@@ -249,7 +267,7 @@ button,.btn,select{min-height:44px;max-width:100%}
     } catch (_) {
       setFeedConnection('FEED UNAVAILABLE', 'offline', 'Network or API request failed');
       clearDashboardData();
-      setLastBrokerUpdate('', lastSuccessfulBrokerUpdate ? 'Last accepted snapshot retained · UTC' : 'No broker snapshot has been received');
+      setLastBrokerUpdate('', lastSuccessfulBrokerUpdate ? 'Last accepted snapshot retained · ' + timezoneLabel : 'No broker snapshot has been received');
       setStatus('The feed request failed. No trading figures are displayed until a verified response is available.', 'warn');
     } finally {
       refreshing = false;
@@ -264,12 +282,19 @@ button,.btn,select{min-height:44px;max-width:100%}
       auth = window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey);
       const result = await auth.auth.getSession();
       if (!result.data.session) { window.location.replace('/login.html?next=dashboard.html'); return; }
-      user.textContent = 'Signed in';
+      const verifiedUserResult = await auth.auth.getUser();
+      const verifiedUser = verifiedUserResult.data && verifiedUserResult.data.user;
+      if (verifiedUserResult.error || !verifiedUser) { window.location.replace('/login.html?next=dashboard.html'); return; }
+      const metadata = verifiedUser.user_metadata && typeof verifiedUser.user_metadata === 'object' ? verifiedUser.user_metadata : {};
+      const profile = metadata.vortex_profile && typeof metadata.vortex_profile === 'object' ? metadata.vortex_profile : {};
+      user.textContent = profile.display_name ? 'Signed in · ' + String(profile.display_name).slice(0,80) : 'Signed in';
+      applyUserPreferences(verifiedUser);
       logout.hidden = false; content.hidden = false;
-      logout.onclick = async function () { if (timer) window.clearInterval(timer); await auth.auth.signOut(); window.location.href='/login.html'; };
+      logout.onclick = async function () { if (timer) window.clearInterval(timer); await auth.auth.signOut({scope:'local'}); window.location.href='/login.html'; };
       $('account-select').addEventListener('change', function () { selectedAccountId = this.value; clearDashboardData(); refresh(); });
+      $('refresh-now').addEventListener('click', refresh);
       await refresh();
-      timer = window.setInterval(refresh,5000);
+      if (autoRefresh) timer = window.setInterval(refresh,refreshSeconds * 1000);
     } catch (_) { setFeedConnection('FEED UNAVAILABLE', 'offline', 'Authentication or API configuration unavailable'); window.location.replace('/login.html?auth=unavailable'); }
   }
   init();
