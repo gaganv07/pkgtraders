@@ -87,7 +87,7 @@ input,button{max-width:100%;min-width:0}
   let emailEnabled = false;
   const requestedNext = new URLSearchParams(window.location.search).get("next");
   const nextPage = ["dashboard.html", "account.html"].includes(requestedNext) ? requestedNext : "dashboard.html";
-  const target = window.location.origin + "/dashboard.html";
+  // Always complete authentication on the canonical production site. A localhost-origin\n  // here would embed localhost:3000 into the Supabase magic link and strand the user.\n  const target = "https://vortexbot.ai/dashboard.html";
   function show(message, warning = false) {
     status.textContent = message;
     status.className = "notice show" + (warning ? " warn" : "");
