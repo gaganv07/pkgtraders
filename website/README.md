@@ -9,6 +9,9 @@ This directory is the root of the VORTEXT AI customer-facing website.
 - Responsive VORTEXT AI public pages use the approved logo and current product disclosures. The homepage includes an accessible mobile hamburger menu and links to the dedicated MT5 Getting Started guide.
 - Sign-in uses Google OAuth or an email magic link for existing Supabase users only. Email magic-link sign-up is disabled with `shouldCreateUser: false`.
 - The dashboard is private and read-only. It cannot submit, modify, or close MT5 orders.
+- The authenticated `/account.html` page lets each signed-in user update a display name, select a dashboard timestamp time zone, set an optional 5/10/15/30-second refresh interval, and manage local, other-device or global sign-out sessions.
+- Account profile and dashboard preferences are stored in namespaced Supabase Auth user metadata (`vortex_profile` and `vortex_preferences`). These fields are user-editable display data only and must never be used for trade-feed, account, operator or administrator authorisation.
+- The verified sign-in email is displayed read-only. The browser dashboard uses the saved time-zone preference for broker and deal timestamps and honours the saved refresh preference.
 - `/api/auth-config` publishes only the browser-safe Supabase URL and publishable key.
 - `/api/trades` accepts bot snapshots only when the request has a valid HMAC-SHA256 signature.
 - Dashboard reads require a valid Supabase access token. Server-configured shared account IDs are visible to every signed-in user; additional account IDs can be granted through an active row in `public.vortext_authorized_operators`. The server checks Auth identity and filters every account, position and deal before returning it.
