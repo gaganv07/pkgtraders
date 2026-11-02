@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050b09">
+<meta name="description" content="Manage your VORTEX AI profile, dashboard preferences and account security.">
+<title>Profile & Settings | VORTEX AI</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261102-1">
+<style>
+:root{color-scheme:dark;--bg:#050b09;--panel:#0b1512;--panel2:#0e1c17;--line:#244b3e;--line2:#315c4b;--text:#f2faf7;--muted:#a1b9b0;--teal:#00e6ad;--mint:#baf8df;--amber:#ffd58a;--danger:#ffaaa0}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:100px}
+body{margin:0;background:radial-gradient(ellipse at 82% 0,#123d32,transparent 44%),var(--bg);color:var(--text);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit}
+button,a,input,select{-webkit-tap-highlight-color:transparent}
+.wrap{width:min(1160px,calc(100% - 40px));margin-inline:auto}
+header{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--line);background:#050b09ed;backdrop-filter:blur(14px)}
+.header-row{min-height:78px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.logo{display:block;width:112px;max-width:30vw;height:auto;object-fit:contain}
+.nav{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.nav a{font-size:13px;color:var(--muted)}
+.nav a:hover,.nav a[aria-current=page]{color:var(--teal)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 15px;border:1px solid var(--line2);border-radius:10px;background:#12221d;color:var(--text);font-size:13px;font-weight:750;cursor:pointer;transition:border-color .18s,transform .18s}
+.btn:hover{border-color:var(--teal);transform:translateY(-1px)}
+.btn-primary{background:var(--teal);border-color:var(--teal);color:#052219}
+.btn-danger{border-color:#75443d;background:#281714;color:#ffd8d2}
+button:disabled{opacity:.55;cursor:not-allowed;transform:none}
+main{padding:42px 0 72px}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:22px}
+.kicker{color:var(--teal);font-size:11px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+h1{margin:7px 0 5px;font-size:clamp(30px,4vw,42px);line-height:1.1;letter-spacing:-.045em}
+h2{margin:0;font-size:19px;letter-spacing:-.02em}
+h3{margin:0;font-size:15px}
+.lead{max-width:700px;margin:0;color:var(--muted);font-size:14px}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);align-items:start;gap:18px}
+.card{min-width:0;border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,#0d1a15,#09120f);padding:22px;box-shadow:0 16px 40px #0002}
+.sidebar{position:sticky;top:98px}
+.identity{display:flex;align-items:center;gap:12px;padding-bottom:18px;border-bottom:1px solid #203e33}
+.avatar{display:grid;place-items:center;width:52px;height:52px;flex:0 0 52px;border:1px solid #238064;border-radius:15px;background:linear-gradient(145deg,#0d3c2c,#071b14);color:var(--mint);font-size:19px;font-weight:850}
+.identity-name{font-weight:800;overflow-wrap:anywhere}
+.identity-email{max-width:160px;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
+.account-state{display:inline-flex;align-items:center;gap:6px;margin-top:5px;color:var(--mint);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.account-state:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px #00e6ad}
+.side-links{display:grid;gap:5px;padding-top:16px}
+.side-links a{padding:10px 11px;border-radius:9px;color:var(--muted);font-size:13px}
+.side-links a:hover{background:#10231a;color:var(--text)}
+.side-note{margin:18px 0 0;color:#8fa99d;font-size:11px;line-height:1.55}
+.content{display:grid;gap:16px;min-width:0}
+.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:17px}
+.section-subtitle{margin:5px 0 0;color:var(--muted);font-size:12px}
+.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.field{display:grid;gap:6px;min-width:0}
+.field.full{grid-column:1/-1}
+label{color:#d8e8e0;font-size:12px;font-weight:750}
+input[type=text],input[type=email],select{width:100%;min-width:0;min-height:46px;padding:10px 12px;border:1px solid #35564b;border-radius:10px;background:#06100d;color:var(--text);outline:none}
+input:focus,select:focus{border-color:var(--teal);box-shadow:0 0 0 3px #00e6ad1c}
+input[readonly]{color:#9bb0a7;background:#0a1511}
+.help{color:#91a99e;font-size:11px;line-height:1.5}
+.form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:17px}
+.preference-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid #1e3b30}
+.preference-row:last-of-type{border-bottom:0}
+.preference-copy{min-width:0}
+.preference-copy strong{display:block;font-size:13px}
+.preference-copy span{display:block;margin-top:3px;color:var(--muted);font-size:11px}
+.switch{position:relative;display:inline-flex;align-items:center;flex:0 0 auto}
+.switch input{position:absolute;width:1px;height:1px;opacity:0}
+.switch-ui{width:46px;height:26px;border:1px solid #496156;border-radius:99px;background:#24342c;transition:background .18s,border-color .18s}
+.switch-ui:after{content:"";display:block;width:18px;height:18px;margin:3px;border-radius:50%;background:#c4d2cb;transition:transform .18s,background .18s}
+.switch input:checked+.switch-ui{border-color:var(--teal);background:#075d45}
+.switch input:checked+.switch-ui:after{transform:translateX(20px);background:#eafff5}
+.switch input:focus-visible+.switch-ui{outline:3px solid #9dffda;outline-offset:3px}
+.security-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.security-item{min-width:0;padding:13px;border:1px solid #203e33;border-radius:11px;background:#07120e}
+.security-item span{display:block;color:var(--muted);font-size:10px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
+.security-item strong{display:block;margin-top:5px;font-size:13px;overflow-wrap:anywhere}
+.session-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.notice{display:none;margin:0 0 16px;padding:12px 14px;border:1px solid #755c30;border-radius:10px;background:#251c0e;color:#ffe2b1;font-size:13px}
+.notice.show{display:block}
+.notice.ok{border-color:#236c53;background:#0b241b;color:#b8f6d9}
+.notice.error{border-color:#75443d;background:#281714;color:#ffd8d2}
+.warning{margin-top:14px;padding:12px 14px;border-left:3px solid var(--amber);border-radius:0 9px 9px 0;background:#211b0e;color:#ffdfaa;font-size:11px;line-height:1.55}
+footer{border-top:1px solid var(--line);padding:20px 0 28px;color:#829a90;font-size:11px}
+footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+:focus-visible{outline:3px solid #9dffda;outline-offset:3px}
+@media(max-width:820px){.layout{grid-template-columns:1fr}.sidebar{position:static}.identity-email{max-width:100%}.side-links{grid-template-columns:repeat(3,minmax(0,1fr))}.side-links a{text-align:center}.side-note{display:none}}
+@media(max-width:580px){.wrap{width:calc(100% - 26px)}main{padding:28px 0 48px}.header-row{padding:10px 0}.nav{width:100%;justify-content:space-between;gap:8px}.nav a{font-size:12px}.field-grid,.security-list{grid-template-columns:1fr}.field.full{grid-column:auto}.card{padding:16px}.side-links{grid-template-columns:1fr 1fr}.form-actions{justify-content:stretch}.form-actions .btn{flex:1}.page-head>.btn{width:100%}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="wrap header-row">
+<a href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-4" alt="VORTEX AI"></a>
+<nav class="nav" aria-label="Account navigation">
+<a href="/">Home</a><a href="/dashboard.html">Trading dashboard</a><a href="/contact.html">Contact</a><a href="/login.html" id="sign-out">Sign out</a>
+</nav>
+</div></header>
+<main class="wrap">
+<div class="page-head">
+<div><div class="kicker">Account centre</div><h1>Profile & settings</h1><p class="lead">Manage your account profile, dashboard display preferences and active sign-in sessions.</p></div>
+<a class="btn" href="/dashboard.html">← Back to dashboard</a>
+</div>
+<div id="flash" class="notice" role="status" aria-live="polite"></div>
+<div class="layout">
+<aside class="card sidebar">
+<div class="identity">
+<div class="avatar" id="avatar" aria-hidden="true">—</div>
+<div><div class="identity-name" id="sidebar-name">Loading profile…</div><div class="identity-email" id="sidebar-email"></div><div class="account-state">Authenticated</div></div>
+</div>
+<nav class="side-links" aria-label="Account settings sections">
+<a href="#profile">Profile</a><a href="#preferences">Preferences</a><a href="#security">Security</a>
+</nav>
+<p class="side-note">Profile details and display preferences belong to your VORTEX AI sign-in account. They do not grant trading access or change broker permissions.</p>
+</aside>
+<div class="content">
+<section class="card" id="profile">
+<div class="section-head"><div><h2>Personal profile</h2><p class="section-subtitle">Set the name shown in your VORTEX AI dashboard.</p></div></div>
+<form id="profile-form">
+<div class="field-grid">
+<div class="field full"><label for="display-name">Display name</label><input id="display-name" name="display_name" type="text" maxlength="80" autocomplete="name" placeholder="Enter your display name" required><span class="help">This is a display label only. It does not change your Google or email identity.</span></div>
+<div class="field full"><label for="account-email">Verified sign-in email</label><input id="account-email" type="email" readonly autocomplete="email"><span class="help">The email address is controlled by your authentication provider and cannot be edited here.</span></div>
+</div>
+<div class="form-actions"><button class="btn btn-primary" id="save-profile" type="submit">Save profile</button></div>
+</form>
+</section>
+<section class="card" id="preferences">
+<div class="section-head"><div><h2>Dashboard preferences</h2><p class="section-subtitle">Personalise how broker snapshots and activity timestamps appear.</p></div></div>
+<form id="preferences-form">
+<div class="field full"><label for="timezone">Timestamp time zone</label>
+<select id="timezone" name="timezone">
+<option value="browser">Use this device's time zone</option>
+<option value="UTC">UTC</option>
+<option value="Asia/Kolkata">India Standard Time (IST)</option>
+<option value="Europe/London">London</option>
+<option value="America/New_York">New York</option>
+<option value="Asia/Singapore">Singapore</option>
+</select>
+<span class="help">Applies to timestamps displayed in the dashboard. The broker's stored timestamps remain unchanged.</span>
+</div>
+<div class="preference-row">
+<div class="preference-copy"><strong>Automatic dashboard refresh</strong><span>Periodically request the latest authorised broker snapshot.</span></div>
+<label class="switch" aria-label="Automatic dashboard refresh"><input id="auto-refresh" type="checkbox" checked><span class="switch-ui"></span></label>
+</div>
+<div class="field" style="margin-top:13px;max-width:260px"><label for="refresh-seconds">Refresh interval</label><select id="refresh-seconds"><option value="5">Every 5 seconds</option><option value="10">Every 10 seconds</option><option value="15">Every 15 seconds</option><option value="30">Every 30 seconds</option></select><span class="help">Used only when automatic refresh is enabled.</span></div>
+<div class="form-actions"><button class="btn btn-primary" id="save-preferences" type="submit">Save preferences</button></div>
+</form>
+<div class="warning">These preferences affect only your browser dashboard experience. They do not alter bot strategy, trade execution, risk limits, broker accounts or account authorisation.</div>
+</section>
+<section class="card" id="security">
+<div class="section-head"><div><h2>Account security</h2><p class="section-subtitle">Review your sign-in identity and manage active sessions.</p></div></div>
+<div class="security-list">
+<div class="security-item"><span>Sign-in provider</span><strong id="provider">Loading…</strong></div>
+<div class="security-item"><span>Account created</span><strong id="created-at">—</strong></div>
+<div class="security-item"><span>Last sign-in</span><strong id="last-sign-in">—</strong></div>
+<div class="security-item"><span>Current session expires</span><strong id="session-expiry">—</strong></div>
+</div>
+<div class="warning">A session list by device is not exposed to this browser client. You can revoke refresh-token sessions on other devices or sign out everywhere. Already-issued access tokens may remain valid until their expiry.</div>
+<div class="session-actions">
+<button class="btn" id="sign-out-others" type="button">Sign out other devices</button>
+<button class="btn btn-danger" id="sign-out-all" type="button">Sign out all devices</button>
+</div>
+</section>
+</div>
+</div>
+</main>
+<footer><div class="wrap"><span>© VORTEX AI · Automated trading involves risk.</span><span><a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/contact.html">Contact</a></span></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const flash = $('flash');
+  let client = null;
+  let currentUser = null;
+  const allowedZones = ['browser','UTC','Asia/Kolkata','Europe/London','America/New_York','Asia/Singapore'];
+  const allowedIntervals = [5,10,15,30];
+
+  function show(message, type) {
+    flash.textContent = message;
+    flash.className = 'notice show' + (type ? ' ' + type : '');
+  }
+  function plainObject(value) {
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  }
+  function safeDate(value) {
+    if (!value) return 'Not available';
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date.toLocaleString() : 'Not available';
+  }
+  function initials(value) {
+    const words = String(value || '').trim().split(/\s+/).filter(Boolean);
+    return (words.length ? words.slice(0,2).map(word => word[0]).join('') : 'V').toUpperCase();
+  }
+  function render(user, session) {
+    const metadata = plainObject(user.user_metadata);
+    const profile = plainObject(metadata.vortex_profile);
+    const displayName = String(profile.display_name || metadata.full_name || metadata.name || '').trim();
+    const label = displayName || 'VORTEX AI member';
+    $('sidebar-name').textContent = label;
+    $('sidebar-email').textContent = user.email || '';
+    $('avatar').textContent = initials(displayName || user.email || 'V');
+    $('display-name').value = displayName;
+    $('account-email').value = user.email || '';
+    const identities = Array.isArray(user.identities) ? user.identities : [];
+    const providers = [...new Set(identities.map(item => item.provider).filter(Boolean))];
+    if (!providers.length && user.app_metadata && user.app_metadata.provider) providers.push(user.app_metadata.provider);
+    $('provider').textContent = providers.length ? providers.map(p => p === 'google' ? 'Google' : p === 'email' ? 'Email link' : p).join(' · ') : 'Managed sign-in';
+    $('created-at').textContent = safeDate(user.created_at);
+    $('last-sign-in').textContent = safeDate(user.last_sign_in_at);
+    $('session-expiry').textContent = session && session.expires_at ? safeDate(Number(session.expires_at) * 1000) : 'Session managed by provider';
+    const preferences = plainObject(metadata.vortex_preferences);
+    $('timezone').value = allowedZones.includes(preferences.timezone) ? preferences.timezone : 'browser';
+    $('auto-refresh').checked = preferences.auto_refresh !== false;
+    const interval = Number(preferences.refresh_seconds);
+    $('refresh-seconds').value = allowedIntervals.includes(interval) ? String(interval) : '5';
+  }
+  async function getVerifiedUser() {
+    const result = await client.auth.getUser();
+    if (result.error || !result.data || !result.data.user) throw new Error('Your sign-in session could not be verified. Please sign in again.');
+    return result.data.user;
+  }
+  async function updateMetadata(patch) {
+    const user = await getVerifiedUser();
+    const current = plainObject(user.user_metadata);
+    const updated = {...current, ...patch};
+    const result = await client.auth.updateUser({data:updated});
+    if (result.error) throw result.error;
+    currentUser = result.data.user || user;
+    const sessionResult = await client.auth.getSession();
+    render(currentUser, sessionResult.data && sessionResult.data.session);
+  }
+  $('profile-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    const name = $('display-name').value.trim();
+    if (!name || name.length > 80) return show('Enter a display name between 1 and 80 characters.', 'error');
+    const button = $('save-profile');
+    button.disabled = true;
+    try {
+      await updateMetadata({vortex_profile:{...plainObject(currentUser && currentUser.user_metadata && currentUser.user_metadata.vortex_profile),display_name:name}});
+      show('Profile saved to your VORTEX AI account.', 'ok');
+    } catch (error) {
+      show(error.message || 'The profile could not be saved. Please try again.', 'error');
+    } finally { button.disabled = false; }
+  });
+  $('preferences-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    const timezone = $('timezone').value;
+    const refreshSeconds = Number($('refresh-seconds').value);
+    if (!allowedZones.includes(timezone) || !allowedIntervals.includes(refreshSeconds)) return show('Choose a valid time zone and refresh interval.', 'error');
+    const button = $('save-preferences');
+    button.disabled = true;
+    try {
+      await updateMetadata({vortex_preferences:{...plainObject(currentUser && currentUser.user_metadata && currentUser.user_metadata.vortex_preferences),timezone,auto_refresh:$('auto-refresh').checked,refresh_seconds:refreshSeconds}});
+      show('Dashboard preferences saved. They will apply the next time you open the trading dashboard.', 'ok');
+    } catch (error) {
+      show(error.message || 'Preferences could not be saved. Please try again.', 'error');
+    } finally { button.disabled = false; }
+  });
+  $('sign-out').addEventListener('click', async event => {
+    event.preventDefault();
+    if (!client) return;
+    const result = await client.auth.signOut({scope:'local'});
+    if (result.error) return show(result.error.message || 'Could not sign out.', 'error');
+    window.location.replace('/login.html');
+  });
+  $('sign-out-others').addEventListener('click', async () => {
+    if (!client || !window.confirm('Sign out all other active VORTEX AI sessions? This browser session will remain signed in.')) return;
+    const button = $('sign-out-others'); button.disabled = true;
+    try {
+      const result = await client.auth.signOut({scope:'others'});
+      if (result.error) throw result.error;
+      show('Other refresh-token sessions have been revoked. This session remains active.', 'ok');
+    } catch (error) { show(error.message || 'Other sessions could not be revoked.', 'error'); }
+    finally { button.disabled = false; }
+  });
+  $('sign-out-all').addEventListener('click', async () => {
+    if (!client || !window.confirm('Sign out this account from every device? You will be returned to the sign-in page.')) return;
+    const button = $('sign-out-all'); button.disabled = true;
+    try {
+      const result = await client.auth.signOut({scope:'global'});
+      if (result.error) throw result.error;
+      window.location.replace('/login.html');
+    } catch (error) { show(error.message || 'All sessions could not be revoked.', 'error'); button.disabled = false; }
+  });
+
+  async function init() {
+    try {
+      const configResponse = await fetch('/api/auth-config',{cache:'no-store'});
+      const config = await configResponse.json();
+      if (!configResponse.ok || !config.configured) throw new Error('Account authentication is not configured.');
+      if (!window.supabase || !window.supabase.createClient) throw new Error('The authentication library did not load.');
+      client = window.supabase.createClient(config.supabaseUrl,config.publishableKey);
+      const sessionResult = await client.auth.getSession();
+      const session = sessionResult.data && sessionResult.data.session;
+      if (!session) return window.location.replace('/login.html?next=account.html');
+      currentUser = await getVerifiedUser();
+      render(currentUser,session);
+    } catch (error) {
+      if (client) await client.auth.signOut({scope:'local'}).catch(()=>{});
+      show(error.message || 'The account page could not be loaded.', 'error');
+    }
+  }
+  init();
+})();
+</script>
+</body>
+</html>
