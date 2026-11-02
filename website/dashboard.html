@@ -43,12 +43,56 @@ button,.btn,select{min-height:44px;max-width:100%}
  .card-head h2{font-size:18px;line-height:1.25}
  .account-filter select{width:100%}
 }
+
+/* Dashboard layout: consistent controls, responsive navigation and readable empty states */
+.dashboard-nav{height:auto;min-height:76px;padding:12px 0;gap:16px}
+.dashboard-nav .brand{display:flex;align-items:center;flex:0 0 auto}
+.dashboard-nav .logo{width:116px;max-width:100%}
+.nav-actions{width:auto;max-width:none;gap:8px;flex-wrap:nowrap}
+.nav-actions .nav-link{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 11px;border:1px solid transparent;border-radius:9px;color:#d5e8e1;text-decoration:none;font-size:13px;font-weight:700;white-space:nowrap}
+.nav-actions .nav-link:hover{border-color:#31564a;background:#10221c;color:#fff}
+.user-chip{display:inline-flex;align-items:center;max-width:190px;min-height:34px;padding:6px 10px;border:1px solid #244b3e;border-radius:999px;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.dashboard-heading{min-width:0;flex:1 1 360px}
+.dashboard-heading .muted{max-width:610px;margin:7px 0 12px}
+.top-actions{display:grid;grid-template-columns:auto auto;align-items:center;justify-items:stretch;gap:8px;min-width:0}
+.top-actions .btn{min-width:158px}
+.action-meta{grid-column:1/-1;text-align:right;color:var(--muted);font-size:11px}
+.metric-value{display:block;max-width:100%;font-size:clamp(17px,2.5vw,24px);line-height:1.25;overflow-wrap:anywhere}
+.metric-value.is-pending{min-height:30px;color:#829b91;font-size:14px!important;font-weight:650;letter-spacing:0}
+.metric-hint{min-height:28px;line-height:1.4}
+.table-wrap .table-placeholder{min-width:0;white-space:normal!important;text-align:center;padding:24px 14px!important;color:var(--muted)}
+.empty-state{display:grid;justify-items:center;gap:5px;max-width:520px;margin:0 auto;white-space:normal}
+.empty-mark{display:grid;place-items:center;width:28px;height:28px;margin-bottom:3px;border:1px solid #31564a;border-radius:50%;color:#8ba99d;font-size:16px;font-weight:700}
+.empty-title{color:#e0eee8;font-size:13px;font-weight:800;line-height:1.35}
+.empty-detail{color:var(--muted);font-size:11px;font-weight:400;line-height:1.5;white-space:normal}
+.dashboard-note{line-height:1.5}
+@media(max-width:760px){
+ .dashboard-nav{align-items:center;min-height:68px;padding:9px 0}
+ .dashboard-nav .logo{width:96px}
+ .nav-actions{gap:4px}
+ .nav-actions .nav-link{min-height:36px;padding:7px 9px;font-size:12px}
+ .user-chip{display:none}
+ .topline{align-items:stretch;gap:12px}
+ .top-actions{width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .top-actions .btn{width:100%;min-width:0;padding-inline:9px;font-size:12px}
+ .action-meta{text-align:left}
+}
+@media(max-width:420px){
+ .dashboard-nav .logo{width:84px}
+ .nav-actions .nav-link{padding:6px 7px;font-size:11px}
+ .nav-actions .btn{min-height:36px;padding:7px 9px;font-size:11px}
+ .top-actions{gap:6px}
+ .metric-value.is-pending{font-size:12px!important}
+ .metric-hint{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){button,.btn{transition:none}}
 </style><link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
 <link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
 </head><body>
-<header><div class="wrap"><nav><a href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><div class="nav-actions"><a class="btn btn-secondary" href="/">Home</a><a class="btn btn-secondary" href="/contact.html">Support</a><a class="btn btn-secondary" href="/account.html">Settings</a><span id="user" class="fine">Checking sign-in…</span><button id="logout" class="btn btn-quiet" type="button" hidden>Sign out</button></div></nav></div></header>
+<header><div class="wrap"><nav class="dashboard-nav"><a class="brand" href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><div class="nav-actions"><a class="nav-link" href="/">Home</a><a class="nav-link" href="/contact.html">Support</a><span id="user" class="user-chip">Checking sign-in…</span><button id="logout" class="btn btn-quiet" type="button" hidden>Sign out</button></div></nav></div></header>
 <main class="wrap">
-<div class="topline" style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><div class="kicker">Private trading dashboard</div><h1>Your trading activity</h1><p class="muted">Live broker-confirmed information for approved accounts. This dashboard is read-only.</p><span class="readonly-pill">Read-only preview</span></div><div class="top-actions"><div style="display:grid;justify-items:end;gap:5px"><button id="refresh-now" class="btn btn-primary" type="button" aria-controls="private-content">↻ Refresh data</button><small id="refresh-mode" class="fine">Loading refresh preferences…</small></div><a class="btn btn-secondary" href="/account.html">Profile &amp; settings</a></div></div>
+<div class="topline"><div class="dashboard-heading"><div class="kicker">Private trading dashboard</div><h1>Your trading activity</h1><p class="muted">Live broker-confirmed information for approved accounts. This dashboard is read-only.</p><span class="readonly-pill">Read-only preview</span></div><div class="top-actions"><button id="refresh-now" class="btn btn-primary" type="button" aria-controls="private-content"><span aria-hidden="true">↻</span> Refresh data</button><a class="btn btn-secondary" href="/account.html">Profile &amp; settings</a><small id="refresh-mode" class="action-meta">Loading refresh preferences…</small></div></div>
 <div class="status-grid" aria-label="Trading feed status">
 <div class="status-tile"><span>Feed connection</span><strong id="feed-connection" class="status-value feed-offline">CHECKING…</strong><small id="feed-connection-note" class="status-note">Verifying the secure broker feed…</small></div>
 <div class="status-tile account-mode-tile"><span>Account mode</span><strong id="account-mode" class="mode-badge mode-unknown" hidden>ACCOUNT MODE UNKNOWN</strong><small id="account-mode-note" class="status-note">DEMO / REAL status appears after a verified broker update</small></div>
@@ -57,12 +101,12 @@ button,.btn,select{min-height:44px;max-width:100%}
 <div id="status" class="notice" role="status" aria-live="polite">Verifying your session and feed access…</div>
 <div id="private-content" hidden>
 <div class="grid" aria-label="Broker account summary">
-<div class="metric"><span>Open positions</span><strong id="metric-positions">—</strong><div class="metric-hint">Awaiting verified positions</div></div>
-<div class="metric"><span>Floating P&amp;L</span><strong id="metric-floating">—</strong><div class="metric-hint">Broker-reported open P&amp;L</div></div>
-<div class="metric"><span>Balance</span><strong id="metric-balance">—</strong><div class="metric-hint">Populated from the latest snapshot</div></div>
-<div class="metric"><span>Equity</span><strong id="metric-equity">—</strong><div class="metric-hint">Populated from the latest snapshot</div></div>
+<div class="metric"><span>Open positions</span><strong id="metric-positions" class="metric-value is-pending">Awaiting data</strong><div class="metric-hint">Verified open bot positions</div></div>
+<div class="metric"><span>Floating P&amp;L</span><strong id="metric-floating" class="metric-value is-pending">Awaiting data</strong><div class="metric-hint">Broker-reported open P&amp;L</div></div>
+<div class="metric"><span>Balance</span><strong id="metric-balance" class="metric-value is-pending">Awaiting data</strong><div class="metric-hint">Latest verified broker balance</div></div>
+<div class="metric"><span>Equity</span><strong id="metric-equity" class="metric-value is-pending">Awaiting data</strong><div class="metric-hint">Latest verified broker equity</div></div>
 </div>
-<div class="dashboard-note">Placeholders are shown until the first verified MT5 snapshot arrives. No sample trades, balances or performance figures are fabricated.</div>
+<div id="dashboard-note" class="dashboard-note" role="status" hidden>Waiting for a verified MT5 snapshot. Values and trade rows will populate only when broker data is received; no sample data is displayed.</div>
 <div id="account-filter" class="account-filter" hidden><label for="account-select">Trading account</label><select id="account-select" aria-label="Trading account"></select></div>
 <section class="card"><div class="card-head"><h2>Open positions</h2><span id="account-meta" class="fine">Waiting for broker data</span></div>
 <div class="table-wrap"><table><thead><tr><th>Account</th><th>Ticket</th><th>Symbol</th><th>Side</th><th>Volume</th><th>Entry</th><th>Current</th><th>Stop loss</th><th>Take profit</th><th>Floating P&amp;L</th></tr></thead><tbody id="positions-body"><tr><td class="table-placeholder" colspan="10">Open positions will appear here after a verified broker snapshot.</td></tr></tbody></table></div>
@@ -131,22 +175,27 @@ button,.btn,select{min-height:44px;max-width:100%}
     if (cls) td.className = cls;
     row.appendChild(td);
   }
-  function empty(id, span, message) {
+  function empty(id, span, title, detail) {
     const body = $(id), row = document.createElement('tr'), td = document.createElement('td');
-    td.colSpan = span; td.className = 'muted'; td.textContent = message;
-    row.appendChild(td); body.replaceChildren(row);
+    td.colSpan = span;
+    td.className = 'table-placeholder';
+    td.setAttribute('role', 'status');
+    const state = document.createElement('div'); state.className = 'empty-state';
+    const mark = document.createElement('span'); mark.className = 'empty-mark'; mark.setAttribute('aria-hidden', 'true'); mark.textContent = '—';
+    const heading = document.createElement('strong'); heading.className = 'empty-title'; heading.textContent = title;
+    const description = document.createElement('span'); description.className = 'empty-detail'; description.textContent = detail || '';
+    state.append(mark, heading, description); td.appendChild(state); row.appendChild(td); body.replaceChildren(row);
   }
   function clearDashboardData() {
-    $('metric-positions').textContent = '—';
-    $('metric-floating').textContent = '—';
-    $('metric-balance').textContent = '—';
-    $('metric-equity').textContent = '—';
-    $('metric-floating').className = '';
-    $('account-meta').textContent = 'No current broker snapshot';
+    ['metric-positions', 'metric-floating', 'metric-balance', 'metric-equity'].forEach(function (id) {
+      const value = $(id); value.textContent = 'Awaiting data'; value.className = 'metric-value is-pending';
+    });
+    $('dashboard-note').hidden = false;
+    $('account-meta').textContent = 'Waiting for verified broker data';
     $('account-mode').hidden = true;
-    $('account-mode-note').textContent = 'Awaiting broker account metadata';
-    empty('positions-body', 10, 'No verified open positions are available yet.');
-    empty('deals-body', 9, 'No verified bot deals are available for this period yet.');
+    $('account-mode-note').textContent = 'DEMO / REAL status appears after a verified broker update';
+    empty('positions-body', 10, 'Waiting for open positions', 'Open bot positions will appear here after the next signed MT5 snapshot.');
+    empty('deals-body', 9, 'Waiting for trade history', 'Recent bot deals will appear here after verified broker history is received.');
   }
   function updateAccountSelector(authorizedIds, accountRows) {
     const wrap = $('account-filter'), select = $('account-select');
@@ -173,6 +222,7 @@ button,.btn,select{min-height:44px;max-width:100%}
     wrap.hidden = ids.length < 2;
   }
   function render(payload) {
+    $('dashboard-note').hidden = true;
     const s = payload.snapshot, account = s.account || {}, currency = account.currency || 'USD';
     const positions = Array.isArray(s.positions) ? s.positions : [];
     const deals = Array.isArray(s.deals) ? s.deals : [];
@@ -184,10 +234,13 @@ button,.btn,select{min-height:44px;max-width:100%}
       return cash(value, currency);
     };
     $('metric-positions').textContent = String(positions.length);
+    $('metric-positions').className = 'metric-value';
     $('metric-floating').textContent = money(currency === 'MULTI' ? null : floating);
-    $('metric-floating').className = floating >= 0 ? 'positive' : 'negative';
+    $('metric-floating').className = 'metric-value ' + (floating >= 0 ? 'positive' : 'negative');
     $('metric-balance').textContent = money(account.balance);
+    $('metric-balance').className = 'metric-value';
     $('metric-equity').textContent = money(account.equity);
+    $('metric-equity').className = 'metric-value';
     $('account-meta').textContent = (account.server || 'Broker') + ' · ' + (account.trade_mode || 'UNKNOWN') + ' · ' + currency;
     const mode = String(account.trade_mode || 'UNKNOWN').toUpperCase();
     const modeLabel = mode === 'REAL' ? 'REAL ACCOUNT' : mode === 'DEMO' ? 'DEMO ACCOUNT' : mode === 'CONTEST' ? 'CONTEST ACCOUNT' : (n(account.total_accounts) > 1 ? 'MIXED ACCOUNT MODES' : 'ACCOUNT MODE UNKNOWN');
@@ -196,7 +249,7 @@ button,.btn,select{min-height:44px;max-width:100%}
     modeBadge.className = 'mode-badge ' + (mode === 'REAL' ? 'mode-real' : mode === 'DEMO' ? 'mode-demo' : 'mode-unknown');
     modeBadge.hidden = false;
     $('account-mode-note').textContent = 'Broker-reported account classification';
-    if (!positions.length) empty('positions-body', 10, 'No bot-tagged open positions in the latest broker snapshot.');
+    if (!positions.length) empty('positions-body', 10, 'No open bot positions', 'The latest verified snapshot contains no bot-tagged open positions.');
     else {
       const body = $('positions-body'); body.replaceChildren();
       positions.forEach(function (p) {
@@ -208,7 +261,7 @@ button,.btn,select{min-height:44px;max-width:100%}
         body.appendChild(row);
       });
     }
-    if (!deals.length) empty('deals-body', 9, 'No matching bot deals in the last seven days.');
+    if (!deals.length) empty('deals-body', 9, 'No recent bot deals', 'No matching bot deals were received in the last seven days.');
     else {
       const body = $('deals-body'); body.replaceChildren();
       deals.slice(0,100).forEach(function (d) {
@@ -234,6 +287,8 @@ button,.btn,select{min-height:44px;max-width:100%}
     if (!auth) return;
     if (refreshing) { refreshQueued = true; return; }
     refreshing = true;
+    const refreshButton = $('refresh-now');
+    if (refreshButton) { refreshButton.disabled = true; refreshButton.innerHTML = '<span aria-hidden="true">↻</span> Refreshing…'; }
     try {
       const sessionResult = await auth.auth.getSession(), session = sessionResult.data && sessionResult.data.session;
       if (!session) { window.location.replace('/login.html?next=dashboard.html'); return; }
@@ -272,6 +327,7 @@ button,.btn,select{min-height:44px;max-width:100%}
       setStatus('The feed request failed. No trading figures are displayed until a verified response is available.', 'warn');
     } finally {
       refreshing = false;
+      if (refreshButton) { refreshButton.disabled = false; refreshButton.innerHTML = '<span aria-hidden="true">↻</span> Refresh data'; }
       if (refreshQueued) { refreshQueued = false; refresh(); }
     }
   }
