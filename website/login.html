@@ -87,7 +87,7 @@ input,button{max-width:100%;min-width:0}
   let emailEnabled = false;
   const requestedNext = new URLSearchParams(window.location.search).get("next");
   const nextPage = ["dashboard.html", "account.html"].includes(requestedNext) ? requestedNext : "dashboard.html";
-  const target = window.location.origin + "/" + nextPage;
+  const target = window.location.origin + "/dashboard.html";
   function show(message, warning = false) {
     status.textContent = message;
     status.className = "notice show" + (warning ? " warn" : "");
@@ -108,7 +108,7 @@ input,button{max-width:100%;min-width:0}
       if (!window.supabase || !window.supabase.createClient) throw new Error("Auth library unavailable");
       client = window.supabase.createClient(config.supabaseUrl, config.publishableKey);
       const { data } = await client.auth.getSession();
-      if (data.session) { window.location.replace(target); return; }
+      if (data.session) { window.location.replace("/" + nextPage); return; }
 
       // Ask Supabase Auth which providers are enabled before exposing their actions.
       const settingsResponse = await fetch(config.supabaseUrl.replace(/\/+$/, "") + "/auth/v1/settings", {
