@@ -67,6 +67,12 @@ button,.btn,select{min-height:44px;max-width:100%}
 .empty-title{color:#e0eee8;font-size:13px;font-weight:800;line-height:1.35}
 .empty-detail{color:var(--muted);font-size:11px;font-weight:400;line-height:1.5;white-space:normal}
 .dashboard-note{line-height:1.5}
+.welcome-note{display:flex;align-items:center;gap:15px;margin:20px 0 10px;padding:17px 19px;border:1px solid #285b49;border-radius:14px;background:linear-gradient(105deg,#0d2119,#0a1511 68%,#10261d);box-shadow:0 12px 30px #0002}
+.welcome-mark{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:1px solid #327a60;border-radius:13px;background:#0b2b20;color:#8bffd6;font-size:22px}
+.welcome-copy{min-width:0}
+.welcome-kicker{margin:0 0 3px;color:var(--teal);font-size:10px;font-weight:850;letter-spacing:.14em;text-transform:uppercase}
+.welcome-title{margin:0;color:var(--text);font-size:clamp(17px,2.5vw,21px);font-weight:850;letter-spacing:-.02em;overflow-wrap:anywhere}
+.welcome-detail{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
 @media(max-width:760px){
  .dashboard-nav{align-items:center;min-height:68px;padding:9px 0}
  .dashboard-nav .logo{width:96px}
@@ -93,6 +99,10 @@ button,.btn,select{min-height:44px;max-width:100%}
 <header><div class="wrap"><nav class="dashboard-nav"><a class="brand" href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><div class="nav-actions"><a class="nav-link" href="/">Home</a><a class="nav-link" href="/contact.html">Support</a><span id="user" class="user-chip">Checking sign-in…</span><button id="logout" class="btn btn-quiet" type="button" hidden>Sign out</button></div></nav></div></header>
 <main class="wrap">
 <div class="topline"><div class="dashboard-heading"><div class="kicker">Private trading dashboard</div><h1>Your trading activity</h1><p class="muted">Live broker-confirmed information for approved accounts. This dashboard is read-only.</p><span class="readonly-pill">Read-only preview</span></div><div class="top-actions"><button id="refresh-now" class="btn btn-primary" type="button" aria-controls="private-content"><span aria-hidden="true">↻</span> Refresh data</button><a class="btn btn-secondary" href="/account.html">Profile &amp; settings</a><small id="refresh-mode" class="action-meta">Loading refresh preferences…</small></div></div>
+<section id="welcome-note" class="welcome-note" aria-live="polite" hidden>
+<div class="welcome-mark" aria-hidden="true">✦</div>
+<div class="welcome-copy"><p class="welcome-kicker">VORTEX AI · PERSONAL DASHBOARD</p><h2 id="welcome-title" class="welcome-title">Welcome back</h2><p id="welcome-detail" class="welcome-detail">Your dashboard is ready. Trading figures appear only when verified broker data is available.</p></div>
+</section>
 <div class="status-grid" aria-label="Trading feed status">
 <div class="status-tile"><span>Feed connection</span><strong id="feed-connection" class="status-value feed-offline">CHECKING…</strong><small id="feed-connection-note" class="status-note">Verifying the secure broker feed…</small></div>
 <div class="status-tile account-mode-tile"><span>Account mode</span><strong id="account-mode" class="mode-badge mode-unknown" hidden>ACCOUNT MODE UNKNOWN</strong><small id="account-mode-note" class="status-note">DEMO / REAL status appears after a verified broker update</small></div>
@@ -140,6 +150,18 @@ button,.btn,select{min-height:44px;max-width:100%}
     $('broker-updated-note').textContent = note || (lastSuccessfulBrokerUpdate ? 'Latest accepted broker snapshot · ' + timezoneLabel : 'No broker snapshot has been received');
   }
   function n(value) { const v = Number(value); return Number.isFinite(v) ? v : 0; }
+  function renderWelcome(userRecord) {
+    const metadata = userRecord && userRecord.user_metadata && typeof userRecord.user_metadata === 'object' ? userRecord.user_metadata : {};
+    const profile = metadata.vortex_profile && typeof metadata.vortex_profile === 'object' ? metadata.vortex_profile : {};
+    const rawName = [profile.display_name, metadata.full_name, metadata.name].find(function (value) {
+      return typeof value === 'string' && value.trim();
+    }) || '';
+    const displayName = String(rawName).replace(/[\\u0000-\\u001f\\u007f]/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 80);
+    $('welcome-title').textContent = displayName ? 'Welcome back, ' + displayName : 'Welcome back to VORTEX AI';
+    $('welcome-detail').textContent = 'Your trading dashboard is ready. Broker figures and trade history below are shown only when verified MT5 data is available.';
+    $('welcome-note').hidden = false;
+    user.textContent = displayName ? 'Signed in · ' + displayName : 'Signed in';
+  }
   function applyUserPreferences(userRecord) {
     const metadata = userRecord && userRecord.user_metadata && typeof userRecord.user_metadata === 'object' ? userRecord.user_metadata : {};
     const preferences = metadata.vortex_preferences && typeof metadata.vortex_preferences === 'object' ? metadata.vortex_preferences : {};
@@ -342,9 +364,7 @@ button,.btn,select{min-height:44px;max-width:100%}
       const verifiedUserResult = await auth.auth.getUser();
       const verifiedUser = verifiedUserResult.data && verifiedUserResult.data.user;
       if (verifiedUserResult.error || !verifiedUser) { window.location.replace('/login.html?next=dashboard.html'); return; }
-      const metadata = verifiedUser.user_metadata && typeof verifiedUser.user_metadata === 'object' ? verifiedUser.user_metadata : {};
-      const profile = metadata.vortex_profile && typeof metadata.vortex_profile === 'object' ? metadata.vortex_profile : {};
-      user.textContent = profile.display_name ? 'Signed in · ' + String(profile.display_name).slice(0,80) : 'Signed in';
+      renderWelcome(verifiedUser);
       applyUserPreferences(verifiedUser);
       logout.hidden = false; content.hidden = false;
       logout.onclick = async function () { if (timer) window.clearInterval(timer); await auth.auth.signOut({scope:'local'}); window.location.href='/login.html'; };
