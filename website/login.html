@@ -66,13 +66,14 @@ input,button{max-width:100%;min-width:0}
 <div class="eyebrow">Secure dashboard access</div><h1 id="heading">Sign in to VORTEX AI</h1>
 <p>Sign in to view your authorized trading dashboard. Your MT5 password is never requested here.</p>
 <div id="status" class="notice show" role="status">Checking sign-in configuration…</div>
-<div class="providers" style="margin-top:16px">
-<button class="provider" id="google" type="button" disabled><span><svg viewBox="0 0 48 48" focusable="false" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.96 46.98 31.87 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.75 24c0-1.59.27-3.13.75-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.86.92 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.43-4.89 2.28-8.18 2.28-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 43.62 14.62 48 24 48z"/></svg>Continue with Google</span></button>
+<div class="providers" style="margin-top:16px" aria-label="Social sign-in options">
+<button class="provider" id="google" type="button" disabled title="Checking Google sign-in availability"><span><svg viewBox="0 0 48 48" focusable="false" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.96 46.98 31.87 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.75 24c0-1.59.27-3.13.75-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.86.92 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.43-4.89 2.28-8.18 2.28-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 43.62 14.62 48 24 48z"/></svg>Continue with Google</span></button>
+<button class="provider" id="apple" type="button" disabled title="Checking Apple sign-in availability"><span><svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path fill="currentColor" d="M16.37 12.23c.02 2.09 1.83 2.78 1.85 2.79-.02.05-.29 1-.96 1.98-.58.84-1.18 1.67-2.13 1.69-.93.02-1.23-.54-2.3-.54-1.06 0-1.4.52-2.28.56-.91.03-1.6-.91-2.18-1.75-1.19-1.72-2.1-4.86-.88-6.98.6-1.05 1.68-1.72 2.85-1.74.9-.02 1.75.61 2.3.61.54 0 1.55-.76 2.61-.65.44.02 1.69.18 2.49 1.35-.06.04-1.49.87-1.47 2.68ZM14.68 6.7c.48-.58.8-1.39.71-2.2-.69.03-1.53.46-2.03 1.04-.45.52-.84 1.34-.73 2.13.77.06 1.56-.39 2.05-.97Z"/></svg>Continue with Apple</span></button>
 </div>
 <div class="or">OR CONTINUE WITH EMAIL</div>
 <form id="email-form"><label for="email">Email address</label><div class="email-row"><input id="email" name="email" type="email" autocomplete="email" placeholder="name@example.com" required><button class="submit" id="email-submit" type="submit" disabled>Send secure sign-in link</button></div></form>
 <div class="legal">By continuing, you agree to use this service in accordance with our <a href="/#risk">risk disclosure</a>. Automated trading can result in losses.</div>
-<div class="tiny">Email-link delivery requires a configured outbound SMTP sender. Google sign-in stays unavailable until the Google provider is enabled in Supabase. Demo trading dashboard · Read-only website · No MT5 password collection</div>
+<div class="tiny">Email-link delivery requires a configured outbound SMTP sender. Google and Apple sign-in are available when enabled in Production Supabase. Demo trading dashboard · Read-only website · No MT5 password collection</div>
 </section></main>
 <footer><div class="wrap row"><span>© VORTEX AI</span><div class="row"><a href="/">Home</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/contact.html">Support</a></div></div></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
@@ -81,9 +82,11 @@ input,button{max-width:100%;min-width:0}
   const $ = (id) => document.getElementById(id);
   const status = $("status");
   const googleButton = $("google");
+  const appleButton = $("apple");
   const emailButton = $("email-submit");
   let client = null;
   let googleEnabled = false;
+  let appleEnabled = false;
   let emailEnabled = false;
   const requestedNext = new URLSearchParams(window.location.search).get("next");
   const nextPage = ["dashboard.html", "account.html"].includes(requestedNext) ? requestedNext : "dashboard.html";
@@ -96,6 +99,7 @@ input,button{max-width:100%;min-width:0}
   }
   function setBusy(busy) {
     googleButton.disabled = busy || !googleEnabled;
+    appleButton.disabled = busy || !appleEnabled;
     emailButton.disabled = busy || !emailEnabled;
   }
   async function init() {
@@ -121,38 +125,44 @@ input,button{max-width:100%;min-width:0}
       if (!settingsResponse.ok) throw new Error("Could not verify enabled sign-in providers");
       const settings = await settingsResponse.json();
       googleEnabled = settings.external?.google === true;
+      appleEnabled = settings.external?.apple === true;
       emailEnabled = settings.external?.email === true;
       setBusy(false);
 
-      if (googleEnabled && emailEnabled) {
-        show("Sign in with Google or request an email sign-in link. Access is limited to pre-approved accounts.");
-      } else if (googleEnabled) {
-        show("Google sign-in is available for approved accounts. Email sign-in is currently disabled.");
-      } else if (emailEnabled) {
-        show("Google sign-in is not enabled in Supabase yet. Email sign-in is available for approved accounts when outbound email delivery is configured.", true);
+      const activeProviders = [
+        googleEnabled ? "Google" : null,
+        appleEnabled ? "Apple" : null,
+        emailEnabled ? "email link" : null
+      ].filter(Boolean);
+      if (activeProviders.length) {
+        show(activeProviders.join(", ") + " sign-in available. Access is limited to pre-approved accounts.");
       } else {
         show("No sign-in provider is currently enabled. Contact the VORTEX AI administrator to complete authentication setup.", true);
       }
-      googleButton.title = googleEnabled ? "Continue with Google" : "Google sign-in is not enabled in Supabase";
+      googleButton.title = googleEnabled ? "Continue with Google" : "Google sign-in is not enabled in Production Supabase";
+      appleButton.title = appleEnabled ? "Continue with Apple" : "Apple sign-in is not configured in Production Supabase";
     } catch (error) {
       setBusy(true);
       show("Could not verify the sign-in provider configuration. No OAuth redirect will be attempted. Please try again later.", true);
     }
   }
   async function oauth(provider) {
-    if (!client || provider !== "google" || !googleEnabled) {
-      show("Google sign-in is not enabled in Supabase. Complete Google OAuth provider setup before trying again.", true);
+    const enabled = provider === "google" ? googleEnabled : provider === "apple" ? appleEnabled : false;
+    const label = provider === "apple" ? "Apple" : "Google";
+    if (!client || !enabled) {
+      show(label + " sign-in is not enabled in Production Supabase. The provider must be configured before it can authenticate accounts.", true);
       return;
     }
     setBusy(true);
-    show("Redirecting to Google…");
+    show("Redirecting to " + label + "…");
     const { error } = await client.auth.signInWithOAuth({ provider, options: { redirectTo: target } });
     if (error) {
       setBusy(false);
-      show(error.message || "Could not start sign-in.", true);
+      show(error.message || "Could not start " + label + " sign-in.", true);
     }
   }
   googleButton.addEventListener("click", () => oauth("google"));
+  appleButton.addEventListener("click", () => oauth("apple"));
   $("email-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!client || !emailEnabled) {
