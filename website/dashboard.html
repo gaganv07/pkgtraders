@@ -1,401 +1,3553 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#050b09"><title>Dashboard | VORTEX AI</title>
-<style>
-:root{color-scheme:dark;--bg:#050b09;--panel:#0b1512;--line:#244b3e;--text:#f2faf7;--muted:#a1b9b0;--teal:#00e6ad;--amber:#ffd58a}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0,#123d32,transparent 45%),var(--bg);color:var(--text);font:15px/1.55 system-ui,sans-serif}.wrap{width:min(1050px,calc(100% - 32px));margin:auto}header{border-bottom:1px solid var(--line)}nav{height:92px;display:flex;align-items:center;justify-content:space-between}.logo{width:116px;max-width:32vw;height:auto;display:block}button,.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;max-width:100%;border:1px solid #31564a;border-radius:10px;background:#12221d;color:var(--text);padding:10px 15px;font:inherit;font-size:13px;font-weight:750;line-height:1.2;text-decoration:none;white-space:nowrap;cursor:pointer;transition:transform .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease}button:hover,.btn:hover{transform:translateY(-1px);border-color:var(--teal);box-shadow:0 8px 22px #0004}button:focus-visible,.btn:focus-visible,select:focus-visible{outline:3px solid #8bfbd0;outline-offset:3px}.btn-primary{background:linear-gradient(105deg,#00d99f,#00f0ac);border-color:#00e8a8;color:#00261b;box-shadow:0 0 18px #00df9c18}.btn-primary:hover{background:#65ffd0;color:#00261b}.btn-secondary{background:#10221c;border-color:#31564a;color:var(--text)}.btn-quiet{background:transparent;border-color:#31564a;color:#c5d8d0}.nav-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;max-width:calc(100% - 130px);flex-wrap:wrap}.readonly-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #31564a;border-radius:999px;background:#0b2119;color:#b8f6d9;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}.readonly-pill:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 9px #00e6ad}.dashboard-note{margin:4px 0 18px;padding:12px 14px;border:1px dashed #31564a;border-radius:10px;background:#081510;color:var(--muted);font-size:12px}.metric-hint{margin-top:7px;color:var(--muted);font-size:11px}.table-placeholder{text-align:center;color:var(--muted);padding:22px 14px!important;font-style:italic}.top-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-items:end}.btn:disabled,button:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}[hidden]{display:none!important}main{padding:42px 0 60px}.kicker{font-size:11px;letter-spacing:.16em;color:var(--teal);font-weight:800;text-transform:uppercase}h1{font-size:clamp(30px,4vw,42px);letter-spacing:-.04em;margin:8px 0}.muted{color:var(--muted)}.notice{border:1px solid #745a30;background:#261d0e;color:#ffe2b1;padding:12px 14px;border-radius:10px;margin-top:18px}.notice.ok{border-color:#236c53;background:#0b241b;color:#b8f6d9}.notice.warn{border-color:#745a30;background:#261d0e;color:#ffe2b1}.mode-badge[hidden]{display:none}.mode-badge{display:inline-flex;align-items:center;margin-top:12px;padding:5px 10px;border:1px solid #456257;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.08em}.mode-demo{border-color:#3b83b5;color:#a8ddff;background:#102331}.mode-real{border-color:#c28a39;color:#ffdc9c;background:#2a1f0d}.mode-unknown{border-color:#64746e;color:#c3d0cb;background:#17201c}.status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 22px}.status-tile{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 17px}.status-tile>span{display:block;color:var(--muted);font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}.status-tile .status-value{display:block;margin-top:7px;font-size:15px;font-weight:850;overflow-wrap:anywhere}.status-tile .status-note{display:block;margin-top:5px;color:var(--muted);font-size:11px}.feed-fresh{color:#b8f6d9}.feed-stale{color:#ffdfaa}.feed-offline{color:#c3d0cb}.account-mode-tile .mode-badge{margin-top:7px}.account-filter{display:flex;align-items:center;gap:10px;margin:18px 0 4px}.account-filter[hidden]{display:none}.account-filter label{font-size:12px;color:var(--muted);font-weight:700}.account-filter select{min-width:220px;max-width:100%;border:1px solid #35564b;border-radius:9px;background:#07100d;color:var(--text);padding:9px 12px;font:inherit}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}.metric,.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:19px}.metric span{display:block;color:var(--muted);font-size:12px}.metric strong{display:block;font-size:24px;margin-top:6px}.card{margin-top:14px}.table-empty{text-align:center;border:1px dashed #35574b;border-radius:10px;color:var(--muted);padding:26px;margin-top:14px}.fine{font-size:12px;color:var(--muted)}@media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.status-grid{grid-template-columns:1fr 1fr}}@media(max-width:480px){.grid{grid-template-columns:1fr 1fr;gap:8px}.status-grid{grid-template-columns:1fr}.metric{padding:12px}.metric strong{font-size:20px}.logo{width:94px}nav{height:76px}}
-.back-to-top{position:fixed;right:16px;bottom:18px;z-index:20;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid #00e6ad;background:#00e6ad;color:#052019;font-size:25px;font-weight:850;line-height:1;box-shadow:0 8px 28px #0006;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease;cursor:pointer}.back-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}.back-to-top:hover{background:#bfffea;border-color:#bfffea}.back-to-top:focus-visible{outline:3px solid #bfffea;outline-offset:4px}@media(prefers-reduced-motion:reduce){.back-to-top{transition:none}}
 
-/* VORTEX responsive dashboard: contain wide tables and prevent page overflow */
-html,body{width:100%;max-width:100%;overflow-x:hidden}
-img,svg{max-width:100%}
-.wrap,main,.topline,.status-grid,.grid,.metric,.card,.card-head,.table-wrap{min-width:0}
-nav{height:auto;min-height:76px;padding:8px 0;gap:12px;flex-wrap:wrap}
-nav>div{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;max-width:calc(100% - 130px);flex-wrap:wrap}
-.logo{width:116px;max-width:32vw;height:auto;object-fit:contain;image-rendering:auto}
-#user{max-width:38vw;overflow-wrap:anywhere;text-align:right}
-.grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-.metric strong{max-width:100%;font-size:clamp(17px,2.5vw,24px);overflow-wrap:anywhere}
-.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.table-wrap{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border-radius:10px}
-.table-wrap table{width:100%;min-width:760px;border-collapse:collapse}
-.table-wrap th,.table-wrap td{white-space:nowrap}
-button,.btn,select{min-height:44px;max-width:100%}
-.account-filter{align-items:flex-start;gap:10px;flex-wrap:wrap}
-.account-filter label{width:100%}
-.account-filter select{min-width:0;width:min(100%,340px)}
-@media(max-width:760px){
- .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
- .status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media(max-width:480px){
- .wrap{width:calc(100% - 24px)}
- nav{min-height:72px;padding:9px 0;gap:8px}
- nav>div{max-width:calc(100% - 104px);gap:6px}
- .logo{width:92px;max-width:28vw}
- #user{max-width:32vw;font-size:11px}
- nav>div .fine{font-size:11px;white-space:normal;overflow-wrap:anywhere}
- main{padding:26px 0 44px}
- h1{font-size:clamp(26px,8vw,34px);line-height:1.15}
- .status-grid{grid-template-columns:minmax(0,1fr)}
- .status-tile{padding:12px}
- .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
- .metric,.card{padding:12px}
- .metric strong{font-size:clamp(16px,5vw,20px);line-height:1.25}
- .card-head h2{font-size:18px;line-height:1.25}
- .account-filter select{width:100%}
-}
+<html lang="en">
 
-/* Dashboard layout: consistent controls, responsive navigation and readable empty states */
-.dashboard-nav{height:auto;min-height:76px;padding:12px 0;gap:16px}
-.dashboard-nav .brand{display:flex;align-items:center;flex:0 0 auto}
-.dashboard-nav .logo{width:116px;max-width:100%}
-.nav-actions{width:auto;max-width:none;gap:8px;flex-wrap:nowrap}
-.nav-actions .nav-link{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 11px;border:1px solid transparent;border-radius:9px;color:#d5e8e1;text-decoration:none;font-size:13px;font-weight:700;white-space:nowrap}
-.nav-actions .nav-link:hover{border-color:#31564a;background:#10221c;color:#fff}
-.user-chip{display:inline-flex;align-items:center;max-width:190px;min-height:34px;padding:6px 10px;border:1px solid #244b3e;border-radius:999px;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
-.dashboard-heading{min-width:0;flex:1 1 360px}
-.dashboard-heading .muted{max-width:610px;margin:7px 0 12px}
-.top-actions{display:grid;grid-template-columns:auto auto;align-items:center;justify-items:stretch;gap:8px;min-width:0}
-.top-actions .btn{min-width:158px}
-.action-meta{grid-column:1/-1;text-align:right;color:var(--muted);font-size:11px}
-.metric-value{display:block;max-width:100%;font-size:clamp(17px,2.5vw,24px);line-height:1.25;overflow-wrap:anywhere}
-.metric-value.is-pending{min-height:30px;color:#829b91;font-size:14px!important;font-weight:650;letter-spacing:0}
-.metric-hint{min-height:28px;line-height:1.4}
-.table-wrap .table-placeholder{min-width:0;white-space:normal!important;text-align:center;padding:24px 14px!important;color:var(--muted)}
-.empty-state{display:grid;justify-items:center;gap:5px;max-width:520px;margin:0 auto;white-space:normal}
-.empty-mark{display:grid;place-items:center;width:28px;height:28px;margin-bottom:3px;border:1px solid #31564a;border-radius:50%;color:#8ba99d;font-size:16px;font-weight:700}
-.empty-title{color:#e0eee8;font-size:13px;font-weight:800;line-height:1.35}
-.empty-detail{color:var(--muted);font-size:11px;font-weight:400;line-height:1.5;white-space:normal}
-.dashboard-note{line-height:1.5}
-.welcome-note{display:flex;align-items:center;gap:15px;margin:20px 0 10px;padding:17px 19px;border:1px solid #285b49;border-radius:14px;background:linear-gradient(105deg,#0d2119,#0a1511 68%,#10261d);box-shadow:0 12px 30px #0002}
-.welcome-mark{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:1px solid #327a60;border-radius:13px;background:#0b2b20;color:#8bffd6;font-size:22px}
-.welcome-copy{min-width:0}
-.welcome-kicker{margin:0 0 3px;color:var(--teal);font-size:10px;font-weight:850;letter-spacing:.14em;text-transform:uppercase}
-.welcome-title{margin:0;color:var(--text);font-size:clamp(17px,2.5vw,21px);font-weight:850;letter-spacing:-.02em;overflow-wrap:anywhere}
-.welcome-detail{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
-@media(max-width:760px){
- .dashboard-nav{align-items:center;min-height:68px;padding:9px 0}
- .dashboard-nav .logo{width:96px}
- .nav-actions{gap:4px}
- .nav-actions .nav-link{min-height:36px;padding:7px 9px;font-size:12px}
- .user-chip{display:none}
- .topline{align-items:stretch;gap:12px}
- .top-actions{width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
- .top-actions .btn{width:100%;min-width:0;padding-inline:9px;font-size:12px}
- .action-meta{text-align:left}
-}
-@media(max-width:420px){
- .dashboard-nav .logo{width:84px}
- .nav-actions .nav-link{padding:6px 7px;font-size:11px}
- .nav-actions .btn{min-height:36px;padding:7px 9px;font-size:11px}
- .top-actions{gap:6px}
- .metric-value.is-pending{font-size:12px!important}
- .metric-hint{font-size:10px}
-}
-@media(prefers-reduced-motion:reduce){button,.btn{transition:none}}
-</style><link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
+<head>
+
+<meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="theme-color" content="#050b09">
+
+<title>VORTEX AI — Institutional Multi-Account Operations Console</title>
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
+
 <link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
+
+<link rel="stylesheet" href="/nav.css">
+
+<link rel="stylesheet" href="/status-indicators.css">
+
+<style>
+
+:root{
+
+  color-scheme: dark;
+
+  --bg: #050b09;
+
+  --panel: #0c1513;
+
+  --panel-card: #0e1b17;
+
+  --line: #1c3830;
+
+  --text: #f0faf6;
+
+  --muted: #9bb5ab;
+
+  --teal: #00e6ad;
+
+  --cyan: #80ffe1;
+
+  --amber: #ffc453;
+
+  --red: #ff5252;
+
+  --blue: #3b82f6;
+
+}
+
+*{box-sizing:border-box}
+
+body{
+
+  margin: 0;
+
+  min-height: 100vh;
+
+  background: radial-gradient(ellipse at 50% 0, #10382e 0, transparent 48%), var(--bg);
+
+  color: var(--text);
+
+  font: 14px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  display: flex;
+
+  flex-direction: column;
+
+  overflow-x: hidden;
+
+}
+
+a{color:var(--cyan);text-decoration:none}
+
+.wrap{width:min(1280px, calc(100% - 32px));margin:0 auto}
+
+
+
+/* HEADER */
+
+header{
+
+  background: #07120fe6;
+
+  backdrop-filter: blur(12px);
+
+  border-bottom: 1px solid var(--line);
+
+  position: sticky;
+
+  top: 0;
+
+  z-index: 100;
+
+}
+
+.header-top{
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  padding: 14px 0;
+
+}
+
+.brand{
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+}
+
+.logo{
+
+  height: 32px;
+
+  width: auto;
+
+  display: block;
+
+}
+
+.brand-tag{
+
+  font-size: 11px;
+
+  background: #0d2720;
+
+  border: 1px solid #1f473b;
+
+  color: var(--teal);
+
+  padding: 3px 8px;
+
+  border-radius: 6px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.05em;
+
+  text-transform: uppercase;
+
+}
+
+.header-actions{
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+}
+
+.pill{
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 5px 12px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+
+  font-weight: 650;
+
+  letter-spacing: .02em;
+
+}
+
+.pill-disarmed{
+
+  background: #241607;
+
+  color: var(--amber);
+
+  border: 1px solid #6b4512;
+
+}
+
+.pill-dot{
+
+  width: 8px;
+
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: currentColor;
+
+  animation: pulse 2s infinite ease-in-out;
+
+}
+
+@keyframes pulse{
+
+  0%,100%{opacity:1}
+
+  50%{opacity:.4}
+
+}
+
+.user-menu{
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  background: #0a1714;
+
+  border: 1px solid #1c3830;
+
+  padding: 4px 10px 4px 12px;
+
+  border-radius: 8px;
+
+}
+
+.user-name{
+
+  font-weight: 600;
+
+  font-size: 12px;
+
+  color: #d6f2e8;
+
+  cursor: pointer;
+
+}
+
+.role-badge{
+
+  display: inline-flex;
+
+  align-items: center;
+
+  padding: 2px 7px;
+
+  border-radius: 5px;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: .05em;
+
+  text-transform: uppercase;
+
+}
+
+.role-badge-admin{
+
+  background: #102d24;
+
+  color: var(--teal);
+
+  border: 1px solid #1c5e4b;
+
+}
+
+.role-badge-readonly{
+
+  background: #1c262f;
+
+  color: #79c0ff;
+
+  border: 1px solid #28445e;
+
+}
+
+.btn-sm{
+
+  background: #132a24;
+
+  border: 1px solid #234d40;
+
+  color: var(--text);
+
+  padding: 6px 12px;
+
+  border-radius: 6px;
+
+  font-size: 11.5px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  min-height: 36px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  transition: all .15s;
+
+}
+
+.btn-sm:hover{
+
+  background: #1b3d34;
+
+  border-color: var(--teal);
+
+}
+
+.btn-notif{
+
+  position: relative;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+}
+
+.notif-badge{
+
+  background: var(--teal);
+
+  color: #051610;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  padding: 1px 5px;
+
+  border-radius: 999px;
+
+}
+
+
+
+/* NAVIGATION TABS */
+
+.nav-tabs{
+
+  display: flex;
+
+  gap: 4px;
+
+  overflow-x: auto;
+
+  border-top: 1px solid #132620;
+
+  padding: 4px 0 0;
+
+  scrollbar-width: thin;
+
+}
+
+.tab-link{
+
+  background: transparent;
+
+  border: none;
+
+  border-bottom: 2px solid transparent;
+
+  color: var(--muted);
+
+  font-size: 12px;
+
+  font-weight: 650;
+
+  padding: 10px 14px;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  min-height: 44px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  transition: all .15s;
+
+}
+
+.tab-link:hover{
+
+  color: var(--text);
+
+}
+
+.tab-link.active{
+
+  color: var(--teal);
+
+  border-bottom-color: var(--teal);
+
+  background: #0c1a1640;
+
+}
+
+
+
+/* MAIN CONTENT */
+
+main{
+
+  flex: 1;
+
+  padding: 24px 0 48px;
+
+}
+
+.banner{
+
+  background: #0d1a16;
+
+  border: 1px solid #1c3d33;
+
+  padding: 12px 16px;
+
+  border-radius: 10px;
+
+  margin-bottom: 20px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  font-size: 12px;
+
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+}
+
+.banner strong{color:var(--amber)}
+
+.view-panel{
+
+  display: block;
+
+}
+
+.view-panel[hidden]{
+
+  display: none !important;
+
+}
+
+
+
+/* KPI CARDS */
+
+.kpi-grid{
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+
+  gap: 16px;
+
+  margin-bottom: 20px;
+
+}
+
+.kpi-card{
+
+  background: var(--panel-card);
+
+  border: 1px solid var(--line);
+
+  border-radius: 14px;
+
+  padding: 18px;
+
+}
+
+.kpi-label{
+
+  font-size: 11px;
+
+  text-transform: uppercase;
+
+  color: var(--muted);
+
+  letter-spacing: .08em;
+
+  font-weight: 700;
+
+  margin-bottom: 8px;
+
+}
+
+.kpi-value{
+
+  font-size: 26px;
+
+  font-weight: 800;
+
+  letter-spacing: -.03em;
+
+  color: var(--text);
+
+  line-height: 1.1;
+
+}
+
+.kpi-sub{
+
+  font-size: 11px;
+
+  color: var(--muted);
+
+  margin-top: 6px;
+
+}
+
+.val-green{color:var(--teal)}
+
+.val-amber{color:var(--amber)}
+
+
+
+/* CARDS & TABLES */
+
+.card{
+
+  background: var(--panel);
+
+  border: 1px solid var(--line);
+
+  border-radius: 14px;
+
+  padding: 22px;
+
+  margin-bottom: 20px;
+
+}
+
+.card-header{
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 12px;
+
+  margin-bottom: 16px;
+
+}
+
+.card-title{
+
+  font-size: 16px;
+
+  font-weight: 750;
+
+  letter-spacing: -.02em;
+
+  margin: 0;
+
+}
+
+.card-meta{
+
+  font-size: 11px;
+
+  color: var(--muted);
+
+}
+
+.table-wrap{
+
+  overflow-x: auto;
+
+  border: 1px solid var(--line);
+
+  border-radius: 10px;
+
+  -webkit-overflow-scrolling: touch;
+
+}
+
+table{
+
+  width: 100%;
+
+  border-collapse: collapse;
+
+  font-size: 12px;
+
+  text-align: left;
+
+}
+
+th{
+
+  background: #091411;
+
+  color: var(--muted);
+
+  font-weight: 700;
+
+  font-size: 11px;
+
+  text-transform: uppercase;
+
+  letter-spacing: .05em;
+
+  padding: 12px 14px;
+
+  border-bottom: 1px solid var(--line);
+
+  white-space: nowrap;
+
+}
+
+td{
+
+  padding: 11px 14px;
+
+  border-bottom: 1px solid #13241f;
+
+  white-space: nowrap;
+
+}
+
+tr:hover td{
+
+  background: #0e1e1940;
+
+}
+
+
+
+/* MODAL */
+
+.modal-overlay{
+
+  position: fixed;
+
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.7);
+
+  backdrop-filter: blur(4px);
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  z-index: 200;
+
+  padding: 16px;
+
+}
+
+.modal-overlay[hidden]{
+
+  display: none !important;
+
+}
+
+.modal-card{
+
+  background: #0a1714;
+
+  border: 1px solid #234d40;
+
+  border-radius: 18px;
+
+  padding: 24px;
+
+  width: min(540px, 100%);
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+
+}
+
+
+
+/* ERROR STATE / RETRY BUTTON */
+
+.error-box{
+
+  background: #240c0c;
+
+  border: 1px solid #701c1c;
+
+  color: #ffb8b8;
+
+  padding: 20px;
+
+  border-radius: 12px;
+
+  margin-bottom: 20px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  flex-wrap: wrap;
+
+  gap: 14px;
+
+}
+
+
+
+@media(max-width:850px){
+
+  .header-actions .pill-disarmed{display:none}
+
+}
+
+@media(max-width:600px){
+
+  .card{padding:16px}
+
+  .kpi-grid{grid-template-columns:1fr}
+
+}
+
+</style>
+
 <link rel="stylesheet" href="/assistant.css?v=1">
-</head><body>
-<header><div class="wrap"><nav class="dashboard-nav"><a class="brand" href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><div class="nav-actions"><a class="nav-link" href="/">Home</a><a class="nav-link" href="/contact.html">Support</a><span id="user" class="user-chip">Checking sign-in…</span><button id="logout" class="btn btn-quiet" type="button" hidden>Sign out</button></div></nav></div></header>
+<link rel="stylesheet" href="/mobile-fixes.css?v=1">
+</head>
+
+<body>
+
+
+
+<header>
+
+  <div class="wrap">
+
+    <div class="header-top">
+
+      <div class="brand">
+
+        <a href="/" aria-label="VORTEX Home">
+
+          <img class="logo" src="/vortex-ai-logo.webp?v=20261028-1" alt="VORTEX AI">
+
+        </a>
+
+        <span class="brand-tag">Operations Console</span>
+
+      </div>
+
+      <div class="header-actions">
+
+        <div class="pill pill-disarmed" title="Execution Controller Hard Disarmed. All orders inhibited.">
+
+          <span class="pill-dot"></span>
+
+          <span>Execution: Hard Disarmed</span>
+
+        </div>
+
+        <button class="btn-sm btn-notif" id="btn-open-notifs" title="Operational Notifications" type="button">
+
+          <span>Alerts</span>
+
+          <span class="notif-badge" id="notif-badge-count">2</span>
+
+        </button>
+
+        <a href="mailto:supportvortexbot@gmail.com" class="btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px" title="Email Customer Support">Support ✉</a>
+
+        <div class="user-menu">
+
+          <span class="user-name" id="user-display" title="Click to view Operator Profile">Operator</span>
+
+          <span class="role-badge role-badge-readonly" id="role-display">READ_ONLY</span>
+
+          <button class="btn-sm" id="btn-logout" type="button">Sign Out</button>
+
+        </div>
+
+        <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu" type="button">
+
+          <svg class="icon-bars" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
+
+          <svg class="icon-close" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+        </button>
+
+      </div>
+
+    </div>
+
+    <nav class="nav-tabs" aria-label="Dashboard sections">
+
+      <button class="tab-link active" data-tab="tab-overview" type="button">Fleet Overview</button>
+
+      <button class="tab-link" data-tab="tab-accounts" type="button">20 Accounts Matrix</button>
+
+      <button class="tab-link" data-tab="tab-positions" type="button">Open Positions (<span id="tab-positions-count">0</span>)</button>
+
+      <button class="tab-link" data-tab="tab-pending-orders" type="button">Pending Orders (0)</button>
+
+      <button class="tab-link" data-tab="tab-trades" type="button">Trade History</button>
+
+      <button class="tab-link" data-tab="tab-closed-trades" type="button">Closed Trades (<span id="tab-closed-trades-count">0</span>)</button>
+
+      <button class="tab-link" data-tab="tab-intelligence" type="button">Market Intelligence</button>
+
+      <button class="tab-link" data-tab="tab-performance" type="button">Performance Analytics</button>
+
+      <button class="tab-link" data-tab="tab-risk" type="button">Risk Overview</button>
+
+      <button class="tab-link" data-tab="tab-notifications" type="button">Notifications</button>
+
+      <button class="tab-link" data-tab="tab-system" type="button">System Health</button>
+
+      <button class="tab-link" data-tab="tab-audit" type="button">Activity &amp; Audit</button>
+
+      <button class="tab-link" data-tab="tab-settings" type="button">Profile &amp; Settings</button>
+
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+<!-- Mobile Navigation Drawer -->
+
+<div id="mobile-menu" class="mobile-menu" hidden aria-label="Mobile navigation">
+
+  <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:750;margin-bottom:4px">Console Views</div>
+
+  <a class="mobile-nav-link" href="#overview" onclick="switchTab('tab-overview')">Fleet Overview <span>→</span></a>
+
+  <a class="mobile-nav-link" href="#accounts" onclick="switchTab('tab-accounts')">20 Accounts Matrix <span>→</span></a>
+
+  <a class="mobile-nav-link" href="#positions" onclick="switchTab('tab-positions')">Open Positions <span>→</span></a>
+
+  <a class="mobile-nav-link" href="#trades" onclick="switchTab('tab-trades')">Trade History <span>→</span></a>
+
+  <a class="mobile-nav-link" href="#closed-trades" onclick="switchTab('tab-closed-trades')">Closed Trades <span>→</span></a>
+
+  <a class="mobile-nav-link" href="#intelligence" onclick="switchTab('tab-intelligence')">Market Intelligence <span>→</span></a>
+
+  <a class="mobile-nav-link" href="#performance" onclick="switchTab('tab-performance')">Performance Analytics <span>→</span></a>
+
+  <a class="mobile-nav-link" href="#risk" onclick="switchTab('tab-risk')">Risk Overview <span>→</span></a>
+
+  <a class="mobile-nav-link" href="#system" onclick="switchTab('tab-system')">System Health <span>→</span></a>
+
+  <a class="mobile-nav-link" href="#settings" onclick="switchTab('tab-settings')">Profile &amp; Settings <span>→</span></a>
+
+  <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:750;margin:12px 0 4px">Documentation &amp; Public Pages</div>
+
+  <a class="mobile-nav-link" href="/getting-started.html">Getting Started Guide <span>↗</span></a>
+
+  <a class="mobile-nav-link" href="/status.html">Platform Status &amp; Matrix <span>↗</span></a>
+
+  <a class="mobile-nav-link" href="/faq.html">FAQ &amp; Help <span>↗</span></a>
+
+  <a class="mobile-nav-link" href="mailto:supportvortexbot@gmail.com">Customer Support (supportvortexbot@gmail.com) <span>✉</span></a>
+
+  <a class="mobile-nav-link" href="/terms.html">Terms of Service <span>↗</span></a>
+
+  <a class="mobile-nav-link" href="/privacy.html">Privacy Notice <span>↗</span></a>
+
+  <button class="btn-sm" id="btn-logout-mobile" style="margin-top:10px;min-height:44px;width:100%" type="button">Sign Out</button>
+
+</div>
+
+
+
 <main class="wrap">
-<div class="topline"><div class="dashboard-heading"><div class="kicker">Private trading dashboard</div><h1>Your trading activity</h1><p class="muted">Live broker-confirmed information for approved accounts. This dashboard is read-only.</p><span class="readonly-pill">Read-only preview</span></div><div class="top-actions"><button id="refresh-now" class="btn btn-primary" type="button" aria-controls="private-content"><span aria-hidden="true">↻</span> Refresh data</button><a class="btn btn-secondary" href="/account.html">Profile &amp; settings</a><small id="refresh-mode" class="action-meta">Loading refresh preferences…</small></div></div>
-<section id="welcome-note" class="welcome-note" aria-live="polite" hidden>
-<div class="welcome-mark" aria-hidden="true">✦</div>
-<div class="welcome-copy"><p class="welcome-kicker">VORTEX AI · PERSONAL DASHBOARD</p><h2 id="welcome-title" class="welcome-title">Welcome back</h2><p id="welcome-detail" class="welcome-detail">Your dashboard is ready. Trading figures appear only when verified broker data is available.</p></div>
-</section>
-<div class="status-grid" aria-label="Trading feed status">
-<div class="status-tile"><span>Feed connection</span><strong id="feed-connection" class="status-value feed-offline">CHECKING…</strong><small id="feed-connection-note" class="status-note">Verifying the secure broker feed…</small></div>
-<div class="status-tile account-mode-tile"><span>Account mode</span><strong id="account-mode" class="mode-badge mode-unknown" hidden>ACCOUNT MODE UNKNOWN</strong><small id="account-mode-note" class="status-note">DEMO / REAL status appears after a verified broker update</small></div>
-<div class="status-tile"><span>Last successful broker update</span><strong id="broker-updated" class="status-value">Awaiting first update</strong><small id="broker-updated-note" class="status-note">The timestamp will appear when a signed broker snapshot is received</small></div>
+
+  <!-- SAFETY BANNER -->
+
+  <div class="banner">
+
+    <div>
+
+      <strong>Execution Safety Architecture:</strong> Global LIVE execution: <strong>HARD DISARMED</strong> (Real capital fully protected). DEMO execution: Separately controlled &amp; restricted strictly to <code>account_003</code> (VantageMarkets-Demo, Login: 26179878, 0.25% risk cap). Order &amp; market data: Live broker observations. Remaining 19 fleet accounts: <strong>TRADING DISABLED</strong>.
+
+    </div>
+
+    <div id="sync-indicator" style="font-size:11px;color:var(--muted)">Syncing with serverless edge...</div>
+
+  </div>
+
+
+
+  <!-- DYNAMIC TELEMETRY ALERT BANNER (FEED STATUS) -->
+
+  <div id="telemetry-alert-container"></div>
+
+
+
+  <!-- TAB 1: FLEET OVERVIEW -->
+
+  <section id="tab-overview" class="view-panel">
+
+    <div class="kpi-grid">
+
+      <div class="kpi-card">
+
+        <div class="kpi-label">Registered Accounts</div>
+
+        <div class="kpi-value" id="kpi-total-accounts">20</div>
+
+        <div class="kpi-sub">Total Registered Capacity (001–020)</div>
+
+      </div>
+
+      <div class="kpi-card">
+
+        <div class="kpi-label">Connected Accounts</div>
+
+        <div class="kpi-value val-green" id="kpi-connected-accounts">—</div>
+
+        <div class="kpi-sub" id="kpi-connected-sub">Live MT5 Terminal Feed</div>
+
+      </div>
+
+      <div class="kpi-card">
+
+        <div class="kpi-label">Verified DEMO Balance</div>
+
+        <div class="kpi-value" id="kpi-total-balance">—</div>
+
+        <div class="kpi-sub" id="kpi-balance-sub">Broker-Reported USD Telemetry</div>
+
+      </div>
+
+      <div class="kpi-card">
+
+        <div class="kpi-label">Verified DEMO Equity</div>
+
+        <div class="kpi-value" id="kpi-total-equity">—</div>
+
+        <div class="kpi-sub" id="kpi-equity-sub">Verified Broker Equity</div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- PRIMARY ACTIVE ACCOUNT CARD (ACCOUNT 003) -->
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2 class="card-title">Active Demonstration Pilot: Account 003</h2>
+
+          <div class="card-meta">Primary active MT5 terminal connection</div>
+
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="account-003-badges">
+
+          <span class="status-badge status-badge-stale" id="acc003-feed-badge">⚠ STALE CACHE</span>
+
+          <span class="mode-badge mode-badge-demo" id="acc003-mode-badge">DEMO</span>
+
+          <span class="prov-badge prov-badge-cache" id="acc003-prov-badge">PREFLIGHT BOOTSTRAP CACHE</span>
+
+        </div>
+
+      </div>
+
+
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;background:#091410;padding:18px;border-radius:12px;border:1px solid #1a382e">
+
+        <div>
+
+          <span style="font-size:11px;color:var(--muted)">Broker Login</span>
+
+          <div style="font-size:16px;font-weight:700">#26179878</div>
+
+        </div>
+
+        <div>
+
+          <span style="font-size:11px;color:var(--muted)">Authoritative Server</span>
+
+          <div style="font-size:16px;font-weight:700">VantageMarkets-Demo</div>
+
+        </div>
+
+        <div>
+
+          <span style="font-size:11px;color:var(--muted)">Account Mode</span>
+
+          <div style="font-size:16px;font-weight:700;color:var(--cyan)" id="acc003-mode-text">DEMO (Broker-Verified Metadata)</div>
+
+        </div>
+
+        <div>
+
+          <span style="font-size:11px;color:var(--muted)">Last Successful Broker Update</span>
+
+          <div style="font-size:13px;font-weight:700" id="acc003-update-time">No verified broker update recorded</div>
+
+          <div style="font-size:11px;color:var(--muted)" id="acc003-relative-time">—</div>
+
+        </div>
+
+        <div>
+
+          <span style="font-size:11px;color:var(--muted)">Balance / Equity</span>
+
+          <div style="font-size:16px;font-weight:700" id="acc003-balance-equity">$252.01 / $252.01</div>
+
+        </div>
+
+        <div>
+
+          <span style="font-size:11px;color:var(--muted)">Execution Inhibit</span>
+
+          <div style="font-size:16px;font-weight:700;color:var(--teal)" id="acc003-exec-inhibit">DEMO ARMED (Gate 5A Passed)</div>
+
+          <div style="font-size:10px;color:var(--amber)">LIVE REAL TRADING HARD DISARMED</div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- AI/ML MULTI-MODEL ENSEMBLE STATUS -->
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">AI / Machine Learning Ensemble Pipeline (Phase 82)</h2>
+          <div class="card-meta">Live multi-model inference telemetry &amp; consensus decision engine</div>
+        </div>
+        <span class="role-badge role-badge-admin" id="ai-ensemble-global-status">OPERATIONAL</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;padding:16px">
+        <!-- 1. Supervised ML -->
+        <div style="background:#091410;padding:14px;border-radius:12px;border:1px solid #1a382e">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:750;color:var(--text)">Supervised Classifier</span>
+            <span class="role-badge role-badge-admin" id="ml-model-badge" style="font-size:9px">OPERATIONAL</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted)">Model: <strong>HistGradientBoosting</strong></div>
+          <div style="font-size:11px;color:var(--teal);margin-top:2px">Brier Score: <strong id="ml-brier-score">0.2244 (Calibrated)</strong></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Inferences: <strong id="ml-inference-count" style="color:var(--cyan)">0 evals</strong></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Last: <span id="ml-last-inference">Awaiting candidate...</span></div>
+          <div style="font-size:11px;color:var(--text);margin-top:4px">Prediction: <strong id="ml-last-pred" style="color:var(--amber)">—</strong></div>
+        </div>
+        <!-- 2. Regime Classifier -->
+        <div style="background:#091410;padding:14px;border-radius:12px;border:1px solid #1a382e">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:750;color:var(--text)">Market Regime Classifier</span>
+            <span class="role-badge role-badge-admin" id="regime-model-badge" style="font-size:9px">ACTIVE</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted)">Regime: <strong id="current-market-regime" style="color:var(--cyan)">NORMAL</strong></div>
+          <div style="font-size:11px;color:var(--teal);margin-top:2px">Method: <strong>Trend / Vol / Structure</strong></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Classifications: <strong id="regime-inference-count" style="color:var(--cyan)">0 evals</strong></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Last: <span id="regime-last-inference">Awaiting candidate...</span></div>
+        </div>
+        <!-- 3. Anomaly Filter -->
+        <div style="background:#091410;padding:14px;border-radius:12px;border:1px solid #1a382e">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:750;color:var(--text)">Market Anomaly Filter</span>
+            <span class="role-badge role-badge-admin" id="anomaly-model-badge" style="font-size:9px">ACTIVE</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted)">Filter Status: <strong id="anomaly-state" style="color:var(--teal)">CLEAN</strong></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Thresholds: <strong>2.5x Sprd / 15s Tick</strong></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Inferences: <strong id="anomaly-inference-count" style="color:var(--cyan)">0 evals</strong></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Last: <span id="anomaly-last-inference">Awaiting candidate...</span></div>
+        </div>
+        <!-- 4. Consensus Ensemble -->
+        <div style="background:#091410;padding:14px;border-radius:12px;border:1px solid #1a382e">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:750;color:var(--text)">Consensus Decision</span>
+            <span class="role-badge role-badge-admin" id="ensemble-model-badge" style="font-size:9px">CONSENSUS</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted)">Evaluations: <strong id="ensemble-total-evals" style="color:var(--cyan)">0</strong></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Decisions: <strong id="ensemble-decisions-count" style="color:var(--text)">Appr: 0 | Rej: 0</strong></div>
+          <div style="font-size:11px;color:var(--amber);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Last: <span id="ensemble-last-reason">Awaiting candidate...</span></div>
+        </div>
+        <!-- 5. Centralized DEMO Risk -->
+        <div style="background:#091410;padding:14px;border-radius:12px;border:1px solid #1a382e">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:750;color:var(--text)">Centralized DEMO Risk</span>
+            <span class="role-badge role-badge-admin" style="font-size:9px">ENFORCED</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted)">Risk / Trade: <strong>0.25% Max</strong></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Daily Drawdown: <strong>1.00% Limit</strong></div>
+          <div style="font-size:11px;color:var(--amber);margin-top:4px">Max Positions: <strong>2 Simultaneous</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2: 20 ACCOUNTS MATRIX -->
+
+  <section id="tab-accounts" class="view-panel" hidden>
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2 class="card-title">20-Account Operational Fleet Matrix</h2>
+
+          <div class="card-meta">Authoritative registry synchronized from accounts.json</div>
+
+        </div>
+
+        <span class="card-meta">Read-Only Scoping Active</span>
+
+      </div>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Account ID</th>
+
+              <th>Login</th>
+
+              <th>Broker Server</th>
+
+              <th>Mode</th>
+
+              <th>Balance</th>
+
+              <th>Equity</th>
+
+              <th>Feed Freshness</th>
+
+              <th>Data Provenance</th>
+
+              <th>Trading Enabled</th>
+
+              <th>Action</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="accounts-table-body">
+
+            <tr><td colspan="10" style="text-align:center;padding:24px;color:var(--muted)">Loading fleet matrix...</td></tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- TAB 3: OPEN POSITIONS -->
+
+  <section id="tab-positions" class="view-panel" hidden>
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2 class="card-title">Active Broker Open Positions</h2>
+
+          <div class="card-meta">Real-time positions fetched from connected MT5 terminals</div>
+
+        </div>
+
+      </div>
+
+      <div id="positions-container" class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Ticket</th>
+
+              <th>Account</th>
+
+              <th>Symbol</th>
+
+              <th>Side</th>
+
+              <th>Volume</th>
+
+              <th>Entry Price</th>
+
+              <th>Current Price</th>
+
+              <th>Stop Loss</th>
+
+              <th>Take Profit</th>
+
+              <th>Floating P&amp;L</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="positions-table-body">
+
+            <tr><td colspan="10" style="text-align:center;padding:24px;color:var(--muted)">No open positions. System operating under HARD DISARMED safety controls (0 orders).</td></tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- TAB 4: PENDING ORDERS -->
+
+  <section id="tab-pending-orders" class="view-panel" hidden>
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <h2 class="card-title">Pending Orders</h2>
+
+        <span class="card-meta">Active limit and stop orders</span>
+
+      </div>
+
+      <div id="pending-orders-container" class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Ticket</th>
+
+              <th>Symbol</th>
+
+              <th>Type</th>
+
+              <th>Volume</th>
+
+              <th>Order Price</th>
+
+              <th>Current Price</th>
+
+              <th>State</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="pending-orders-table-body">
+
+            <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">No pending orders. System operating under HARD DISARMED safety controls.</td></tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- TAB 5: TRADE HISTORY -->
+
+  <section id="tab-trades" class="view-panel" hidden>
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2 class="card-title">Broker Deal History (All Trades)</h2>
+
+          <div class="card-meta">Confirmed broker deal executions from MT5 terminal history</div>
+
+        </div>
+
+      </div>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Deal Ticket</th>
+
+              <th>Account</th>
+
+              <th>Symbol</th>
+
+              <th>Side</th>
+
+              <th>Entry Type</th>
+
+              <th>Volume</th>
+
+              <th>Price</th>
+
+              <th>Net Profit</th>
+
+              <th>Executed At (UTC)</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="trades-table-body">
+
+            <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">No trade records found in database. System operating under HARD DISARMED safety controls.</td></tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- TAB 6: CLOSED TRADES -->
+
+  <section id="tab-closed-trades" class="view-panel" hidden>
+
+    <!-- Historical Performance Analytics Cards -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      <div class="stat-card" style="padding: 1.1rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: rgba(15,23,42,0.6);">
+        <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Historical Volume</div>
+        <div id="closed-total-trades" style="margin: 0.4rem 0; font-size: 1.4rem; color: #f8fafc; font-weight: 750;">-- Trades</div>
+        <div id="closed-win-loss-split" style="font-size: 0.75rem; color: var(--muted);">-- Wins / -- Losses</div>
+      </div>
+      <div class="stat-card" style="padding: 1.1rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: rgba(15,23,42,0.6);">
+        <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Cumulative Realized P&amp;L</div>
+        <div id="closed-net-pnl" style="margin: 0.4rem 0; font-size: 1.4rem; color: var(--teal); font-weight: 750;">$0.00</div>
+        <div style="font-size: 0.75rem; color: var(--muted);">Broker Confirmed Net Profit</div>
+      </div>
+      <div class="stat-card" style="padding: 1.1rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: rgba(15,23,42,0.6);">
+        <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Win Rate</div>
+        <div id="closed-win-rate" style="margin: 0.4rem 0; font-size: 1.4rem; color: #f8fafc; font-weight: 750;">0.0%</div>
+        <div style="font-size: 0.75rem; color: var(--muted);">Winning Trades Ratio</div>
+      </div>
+      <div class="stat-card" style="padding: 1.1rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: rgba(15,23,42,0.6);">
+        <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Profit Factor</div>
+        <div id="closed-profit-factor" style="margin: 0.4rem 0; font-size: 1.4rem; color: #f8fafc; font-weight: 750;">0.00</div>
+        <div id="closed-pf-split" style="font-size: 0.75rem; color: var(--muted);">$0.00 / $0.00</div>
+      </div>
+      <div class="stat-card" style="padding: 1.1rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: rgba(15,23,42,0.6);">
+        <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Avg Win / Loss</div>
+        <div id="closed-avg-win-loss" style="margin: 0.4rem 0; font-size: 1.2rem; color: #f8fafc; font-weight: 750;">+$0.00 / -$0.00</div>
+        <div style="font-size: 0.75rem; color: var(--muted);">Average Per Trade</div>
+      </div>
+    </div>
+
+    <!-- Closed Trades Card -->
+    <div class="card">
+
+      <div class="card-header" style="flex-wrap: wrap; gap: 0.75rem;">
+
+        <div>
+
+          <h2 class="card-title">Reconciled Closed Trades (Broker Confirmed)</h2>
+
+          <div class="card-meta">Complete historical trading activity reconstructed directly from MT5 broker deals and orders</div>
+
+        </div>
+
+        <span class="mode-badge mode-badge-demo">DEMO EXECUTION &bull; VANTAGEMARKETS</span>
+
+      </div>
+
+      <!-- Navigation & Filtering Toolbar -->
+      <div style="display:flex; flex-wrap:wrap; gap:0.75rem; padding: 0.75rem 1rem; background: rgba(15,23,42,0.4); border-bottom: 1px solid rgba(255,255,255,0.06); align-items: center; justify-content: space-between;">
+        <div style="display:flex; flex-wrap:wrap; gap:0.6rem; align-items: center;">
+          <select id="closed-filter-symbol" style="background: rgba(30,41,59,0.8); border: 1px solid rgba(255,255,255,0.12); color: #f8fafc; padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.8rem;">
+            <option value="ALL">All Symbols</option>
+          </select>
+          <select id="closed-filter-result" style="background: rgba(30,41,59,0.8); border: 1px solid rgba(255,255,255,0.12); color: #f8fafc; padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.8rem;">
+            <option value="ALL">All Results</option>
+            <option value="WIN">Wins Only</option>
+            <option value="LOSS">Losses Only</option>
+          </select>
+          <input type="text" id="closed-filter-date" placeholder="Search date (e.g. 2026-11)..." style="background: rgba(30,41,59,0.8); border: 1px solid rgba(255,255,255,0.12); color: #f8fafc; padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.8rem; width: 170px;" />
+          <select id="closed-page-size" style="background: rgba(30,41,59,0.8); border: 1px solid rgba(255,255,255,0.12); color: #f8fafc; padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.8rem;">
+            <option value="25">25 per page</option>
+            <option value="50">50 per page</option>
+            <option value="100">100 per page</option>
+            <option value="ALL">All Trades</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <button id="closed-btn-prev" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">&larr; Prev</button>
+          <span id="closed-page-info" style="font-size: 0.8rem; color: #94a3b8; min-width: 130px; text-align: center;">Showing 0 of 0</span>
+          <button id="closed-btn-next" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">Next &rarr;</button>
+          <button id="closed-btn-load-more" class="btn btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display:none;">Load More</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Position ID</th>
+
+              <th>Closed At (UTC)</th>
+
+              <th>Symbol</th>
+
+              <th>Side</th>
+
+              <th>Volume</th>
+
+              <th>Entry Price</th>
+
+              <th>Exit Price</th>
+
+              <th>Stop Loss</th>
+
+              <th>Take Profit</th>
+
+              <th>Commission</th>
+
+              <th>Swap</th>
+
+              <th>Net Profit</th>
+
+              <th>Result</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="closed-trades-table-body">
+
+            <tr><td colspan="13" style="text-align:center;color:var(--muted);padding:24px">Loading reconciled closed trades...</td></tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  
+  <!-- TAB: MARKET INTELLIGENCE (PHASE 94) -->
+  <section id="tab-intelligence" class="view-panel" hidden>
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Institutional Market Intelligence &amp; Depth</h2>
+          <div class="card-meta">Real-time OTC Liquidity, GDELT Global Macro, CFTC Institutional Futures Positioning &amp; Shadow Mode Analysis</div>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 4px;">SHADOW MODE ACTIVE</span>
+          <span id="intel-last-updated" style="font-size: 0.75rem; color: #94a3b8;">Awaiting update</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <!-- Provider Health Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+          <!-- Card 1: MT5 DOM -->
+          <div class="stat-card" style="padding: 1.1rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: rgba(15,23,42,0.6);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 700;">MT5 Broker DOM</span>
+              <span id="intel-badge-dom" class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; font-size: 0.7rem; font-weight: 700;">CONNECTED</span>
+            </div>
+            <div style="margin: 0.5rem 0; font-size: 0.85rem; color: #f8fafc; font-weight: 600;">Top-of-Book Spread &amp; Price</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; display: flex; flex-direction: column; gap: 0.2rem;">
+              <div>Records: <span id="intel-records-dom" style="color: #f1f5f9; font-weight: 600;">8 symbols monitored</span></div>
+              <div>Freshness: <span id="intel-fresh-dom" class="badge" style="font-size: 0.65rem; background: rgba(59,130,246,0.15); color: #3b82f6;">REAL-TIME</span></div>
+              <div>Latest Update: <span id="intel-update-dom" style="color: #cbd5e1;">Streaming</span></div>
+              <div id="intel-err-dom" style="color: #64748b; font-size: 0.7rem; margin-top: 0.2rem;">OTC CFD (L2 DOM disabled server-side by broker)</div>
+            </div>
+          </div>
+
+          <!-- Card 2: GDELT News -->
+          <div class="stat-card" style="padding: 1.1rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: rgba(15,23,42,0.6);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 700;">GDELT Project News</span>
+              <span id="intel-badge-gdelt" class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; font-size: 0.7rem; font-weight: 700;">CONNECTED</span>
+            </div>
+            <div style="margin: 0.5rem 0; font-size: 0.85rem; color: #f8fafc; font-weight: 600;">Macroeconomic &amp; Geopolitical News</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; display: flex; flex-direction: column; gap: 0.2rem;">
+              <div>Records: <span id="intel-records-gdelt" style="color: #f1f5f9; font-weight: 600;">Curated live stream</span></div>
+              <div>Freshness: <span id="intel-fresh-gdelt" class="badge" style="font-size: 0.65rem; background: rgba(16,185,129,0.15); color: #10b981;">REAL-TIME</span></div>
+              <div>Latest Update: <span id="intel-update-gdelt" style="color: #cbd5e1;">Continuous (30m cache)</span></div>
+              <div id="intel-err-gdelt" style="color: #64748b; font-size: 0.7rem; margin-top: 0.2rem;">Auto-rate-limit circuit breaker enabled</div>
+            </div>
+          </div>
+
+          <!-- Card 3: CFTC COT -->
+          <div class="stat-card" style="padding: 1.1rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: rgba(15,23,42,0.6);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 700;">CFTC Institutional COT</span>
+              <span id="intel-badge-cftc" class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; font-size: 0.7rem; font-weight: 700;">CONNECTED</span>
+            </div>
+            <div style="margin: 0.5rem 0; font-size: 0.85rem; color: #f8fafc; font-weight: 600;">Futures Institutional Positioning</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; display: flex; flex-direction: column; gap: 0.2rem;">
+              <div>Records: <span id="intel-records-cftc" style="color: #f1f5f9; font-weight: 600;">7 active contracts mapped</span></div>
+              <div>Freshness: <span id="intel-fresh-cftc" class="badge" style="font-size: 0.65rem; background: rgba(245,158,11,0.15); color: #f59e0b;">WEEKLY HISTORICAL</span></div>
+              <div>Latest Report: <span id="intel-update-cftc" style="color: #cbd5e1;">Published Friday 20:30 UTC</span></div>
+              <div id="intel-err-cftc" style="color: #64748b; font-size: 0.7rem; margin-top: 0.2rem;">Public Reporting Environment (Socrata)</div>
+            </div>
+          </div>
+
+          <!-- Card 4: NewsData.io -->
+          <div class="stat-card" style="padding: 1.1rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: rgba(15,23,42,0.6);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 700;">NewsData.io Research</span>
+              <span id="intel-badge-newsdata" class="badge" style="background: rgba(148,163,184,0.15); color: #94a3b8; font-size: 0.7rem; font-weight: 700;">NOT_CONFIGURED</span>
+            </div>
+            <div style="margin: 0.5rem 0; font-size: 0.85rem; color: #f8fafc; font-weight: 600;">Delayed Research Feed</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; display: flex; flex-direction: column; gap: 0.2rem;">
+              <div>Records: <span id="intel-records-newsdata" style="color: #f1f5f9; font-weight: 600;">0 (Unconfigured)</span></div>
+              <div>Freshness: <span id="intel-fresh-newsdata" class="badge" style="font-size: 0.65rem; background: rgba(148,163,184,0.15); color: #94a3b8;">DELAYED</span></div>
+              <div>Quota: <span id="intel-quota-newsdata" style="color: #cbd5e1;">0/200 credits used</span></div>
+              <div id="intel-err-newsdata" style="color: #64748b; font-size: 0.7rem; margin-top: 0.2rem;">NEWSDATA_API_KEY omitted (No credit leakage)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Shadow Mode Strategy Alignment Table -->
+        <h3 style="font-size: 1rem; margin-bottom: 0.5rem; color: #f8fafc;">Shadow Intelligence Alignment Matrix (Non-Execution)</h3>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">Compares internal strategy signals against external market sentiment for research and signal quality audit.</p>
+        <div class="table-responsive" style="margin-bottom: 2rem;">
+          <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: #94a3b8;">
+                <th style="padding: 0.5rem;">Instrument</th>
+                <th style="padding: 0.5rem;">Strategy Direction</th>
+                <th style="padding: 0.5rem;">Strategy Score</th>
+                <th style="padding: 0.5rem;">Intel Sentiment</th>
+                <th style="padding: 0.5rem;">Alignment Status</th>
+                <th style="padding: 0.5rem;">Confidence</th>
+                <th style="padding: 0.5rem;">Analysis Notes</th>
+              </tr>
+            </thead>
+            <tbody id="shadow-alignment-tbody">
+              <tr><td colspan="7" style="padding: 1rem; text-align: center; color: #64748b;">Awaiting live strategy cycle evaluations...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Institutional Positioning (CFTC COT) Table -->
+        <h3 style="font-size: 1rem; margin-bottom: 0.5rem; color: #f8fafc;">CFTC Institutional Futures Positioning (Weekly Report)</h3>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">Published weekly by CFTC. Strictly labeled historical data; never used as a standalone entry signal.</p>
+        <div class="table-responsive" style="margin-bottom: 2rem;">
+          <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: #94a3b8;">
+                <th style="padding: 0.5rem;">Instrument</th>
+                <th style="padding: 0.5rem;">Contract Market</th>
+                <th style="padding: 0.5rem;">Report Date</th>
+                <th style="padding: 0.5rem;">Non-Comm Net</th>
+                <th style="padding: 0.5rem;">Comm Net</th>
+                <th style="padding: 0.5rem;">Open Interest</th>
+                <th style="padding: 0.5rem;">Weekly Change</th>
+                <th style="padding: 0.5rem;">Institutional Bias</th>
+              </tr>
+            </thead>
+            <tbody id="cftc-positioning-tbody">
+              <tr><td colspan="8" style="padding: 1rem; text-align: center; color: #64748b;">Loading CFTC institutional positioning...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Market Depth & OTC Liquidity Table -->
+        <h3 style="font-size: 1rem; margin-bottom: 0.5rem; color: #f8fafc;">Broker Market Depth &amp; Liquidity Conditions</h3>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">Direct MT5 broker telemetry. Distinguishes broker OTC synthetic top-of-book from exchange order books.</p>
+        <div class="table-responsive" style="margin-bottom: 2rem;">
+          <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: #94a3b8;">
+                <th style="padding: 0.5rem;">Instrument</th>
+                <th style="padding: 0.5rem;">DOM Status</th>
+                <th style="padding: 0.5rem;">Provider Type</th>
+                <th style="padding: 0.5rem;">Spread (pts)</th>
+                <th style="padding: 0.5rem;">Spread Cost (USD)</th>
+                <th style="padding: 0.5rem;">Imbalance Ratio</th>
+                <th style="padding: 0.5rem;">Source Details</th>
+              </tr>
+            </thead>
+            <tbody id="market-depth-tbody">
+              <tr><td colspan="7" style="padding: 1rem; text-align: center; color: #64748b;">Loading broker liquidity metrics...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Financial & Geopolitical News Feed -->
+        <h3 style="font-size: 1rem; margin-bottom: 0.5rem; color: #f8fafc;">Financial, Economic &amp; Geopolitical News Intelligence</h3>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">Curated headlines from GDELT Project DOC API and research feeds. Deduplicated and ranked by relevance.</p>
+        <div class="table-responsive">
+          <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: #94a3b8;">
+                <th style="padding: 0.5rem;">Provider</th>
+                <th style="padding: 0.5rem;">Instrument</th>
+                <th style="padding: 0.5rem;">Category</th>
+                <th style="padding: 0.5rem;">Headline</th>
+                <th style="padding: 0.5rem;">Sentiment</th>
+                <th style="padding: 0.5rem;">Freshness</th>
+              </tr>
+            </thead>
+            <tbody id="market-news-tbody">
+              <tr><td colspan="6" style="padding: 1rem; text-align: center; color: #64748b;">Loading news events...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 7: PERFORMANCE ANALYTICS -->
+
+  <section id="tab-performance" class="view-panel" hidden>
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <h2 class="card-title">Performance Analytics</h2>
+
+        <span class="card-meta">Automated metric calculation</span>
+
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px">
+
+        <div style="background:#091410;padding:16px;border-radius:12px;border:1px solid #1a382e">
+
+          <div style="font-size:11px;color:var(--muted)">Win Rate</div>
+
+          <div style="font-size:24px;font-weight:750;color:var(--teal)" id="perf-win-rate">0.0%</div>
+
+          <div style="font-size:11px;color:var(--muted)">Demo historical executions</div>
+
+        </div>
+
+        <div style="background:#091410;padding:16px;border-radius:12px;border:1px solid #1a382e">
+
+          <div style="font-size:11px;color:var(--muted)">Profit Factor</div>
+
+          <div style="font-size:24px;font-weight:750" id="perf-profit-factor">0.00</div>
+
+          <div style="font-size:11px;color:var(--muted)">Gross profit / loss ratio</div>
+
+        </div>
+
+        <div style="background:#091410;padding:16px;border-radius:12px;border:1px solid #1a382e">
+
+          <div style="font-size:11px;color:var(--muted)">Total Realized P&amp;L</div>
+
+          <div style="font-size:24px;font-weight:750" id="perf-total-pnl">$0.00</div>
+
+          <div style="font-size:11px;color:var(--muted)">Reconciled net equity delta</div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- TAB 8: RISK OVERVIEW -->
+
+  <section id="tab-risk" class="view-panel" hidden>
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <h2 class="card-title">Risk Exposure &amp; Circuit Breakers</h2>
+
+        <span class="card-meta">Automated risk-engine parameters</span>
+
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:16px">
+
+        <div style="background:#091410;padding:16px;border-radius:12px;border:1px solid #1a382e">
+
+          <div style="font-size:11px;color:var(--muted)">Max Portfolio Exposure</div>
+
+          <div style="font-size:20px;font-weight:750;color:var(--teal)">100.00% Limit</div>
+
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Global cap across fleet</div>
+
+        </div>
+
+        <div style="background:#091410;padding:16px;border-radius:12px;border:1px solid #1a382e">
+
+          <div style="font-size:11px;color:var(--muted)">Daily Loss Limit</div>
+
+          <div style="font-size:20px;font-weight:750;color:var(--amber)">3.00% Soft / 4.00% Hard</div>
+
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Automatic lock on breach</div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- TAB 9: NOTIFICATIONS -->
+
+  <section id="tab-notifications" class="view-panel" hidden>
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <h2 class="card-title">Operational Notifications &amp; Alerts</h2>
+
+        <span class="card-meta">Active system alerts</span>
+
+      </div>
+
+      <div id="notifications-list" style="display:grid;gap:12px">
+
+        <div style="background:#091410;padding:14px;border-radius:10px;border:1px solid #1a382e;display:flex;justify-content:space-between;align-items:center">
+
+          <div>
+
+            <div style="font-weight:700;font-size:13px;color:var(--teal)">Execution Controller Disarmed</div>
+
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Gates 1..15 enforce zero order mutations across all 20 accounts.</div>
+
+          </div>
+
+          <span style="font-size:10px;color:var(--muted)">Active Guard</span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- TAB 10: SYSTEM HEALTH -->
+
+  <section id="tab-system" class="view-panel" hidden>
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2 class="card-title">Subsystem Infrastructure Health</h2>
+
+          <div class="card-meta">Real-time telemetry gateway and database verification</div>
+
+        </div>
+
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:16px">
+
+        <div style="background:#091410;padding:16px;border-radius:12px;border:1px solid #1a382e">
+
+          <div style="font-size:11px;color:var(--muted)">Global Execution Controller</div>
+
+          <div style="font-size:18px;font-weight:750;color:var(--amber)">HARD DISARMED</div>
+
+          <div style="font-size:11px;color:var(--teal)">Gates 1..15 Inhibit Enforced</div>
+
+        </div>
+
+        <div style="background:#091410;padding:16px;border-radius:12px;border:1px solid #1a382e">
+
+          <div style="font-size:11px;color:var(--muted)">Database Persistence</div>
+
+          <div style="font-size:18px;font-weight:750;color:var(--teal)" id="db-health-status">Verified OK</div>
+
+          <div style="font-size:11px;color:var(--muted)">Supabase Cloud (ap-south-1)</div>
+
+        </div>
+
+        <div style="background:#091410;padding:16px;border-radius:12px;border:1px solid #1a382e">
+
+          <div style="font-size:11px;color:var(--muted)">Cryptographic Transport</div>
+
+          <div style="font-size:18px;font-weight:750;color:var(--teal)">HMAC-SHA256 Signed</div>
+
+          <div style="font-size:11px;color:var(--muted)">Replay Protection Active</div>
+
+        </div>
+
+        <div style="background:#091410;padding:16px;border-radius:12px;border:1px solid #1a382e">
+
+          <div style="font-size:11px;color:var(--muted)">Edge Gateway Routing</div>
+
+          <div style="font-size:18px;font-weight:750;color:var(--teal)">Vercel Edge Gateway</div>
+
+          <div style="font-size:11px;color:var(--muted)">/api/trades &amp; /api/auth-config</div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- TAB 11: ACTIVITY & AUDIT LOG -->
+
+  <section id="tab-audit" class="view-panel" hidden>
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <h2 class="card-title">System Audit Log</h2>
+
+        <span class="card-meta">Recorded security and operational events</span>
+
+      </div>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>ID</th>
+
+              <th>Timestamp</th>
+
+              <th>Event Type</th>
+
+              <th>Severity</th>
+
+              <th>Message</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="audit-table-body">
+
+            <tr>
+
+              <td>1</td>
+
+              <td><span style="font-size:11px;color:var(--muted)">2026-11-01T06:00:00Z</span></td>
+
+              <td><code>SYSTEM_AUDIT_VERIFIED</code></td>
+
+              <td><span style="color:var(--teal)">INFO</span></td>
+
+              <td>Phase 77AQ comprehensive readiness verification active.</td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- TAB 12: PROFILE & SETTINGS -->
+
+  <section id="tab-settings" class="view-panel" hidden>
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2 class="card-title">Operator Profile &amp; Session Parameters</h2>
+
+          <div class="card-meta">Verified identity and access scopes</div>
+
+        </div>
+
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:20px">
+
+        <div style="background:#091410;padding:18px;border-radius:12px;border:1px solid #1a382e">
+
+          <h3 style="margin:0 0 12px;font-size:14px;color:var(--teal)">Operator Identity</h3>
+
+          <div style="margin-bottom:8px"><strong>Email:</strong> <span id="prof-email">Authenticated Operator</span></div>
+
+          <div style="margin-bottom:8px"><strong>Access Mode:</strong> <span id="prof-mode">READ_ONLY</span></div>
+
+          <div style="margin-bottom:8px"><strong>Role:</strong> <span id="prof-role">AUTHENTICATED_USER</span></div>
+
+          <div><strong>Session Token:</strong> Validated Supabase Session JWT</div>
+
+        </div>
+
+        <div style="background:#091410;padding:18px;border-radius:12px;border:1px solid #1a382e">
+
+          <h3 style="margin:0 0 12px;font-size:14px;color:var(--teal)">Telemetry Thresholds</h3>
+
+          <div style="margin-bottom:8px"><strong>Polling Interval:</strong> 5 Seconds</div>
+
+          <div style="margin-bottom:8px"><strong>Freshness Window:</strong> 30 Seconds (Agreement)</div>
+
+          <div style="margin-bottom:8px"><strong>Active Broker Pilot:</strong> VantageMarkets-Demo (#26179878)</div>
+
+          <div><strong>Documentation:</strong> <a href="/getting-started.html">Getting Started Guide ↗</a></div>
+
+        </div>
+
+        <div style="background:#091410;padding:18px;border-radius:12px;border:1px solid #1a382e">
+
+          <h3 style="margin:0 0 12px;font-size:14px;color:var(--teal)">Customer Support &amp; Assistance</h3>
+
+          <div style="margin-bottom:8px"><strong>Official Desk:</strong> <a href="mailto:supportvortexbot@gmail.com" style="color:var(--teal);text-decoration:none;font-weight:650;user-select:all">supportvortexbot@gmail.com</a></div>
+
+          <div style="margin-bottom:8px"><strong>Inquiries:</strong> Account Provisioning, Telemetry Logs &amp; Platform Support</div>
+
+          <div style="margin-bottom:8px"><strong>Response Queue:</strong> Verified Operator Priority (24/7 Mon–Fri)</div>
+
+          <div><strong>Direct Link:</strong> <a href="mailto:supportvortexbot@gmail.com" style="display:inline-flex;align-items:center;gap:6px;background:#12241e;border:1px solid #244b3e;padding:6px 12px;border-radius:6px;color:#00e6ad;text-decoration:none;font-size:12px;margin-top:4px">Email Support Desk ✉</a></div>
+
+        </div>
+
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <footer style="margin-top:40px;padding:24px 0;border-top:1px solid #17372d;color:#80978e;font-size:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+      <div>
+        <span>© 2026 VORTEX AI · Operations Console</span>
+        <span style="margin-left:14px;color:#94aca2">Customer Support: <a href="mailto:supportvortexbot@gmail.com" style="color:var(--teal);text-decoration:none;font-weight:600;user-select:all">supportvortexbot@gmail.com</a></span>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <a href="/" style="color:#80978e;text-decoration:none">Home</a>
+        <a href="/getting-started.html" style="color:#80978e;text-decoration:none">Getting Started</a>
+        <a href="/status.html" style="color:#80978e;text-decoration:none">Status</a>
+        <a href="/faq.html" style="color:#80978e;text-decoration:none">FAQ</a>
+        <a href="mailto:supportvortexbot@gmail.com" style="color:var(--teal);text-decoration:none">Email Support</a>
+      </div>
+    </div>
+  </footer>
+
+</main>
+
+
+
+<!-- ACCOUNT DETAILS MODAL -->
+
+<div id="modal-container" hidden class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+  <div class="modal-card">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+
+      <h3 style="margin:0;font-size:18px" id="modal-title">Account Details</h3>
+
+      <button class="btn-sm" id="modal-close" type="button">Close</button>
+
+    </div>
+
+    <div id="modal-content" style="font-size:13px;line-height:1.7"></div>
+
+  </div>
+
 </div>
-<div id="status" class="notice" role="status" aria-live="polite">Verifying your session and feed access…</div>
-<div id="private-content" hidden>
-<div class="grid" aria-label="Broker account summary">
-<div class="metric"><span>Open positions</span><strong id="metric-positions" class="metric-value is-pending">Awaiting data</strong><div class="metric-hint">Verified open bot positions</div></div>
-<div class="metric"><span>Floating P&amp;L</span><strong id="metric-floating" class="metric-value is-pending">Awaiting data</strong><div class="metric-hint">Broker-reported open P&amp;L</div></div>
-<div class="metric"><span>Balance</span><strong id="metric-balance" class="metric-value is-pending">Awaiting data</strong><div class="metric-hint">Latest verified broker balance</div></div>
-<div class="metric"><span>Equity</span><strong id="metric-equity" class="metric-value is-pending">Awaiting data</strong><div class="metric-hint">Latest verified broker equity</div></div>
-</div>
-<div id="dashboard-note" class="dashboard-note" role="status" hidden>Waiting for a verified MT5 snapshot. Values and trade rows will populate only when broker data is received; no sample data is displayed.</div>
-<div id="account-filter" class="account-filter" hidden><label for="account-select">Trading account</label><select id="account-select" aria-label="Trading account"></select></div>
-<section class="card"><div class="card-head"><h2>Open positions</h2><span id="account-meta" class="fine">Waiting for broker data</span></div>
-<div class="table-wrap"><table><thead><tr><th>Account</th><th>Ticket</th><th>Symbol</th><th>Side</th><th>Volume</th><th>Entry</th><th>Current</th><th>Stop loss</th><th>Take profit</th><th>Floating P&amp;L</th></tr></thead><tbody id="positions-body"><tr><td class="table-placeholder" colspan="10">Open positions will appear here after a verified broker snapshot.</td></tr></tbody></table></div>
-</section>
-<section class="card"><div class="card-head"><h2>Recent bot deals</h2><span class="fine">Last seven days · up to 100 deals</span></div>
-<div class="table-wrap"><table><thead><tr><th id="deals-time-label">Time</th><th>Account</th><th>Ticket</th><th>Symbol</th><th>Side</th><th>Entry / exit</th><th>Volume</th><th>Price</th><th>Net deal P&amp;L</th></tr></thead><tbody id="deals-body"><tr><td class="table-placeholder" colspan="9">Recent bot deals will appear here after verified trade history is received.</td></tr></tbody></table></div>
-</section>
-<p class="fine">Read-only. This dashboard cannot submit, modify or close MT5 orders. Figures are sourced from the broker.</p>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
+
+
+
+<script src="/nav.js"></script>
+
+<script src="/api-config.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="/auth.js"></script>
+
+<script src="/status-indicators.js"></script>
+
 <script>
-(function () {
-  const $ = function (id) { return document.getElementById(id); };
-  const status = $('status'), content = $('private-content'), user = $('user'), logout = $('logout');
-  let auth = null, timer = null, refreshing = false, refreshQueued = false, selectedAccountId = '', lastSuccessfulBrokerUpdate = '', userTimezone = 'browser', timezoneLabel = 'device time', autoRefresh = true, refreshSeconds = 5;
-  function setStatus(message, mode) {
-    status.hidden = false;
-    status.className = 'notice' + (mode ? ' ' + mode : '');
-    status.textContent = message;
+
+(async function() {
+
+  'use strict';
+
+
+
+  // 1. Safe HTML Entity Escaping (Security hardening against broker metadata injection)
+
+  function escapeHtml(str) {
+
+    if (str === null || str === undefined) return '';
+
+    return String(str)
+
+      .replace(/&/g, '&amp;')
+
+      .replace(/</g, '&lt;')
+
+      .replace(/>/g, '&gt;')
+
+      .replace(/"/g, '&quot;')
+
+      .replace(/'/g, '&#039;');
+
   }
-  function setFeedConnection(label, state, note) {
-    const value = $('feed-connection'), detail = $('feed-connection-note');
-    value.textContent = label;
-    value.className = 'status-value ' + (state === 'fresh' ? 'feed-fresh' : state === 'stale' ? 'feed-stale' : 'feed-offline');
-    detail.textContent = note || '';
+
+
+
+  // 2. Authoritative Supabase Authentication & Session Handoff
+
+  let session = null;
+
+  try {
+
+    await window.VortexAuth.init();
+
+    session = await window.VortexAuth.requireAuth();
+
+    if (!session || !session.access_token) return;
+
+  } catch (err) {
+
+    console.error('[Dashboard Auth] Failed initialization:', err);
+
+    window.location.replace('/login.html');
+
+    return;
+
   }
-  function setLastBrokerUpdate(value, note) {
-    if (value) lastSuccessfulBrokerUpdate = value;
-    const output = $('broker-updated');
-    output.textContent = lastSuccessfulBrokerUpdate ? when(lastSuccessfulBrokerUpdate) : 'Not received';
-    $('broker-updated-note').textContent = note || (lastSuccessfulBrokerUpdate ? 'Latest accepted broker snapshot · ' + timezoneLabel : 'No broker snapshot has been received');
+
+
+
+  const userEmail = (session.user && session.user.email) ? session.user.email : 'Authenticated User';
+
+  const userDisplay = document.getElementById('user-display');
+
+  if (userDisplay) userDisplay.textContent = userEmail.split('@')[0];
+
+  if (document.getElementById('prof-email')) document.getElementById('prof-email').textContent = userEmail;
+
+
+
+  // 3. Logout Handler (Clean Supabase signOut)
+
+  async function logout() {
+
+    await window.VortexAuth.signOut();
+
   }
-  function n(value) { const v = Number(value); return Number.isFinite(v) ? v : 0; }
-  function renderWelcome(userRecord) {
-    const metadata = userRecord && userRecord.user_metadata && typeof userRecord.user_metadata === 'object' ? userRecord.user_metadata : {};
-    const profile = metadata.vortex_profile && typeof metadata.vortex_profile === 'object' ? metadata.vortex_profile : {};
-    const rawName = [profile.display_name, metadata.full_name, metadata.name].find(function (value) {
-      return typeof value === 'string' && value.trim();
-    }) || '';
-    const displayName = String(rawName).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
-    $('welcome-title').textContent = displayName ? 'Welcome back, ' + displayName : 'Welcome back to VORTEX AI';
-    $('welcome-detail').textContent = 'Your trading dashboard is ready. Broker figures and trade history below are shown only when verified MT5 data is available.';
-    $('welcome-note').hidden = false;
-    user.textContent = displayName ? 'Signed in · ' + displayName : 'Signed in';
-  }
-  function applyUserPreferences(userRecord) {
-    const metadata = userRecord && userRecord.user_metadata && typeof userRecord.user_metadata === 'object' ? userRecord.user_metadata : {};
-    const preferences = metadata.vortex_preferences && typeof metadata.vortex_preferences === 'object' ? metadata.vortex_preferences : {};
-    const allowedZones = ['browser','UTC','Asia/Kolkata','Europe/London','America/New_York','Asia/Singapore'];
-    const allowedIntervals = [5,10,15,30];
-    userTimezone = allowedZones.includes(preferences.timezone) ? preferences.timezone : 'browser';
-    autoRefresh = preferences.auto_refresh !== false;
-    const interval = Number(preferences.refresh_seconds);
-    refreshSeconds = allowedIntervals.includes(interval) ? interval : 5;
-    const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'device time';
-    const zoneLabels = {'browser':'Device time (' + deviceZone + ')','UTC':'UTC','Asia/Kolkata':'India Standard Time','Europe/London':'London time','America/New_York':'New York time','Asia/Singapore':'Singapore time'};
-    timezoneLabel = zoneLabels[userTimezone] || deviceZone;
-    $('broker-updated-note').textContent = 'Times displayed in ' + timezoneLabel;
-    $('deals-time-label').textContent = 'Time · ' + timezoneLabel;
-    $('refresh-mode').textContent = autoRefresh ? 'Automatic refresh every ' + refreshSeconds + ' seconds' : 'Automatic refresh off · use Refresh now';
-  }
-  function cash(value, currency) {
-    const code = /^[A-Z]{3}$/.test(currency || '') ? currency : 'USD';
-    try { return new Intl.NumberFormat(undefined, {style:'currency',currency:code,minimumFractionDigits:2,maximumFractionDigits:2}).format(n(value)); }
-    catch (_) { return code + ' ' + n(value).toFixed(2); }
-  }
-  function when(value) {
-    if (!value) return '—';
-    const date = new Date(value);
-    if (!Number.isFinite(date.getTime())) return '—';
-    const formatOptions = { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZoneName: 'short' };
-    if (userTimezone !== 'browser') formatOptions.timeZone = userTimezone;
-    return date.toLocaleString(undefined, formatOptions);
-  }
-  function cell(row, value, cls) {
-    const td = document.createElement('td');
-    td.textContent = value === null || value === undefined || value === '' ? '—' : String(value);
-    if (cls) td.className = cls;
-    row.appendChild(td);
-  }
-  function empty(id, span, title, detail) {
-    const body = $(id), row = document.createElement('tr'), td = document.createElement('td');
-    td.colSpan = span;
-    td.className = 'table-placeholder';
-    td.setAttribute('role', 'status');
-    const state = document.createElement('div'); state.className = 'empty-state';
-    const mark = document.createElement('span'); mark.className = 'empty-mark'; mark.setAttribute('aria-hidden', 'true'); mark.textContent = '—';
-    const heading = document.createElement('strong'); heading.className = 'empty-title'; heading.textContent = title;
-    const description = document.createElement('span'); description.className = 'empty-detail'; description.textContent = detail || '';
-    state.append(mark, heading, description); td.appendChild(state); row.appendChild(td); body.replaceChildren(row);
-  }
-  function clearDashboardData() {
-    ['metric-positions', 'metric-floating', 'metric-balance', 'metric-equity'].forEach(function (id) {
-      const value = $(id); value.textContent = 'Awaiting data'; value.className = 'metric-value is-pending';
+
+  const btnLogout = document.getElementById('btn-logout');
+
+  if (btnLogout) btnLogout.addEventListener('click', logout);
+
+  const btnLogoutMob = document.getElementById('btn-logout-mobile');
+
+  if (btnLogoutMob) btnLogoutMob.addEventListener('click', logout);
+
+
+
+  // 4. Tab Navigation Switcher
+
+  const tabs = document.querySelectorAll('.tab-link');
+
+  const panels = document.querySelectorAll('.view-panel');
+
+
+
+  window.switchTab = function(targetId) {
+
+    tabs.forEach(t => {
+
+      if (t.dataset.tab === targetId) t.classList.add('active');
+
+      else t.classList.remove('active');
+
     });
-    $('dashboard-note').hidden = false;
-    $('account-meta').textContent = 'Waiting for verified broker data';
-    $('account-mode').hidden = true;
-    $('account-mode-note').textContent = 'DEMO / REAL status appears after a verified broker update';
-    empty('positions-body', 10, 'Waiting for open positions', 'Open bot positions will appear here after the next signed MT5 snapshot.');
-    empty('deals-body', 9, 'Waiting for trade history', 'Recent bot deals will appear here after verified broker history is received.');
-  }
-  function updateAccountSelector(authorizedIds, accountRows) {
-    const wrap = $('account-filter'), select = $('account-select');
-    const ids = Array.isArray(authorizedIds) ? authorizedIds.filter(function (id) { return typeof id === 'string' && id; }) : [];
-    const rows = Array.isArray(accountRows) ? accountRows : [];
-    const byId = new Map(rows.map(function (item) { return [item.account_id, item]; }));
-    if (selectedAccountId && !ids.includes(selectedAccountId)) selectedAccountId = '';
-    select.replaceChildren();
-    if (ids.length > 1) {
-      const all = document.createElement('option');
-      all.value = '';
-      all.textContent = 'All authorized accounts';
-      select.appendChild(all);
-    }
-    ids.forEach(function (id) {
-      const item = byId.get(id), option = document.createElement('option');
-      option.value = id;
-      option.textContent = item
-        ? (item.server || id) + ' · ' + id + (item.login ? ' · #' + item.login : '')
-        : id + ' · waiting for MT5 feed';
-      select.appendChild(option);
+
+    panels.forEach(p => {
+
+      if (p.id === targetId) p.hidden = false;
+
+      else p.hidden = true;
+
     });
-    select.value = selectedAccountId;
-    wrap.hidden = ids.length < 2;
-  }
-  function render(payload) {
-    $('dashboard-note').hidden = true;
-    const s = payload.snapshot, account = s.account || {}, currency = account.currency || 'USD';
-    const positions = Array.isArray(s.positions) ? s.positions : [];
-    const deals = Array.isArray(s.deals) ? s.deals : [];
-    updateAccountSelector(payload.authorized_account_ids, payload.authorized_accounts || s.accounts);
-    const floating = positions.reduce(function (total, item) { return total + n(item.profit) + n(item.swap); }, 0);
-    const money = function (value) {
-      if (currency === 'MULTI') return 'Multi-currency';
-      if (value === null || value === undefined) return '—';
-      return cash(value, currency);
-    };
-    $('metric-positions').textContent = String(positions.length);
-    $('metric-positions').className = 'metric-value';
-    $('metric-floating').textContent = money(currency === 'MULTI' ? null : floating);
-    $('metric-floating').className = 'metric-value ' + (floating >= 0 ? 'positive' : 'negative');
-    $('metric-balance').textContent = money(account.balance);
-    $('metric-balance').className = 'metric-value';
-    $('metric-equity').textContent = money(account.equity);
-    $('metric-equity').className = 'metric-value';
-    $('account-meta').textContent = (account.server || 'Broker') + ' · ' + (account.trade_mode || 'UNKNOWN') + ' · ' + currency;
-    const mode = String(account.trade_mode || 'UNKNOWN').toUpperCase();
-    const modeLabel = mode === 'REAL' ? 'REAL ACCOUNT' : mode === 'DEMO' ? 'DEMO ACCOUNT' : mode === 'CONTEST' ? 'CONTEST ACCOUNT' : (n(account.total_accounts) > 1 ? 'MIXED ACCOUNT MODES' : 'ACCOUNT MODE UNKNOWN');
-    const modeBadge = $('account-mode');
-    modeBadge.textContent = modeLabel;
-    modeBadge.className = 'mode-badge ' + (mode === 'REAL' ? 'mode-real' : mode === 'DEMO' ? 'mode-demo' : 'mode-unknown');
-    modeBadge.hidden = false;
-    $('account-mode-note').textContent = 'Broker-reported account classification';
-    if (!positions.length) empty('positions-body', 10, 'No open bot positions', 'The latest verified snapshot contains no bot-tagged open positions.');
-    else {
-      const body = $('positions-body'); body.replaceChildren();
-      positions.forEach(function (p) {
-        const row = document.createElement('tr'), pnl = n(p.profit) + n(p.swap);
-        cell(row,p.account_id || 'primary'); cell(row,p.ticket); cell(row,p.symbol); cell(row,String(p.side || '').toUpperCase(),'side ' + p.side);
-        cell(row,n(p.volume).toFixed(2)); cell(row,n(p.entry_price).toFixed(5));
-        cell(row,n(p.current_price).toFixed(5)); cell(row,n(p.sl) ? n(p.sl).toFixed(5) : '—');
-        cell(row,n(p.tp) ? n(p.tp).toFixed(5) : '—'); cell(row,cash(pnl,currency),pnl >= 0 ? 'positive' : 'negative');
-        body.appendChild(row);
-      });
-    }
-    if (!deals.length) empty('deals-body', 9, 'No recent bot deals', 'No matching bot deals were received in the last seven days.');
-    else {
-      const body = $('deals-body'); body.replaceChildren();
-      deals.slice(0,100).forEach(function (d) {
-        const row = document.createElement('tr'), pnl = n(d.net_profit);
-        cell(row,when(d.time)); cell(row,d.account_id || 'primary'); cell(row,d.ticket); cell(row,d.symbol);
-        cell(row,String(d.side || '').toUpperCase(),'side ' + d.side);
-        cell(row,String(d.entry || '').toUpperCase()); cell(row,n(d.volume).toFixed(2));
-        cell(row,n(d.price).toFixed(5)); cell(row,cash(pnl,currency),pnl >= 0 ? 'positive' : 'negative');
-        body.appendChild(row);
-      });
-    }
-    const captured = payload.captured_at || s.captured_at;
-    setLastBrokerUpdate(captured, captured ? 'Latest accepted broker snapshot · ' + timezoneLabel : 'No broker snapshot has been received');
-    if (payload.connected) {
-      setFeedConnection('FEED CONNECTED · FRESH', 'fresh', 'Snapshot is inside the 30-second freshness window');
-      setStatus(s.bot_status === 'running' ? 'The MT5 publisher reports that its process is running.' : 'The MT5 publisher status is not confirmed by the latest snapshot.', s.bot_status === 'running' ? 'ok' : 'warn');
-    } else {
-      setFeedConnection('FEED STALE', 'stale', 'The most recent snapshot is older than the freshness window');
-      setStatus('The latest broker snapshot is not current. Verify the account directly in the MT5 terminal before relying on these values.', 'warn');
-    }
-  }
-  async function refresh() {
-    if (!auth) return;
-    if (refreshing) { refreshQueued = true; return; }
-    refreshing = true;
-    const refreshButton = $('refresh-now');
-    if (refreshButton) { refreshButton.disabled = true; refreshButton.innerHTML = '<span aria-hidden="true">↻</span> Refreshing…'; }
-    try {
-      const sessionResult = await auth.auth.getSession(), session = sessionResult.data && sessionResult.data.session;
-      if (!session) { window.location.replace('/login.html?next=dashboard.html'); return; }
-      const query = selectedAccountId ? '?account_id=' + encodeURIComponent(selectedAccountId) : '';
-      const response = await fetch('/api/trades' + query, {method:'GET',headers:{Authorization:'Bearer ' + session.access_token,Accept:'application/json'},cache:'no-store'});
-      const data = await response.json().catch(function () { return {}; });
-      if (response.status === 401) { window.location.replace('/login.html?next=dashboard.html'); return; }
-      if (!response.ok || !data.ok) {
-        setFeedConnection(response.status === 503 ? 'FEED UNAVAILABLE' : 'FEED REQUEST FAILED', 'offline', 'The dashboard could not retrieve a verified snapshot');
-        updateAccountSelector([], []);
-        clearDashboardData();
-        if (response.status === 403) {
-          content.hidden = true;
-          setFeedConnection('ACCESS DENIED', 'offline', 'This account is not authorized to view the dashboard');
-          setStatus('This signed-in account is not authorized to view trading data.', 'warn');
-        } else if (response.status === 503) {
-          setStatus('The secure MT5 trade feed is not configured or is temporarily unavailable. No trading figures are displayed.', 'warn');
-        } else {
-          setStatus('The trade feed request failed. No trading figures are displayed until a verified response is available.', 'warn');
-        }
-        return;
+
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    if (mobileMenu && !mobileMenu.hidden) {
+
+      mobileMenu.hidden = true;
+
+      mobileMenu.classList.remove('is-open');
+
+      document.body.classList.remove('nav-open');
+
+      document.body.style.overflow = '';
+
+      const toggle = document.querySelector('.nav-toggle');
+
+      if (toggle) {
+
+        toggle.setAttribute('aria-expanded', 'false');
+
+        toggle.setAttribute('aria-label', 'Toggle navigation menu');
+
       }
-      if (!data.snapshot) {
-        setFeedConnection('AWAITING FIRST UPDATE', 'offline', 'No signed broker snapshot has been stored yet');
-        setLastBrokerUpdate('', 'No broker snapshot has been received');
-        updateAccountSelector(data.authorized_account_ids, []);
-        clearDashboardData();
-        setStatus('Waiting for the bot to publish the first verified MT5 snapshot. No sample trades are displayed.', 'warn');
-        return;
-      }
-      render(data);
-    } catch (_) {
-      setFeedConnection('FEED UNAVAILABLE', 'offline', 'Network or API request failed');
-      clearDashboardData();
-      setLastBrokerUpdate('', lastSuccessfulBrokerUpdate ? 'Last accepted snapshot retained · ' + timezoneLabel : 'No broker snapshot has been received');
-      setStatus('The feed request failed. No trading figures are displayed until a verified response is available.', 'warn');
-    } finally {
-      refreshing = false;
-      if (refreshButton) { refreshButton.disabled = false; refreshButton.innerHTML = '<span aria-hidden="true">↻</span> Refresh data'; }
-      if (refreshQueued) { refreshQueued = false; refresh(); }
+
     }
-  }
-  async function init() {
-    try {
-      const response = await fetch('/api/auth-config',{cache:'no-store'}), cfg = await response.json();
-      if (!response.ok || !cfg.configured) { window.location.replace('/login.html?auth=pending'); return; }
-      if (!window.supabase || !window.supabase.createClient) throw new Error('Auth library unavailable');
-      auth = window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey);
-      const result = await auth.auth.getSession();
-      if (!result.data.session) { window.location.replace('/login.html?next=dashboard.html'); return; }
-      const verifiedUserResult = await auth.auth.getUser();
-      const verifiedUser = verifiedUserResult.data && verifiedUserResult.data.user;
-      if (verifiedUserResult.error || !verifiedUser) { window.location.replace('/login.html?next=dashboard.html'); return; }
-      renderWelcome(verifiedUser);
-      applyUserPreferences(verifiedUser);
-      logout.hidden = false; content.hidden = false;
-      logout.onclick = async function () { if (timer) window.clearInterval(timer); await auth.auth.signOut({scope:'local'}); window.location.href='/login.html'; };
-      $('account-select').addEventListener('change', function () { selectedAccountId = this.value; clearDashboardData(); refresh(); });
-      $('refresh-now').addEventListener('click', refresh);
-      await refresh();
-      if (autoRefresh) timer = window.setInterval(refresh,refreshSeconds * 1000);
-    } catch (_) { setFeedConnection('FEED UNAVAILABLE', 'offline', 'Authentication or API configuration unavailable'); window.location.replace('/login.html?auth=unavailable'); }
-  }
-  init();
-})();
-</script></main><button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
-<script>
-(function(){
-  const button=document.getElementById("back-to-top");
-  if(!button)return;
-  let queued=false;
-  function sync(){
-    button.classList.toggle("is-visible",window.scrollY>320);
-    queued=false;
-  }
-  window.addEventListener("scroll",function(){
-    if(!queued){queued=true;window.requestAnimationFrame(sync);}
-  },{passive:true});
-  button.addEventListener("click",function(){
-    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({top:0,behavior:reduced?"auto":"smooth"});
+
+  };
+
+
+
+  tabs.forEach(tab => {
+
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+
   });
-  sync();
+
+
+
+  const btnNotifs = document.getElementById('btn-open-notifs');
+
+  if (btnNotifs) {
+
+    btnNotifs.addEventListener('click', () => switchTab('tab-notifications'));
+
+  }
+
+  if (userDisplay) {
+
+    userDisplay.addEventListener('click', () => switchTab('tab-settings'));
+
+  }
+
+
+
+  // Modal close
+
+  const modalClose = document.getElementById('modal-close');
+
+  if (modalClose) {
+
+    modalClose.addEventListener('click', () => {
+
+      document.getElementById('modal-container').hidden = true;
+
+    });
+
+  }
+
+
+
+  // 5. In-flight Guard, Polling & Failure Handling (Backoff + Timeout)
+
+  let isFetching = false;
+
+  let pollTimer = null;
+
+  let pollBackoffMs = 5000;
+
+  let failureCount = 0;
+
+  let latestAccounts = [];
+
+
+
+  async function fetchTradesData() {
+
+    const token = await window.VortexAuth.getAccessToken();
+
+    if (!token) {
+
+      await window.VortexAuth.signOut();
+
+      throw new Error('Session expired. Please sign in again.');
+
+    }
+
+
+
+    const targetUrl = (window.API_CONFIG && typeof window.API_CONFIG.url === 'function')
+
+      ? window.API_CONFIG.url('/api/trades')
+
+      : '/api/trades';
+
+
+
+    const controller = new AbortController();
+
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+
+
+    try {
+
+      const res = await fetch(targetUrl, {
+
+        headers: { 'Authorization': `Bearer ${token}` },
+
+        signal: controller.signal,
+
+        cache: 'no-store'
+
+      });
+
+      clearTimeout(timeoutId);
+
+
+
+      if (res.status === 401) {
+
+        await window.VortexAuth.signOut();
+
+        throw new Error('Session is invalid or expired. Redirecting to login...');
+
+      }
+
+
+
+      if (!res.ok) {
+
+        const errData = await res.json().catch(() => ({}));
+
+        throw new Error(errData.error || `HTTP ${res.status}: Gateway Error`);
+
+      }
+
+
+
+      return res.json();
+
+    } catch (err) {
+
+      clearTimeout(timeoutId);
+
+      throw err;
+
+    }
+
+  }
+
+
+
+  // 6. Primary Dashboard Render Cycle
+
+  
+  function renderMarketIntelligence(intel) {
+    if (!intel) return;
+
+    const lastUpdatedElem = document.getElementById('intel-last-updated');
+    if (lastUpdatedElem && intel.last_updated) {
+      lastUpdatedElem.textContent = 'Updated: ' + new Date(intel.last_updated).toLocaleTimeString();
+    }
+
+    function setBadge(elId, status) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      const s = (status || 'UNKNOWN').toUpperCase();
+      el.textContent = s;
+      if (s === 'CONNECTED' || s === 'HEALTHY' || s === 'OPERATIONAL') {
+        el.style.background = 'rgba(16,185,129,0.15)';
+        el.style.color = '#10b981';
+      } else if (s === 'DEGRADED' || s === 'RATE_LIMITED' || s === 'STALE') {
+        el.style.background = 'rgba(245,158,11,0.15)';
+        el.style.color = '#f59e0b';
+      } else if (s === 'NOT_CONFIGURED' || s === 'UNCONFIGURED') {
+        el.style.background = 'rgba(148,163,184,0.15)';
+        el.style.color = '#94a3b8';
+      } else if (s === 'NOT_SUPPORTED') {
+        el.style.background = 'rgba(249,115,22,0.15)';
+        el.style.color = '#f97316';
+      } else {
+        el.style.background = 'rgba(239,68,68,0.15)';
+        el.style.color = '#ef4444';
+      }
+    }
+
+    const ph = intel.provider_health || {};
+
+    // 1. DOM Card
+    if (ph.MT5_DOM) {
+      const st = ph.MT5_DOM.status === 'HEALTHY' ? 'CONNECTED' : (ph.MT5_DOM.status || 'CONNECTED');
+      setBadge('intel-badge-dom', st);
+      const errEl = document.getElementById('intel-err-dom');
+      if (errEl) errEl.textContent = ph.MT5_DOM.error_or_rate_limit || ph.MT5_DOM.message || 'OTC CFD (L2 DOM disabled server-side by broker)';
+      const recEl = document.getElementById('intel-records-dom');
+      if (recEl && intel.market_depth) recEl.textContent = Object.keys(intel.market_depth).length + ' symbols active';
+      const upEl = document.getElementById('intel-update-dom');
+      if (upEl && ph.MT5_DOM.last_successful_fetch) upEl.textContent = new Date(ph.MT5_DOM.last_successful_fetch).toLocaleTimeString();
+    }
+
+    // 2. GDELT Card
+    if (ph.GDELT_DOC_API) {
+      const st = ph.GDELT_DOC_API.circuit_breaker_tripped ? 'DEGRADED' : (ph.GDELT_DOC_API.status === 'HEALTHY' ? 'CONNECTED' : ph.GDELT_DOC_API.status);
+      setBadge('intel-badge-gdelt', st);
+      const errEl = document.getElementById('intel-err-gdelt');
+      if (errEl) errEl.textContent = ph.GDELT_DOC_API.circuit_breaker_tripped ? ('Rate limited; cool down until ' + (ph.GDELT_DOC_API.cooldown_until || 'active')) : (ph.GDELT_DOC_API.message || 'Auto-rate-limit circuit breaker enabled');
+      const recEl = document.getElementById('intel-records-gdelt');
+      if (recEl && Array.isArray(intel.recent_headlines)) recEl.textContent = intel.recent_headlines.length + ' articles cached';
+      const upEl = document.getElementById('intel-update-gdelt');
+      if (upEl && ph.GDELT_DOC_API.last_attempt_at) upEl.textContent = new Date(ph.GDELT_DOC_API.last_attempt_at).toLocaleTimeString();
+    }
+
+    // 3. CFTC Card
+    if (ph.CFTC_PUBLIC_API) {
+      const st = ph.CFTC_PUBLIC_API.status === 'HEALTHY' ? 'CONNECTED' : ph.CFTC_PUBLIC_API.status;
+      setBadge('intel-badge-cftc', st);
+      const errEl = document.getElementById('intel-err-cftc');
+      if (errEl) errEl.textContent = ph.CFTC_PUBLIC_API.message || 'Public Reporting Environment (Socrata)';
+      const recEl = document.getElementById('intel-records-cftc');
+      if (recEl && intel.institutional_positioning) recEl.textContent = Object.keys(intel.institutional_positioning).length + ' contracts mapped';
+      const upEl = document.getElementById('intel-update-cftc');
+      if (upEl && ph.CFTC_PUBLIC_API.last_successful_fetch) upEl.textContent = new Date(ph.CFTC_PUBLIC_API.last_successful_fetch).toLocaleDateString();
+    }
+
+    // 4. NewsData Card
+    if (ph.NEWSDATA_IO) {
+      const st = (ph.NEWSDATA_IO.status === 'UNCONFIGURED' || !ph.NEWSDATA_IO.quota_limit) ? 'NOT_CONFIGURED' : ph.NEWSDATA_IO.status;
+      setBadge('intel-badge-newsdata', st);
+      const quotaEl = document.getElementById('intel-quota-newsdata');
+      if (quotaEl) quotaEl.textContent = (ph.NEWSDATA_IO.quota_used || 0) + '/' + (ph.NEWSDATA_IO.quota_limit || 200) + ' credits used';
+      const errEl = document.getElementById('intel-err-newsdata');
+      if (errEl) errEl.textContent = ph.NEWSDATA_IO.message || 'NEWSDATA_API_KEY omitted (No credit leakage)';
+    }
+
+    // Shadow Mode Alignment Table
+    const shadowTbody = document.getElementById('shadow-alignment-tbody');
+    if (shadowTbody && intel.shadow_assessments) {
+      const keys = Object.keys(intel.shadow_assessments);
+      if (keys.length > 0) {
+        shadowTbody.innerHTML = keys.map(k => {
+          const item = intel.shadow_assessments[k];
+          let statusBadge = '<span class="badge" style="background:rgba(148,163,184,0.15); color:#94a3b8;">NEUTRAL</span>';
+          if (item.confirmation_status === 'CONFIRMATION') {
+            statusBadge = '<span class="badge" style="background:rgba(16,185,129,0.15); color:#10b981; font-weight:600;">CONFIRMATION</span>';
+          } else if (item.confirmation_status === 'CONTRADICTION') {
+            statusBadge = '<span class="badge" style="background:rgba(239,68,68,0.15); color:#ef4444; font-weight:600;">CONTRADICTION</span>';
+          }
+          return '<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">' +
+            '<td style="padding:0.5rem; font-weight:600;">' + (item.symbol || k) + '</td>' +
+            '<td style="padding:0.5rem;">' + (item.strategy_direction || 'NONE') + '</td>' +
+            '<td style="padding:0.5rem;">' + (item.strategy_score || 0).toFixed(1) + '</td>' +
+            '<td style="padding:0.5rem;">' + (item.intelligence_sentiment || 'NEUTRAL') + '</td>' +
+            '<td style="padding:0.5rem;">' + statusBadge + '</td>' +
+            '<td style="padding:0.5rem;">' + ((item.composite_confidence || 0.5) * 100).toFixed(0) + '%</td>' +
+            '<td style="padding:0.5rem; color:#94a3b8; font-size:0.75rem;">' + (item.notes || '') + '</td>' +
+            '</tr>';
+        }).join('');
+      }
+    }
+
+    // CFTC Positioning Table
+    const cftcTbody = document.getElementById('cftc-positioning-tbody');
+    if (cftcTbody && intel.institutional_positioning) {
+      const keys = Object.keys(intel.institutional_positioning);
+      if (keys.length > 0) {
+        cftcTbody.innerHTML = keys.map(k => {
+          const r = intel.institutional_positioning[k];
+          let biasColor = '#94a3b8';
+          if (r.sentiment_bias === 'BULLISH') biasColor = '#10b981';
+          if (r.sentiment_bias === 'BEARISH') biasColor = '#ef4444';
+          return '<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">' +
+            '<td style="padding:0.5rem; font-weight:600;">' + (r.symbol || k) + '</td>' +
+            '<td style="padding:0.5rem; font-size:0.75rem; color:#cbd5e1;">' + (r.market_name || '') + '</td>' +
+            '<td style="padding:0.5rem;">' + (r.report_date || '') + '</td>' +
+            '<td style="padding:0.5rem; font-weight:600;">' + (r.non_commercial_net || 0).toLocaleString() + '</td>' +
+            '<td style="padding:0.5rem;">' + (r.commercial_net || 0).toLocaleString() + '</td>' +
+            '<td style="padding:0.5rem;">' + (r.open_interest || 0).toLocaleString() + '</td>' +
+            '<td style="padding:0.5rem;">' + (r.weekly_net_change >= 0 ? '+' : '') + (r.weekly_net_change || 0).toLocaleString() + '</td>' +
+            '<td style="padding:0.5rem; font-weight:600; color:' + biasColor + ';">' + (r.sentiment_bias || 'NEUTRAL') + '</td>' +
+            '</tr>';
+        }).join('');
+      }
+    }
+
+    // Market Depth Table
+    const depthTbody = document.getElementById('market-depth-tbody');
+    if (depthTbody && intel.market_depth) {
+      const keys = Object.keys(intel.market_depth);
+      if (keys.length > 0) {
+        depthTbody.innerHTML = keys.map(k => {
+          const d = intel.market_depth[k];
+          const domBadge = d.depth_available
+            ? '<span class="badge" style="background:rgba(16,185,129,0.15); color:#10b981;">L2 ACTIVE</span>'
+            : '<span class="badge" style="background:rgba(148,163,184,0.15); color:#94a3b8;">OTC TOP-OF-BOOK</span>';
+          return '<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">' +
+            '<td style="padding:0.5rem; font-weight:600;">' + (d.symbol || k) + '</td>' +
+            '<td style="padding:0.5rem;">' + domBadge + '</td>' +
+            '<td style="padding:0.5rem; font-size:0.75rem;">' + (d.provider || 'MT5') + '</td>' +
+            '<td style="padding:0.5rem;">' + (d.spread_points || 0) + '</td>' +
+            '<td style="padding:0.5rem;">$' + (d.spread_cost_usd || 0).toFixed(2) + '</td>' +
+            '<td style="padding:0.5rem;">' + (d.imbalance_ratio || 1.0).toFixed(2) + '</td>' +
+            '<td style="padding:0.5rem; font-size:0.75rem; color:#64748b;">' + (d.source_notes || '') + '</td>' +
+            '</tr>';
+        }).join('');
+      }
+    }
+
+    // News Feed Table
+    const newsTbody = document.getElementById('market-news-tbody');
+    if (newsTbody && Array.isArray(intel.recent_headlines) && intel.recent_headlines.length > 0) {
+      newsTbody.innerHTML = intel.recent_headlines.slice(0, 15).map(n => {
+        let sentColor = '#94a3b8';
+        if (n.sentiment_score > 0.1) sentColor = '#10b981';
+        if (n.sentiment_score < -0.1) sentColor = '#ef4444';
+        return '<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">' +
+          '<td style="padding:0.5rem; font-size:0.75rem; color:#94a3b8;">' + (n.provider || 'GDELT') + '</td>' +
+          '<td style="padding:0.5rem; font-weight:600;">' + (n.instrument || 'MACRO') + '</td>' +
+          '<td style="padding:0.5rem; font-size:0.75rem;">' + (n.event_category || 'GENERAL') + '</td>' +
+          '<td style="padding:0.5rem;"><a href="' + (n.source_url || '#') + '" target="_blank" rel="noopener noreferrer" style="color:#60a5fa; text-decoration:none;">' + (n.headline || '') + '</a></td>' +
+          '<td style="padding:0.5rem; font-weight:600; color:' + sentColor + ';">' + ((n.sentiment_score || 0) > 0 ? '+' : '') + (n.sentiment_score || 0).toFixed(2) + '</td>' +
+          '<td style="padding:0.5rem;"><span class="badge" style="font-size:0.65rem; background:rgba(59,130,246,0.15); color:#3b82f6;">' + (n.freshness_status || 'REAL_TIME') + '</span></td>' +
+          '</tr>';
+      }).join('');
+    }
+  }
+
+  async function updateDashboard() {
+
+    const syncIndicator = document.getElementById('sync-indicator');
+
+    const alertContainer = document.getElementById('telemetry-alert-container');
+
+
+
+    try {
+
+      const data = await fetchTradesData();
+
+      failureCount = 0;
+
+      pollBackoffMs = 5000; // Reset backoff on successful update
+
+
+
+      const snapshot = data.snapshot || {};
+
+      const primaryAcc = snapshot.account || {};
+
+      const fleet = snapshot.fleet_summary || {};
+
+      const userCtx = snapshot.user_context || {};
+
+      const accounts = Array.isArray(snapshot.accounts) ? snapshot.accounts : [];
+
+      latestAccounts = accounts;
+
+      const positions = Array.isArray(snapshot.positions) ? snapshot.positions : [];
+
+      const deals = Array.isArray(snapshot.deals) ? snapshot.deals : [];
+
+
+
+      // A. Update Authenticated Role & Identity from Server Context
+
+      const isAdmin = Boolean(userCtx.is_admin === true && (userCtx.role === 'ADMIN' || userCtx.role === 'SUPER_ADMIN'));
+
+      const effectiveRole = isAdmin ? 'ADMIN' : (userCtx.role || 'READ_ONLY');
+
+      const roleDisplay = document.getElementById('role-display');
+
+      if (roleDisplay) {
+
+        roleDisplay.textContent = effectiveRole;
+
+        roleDisplay.className = 'role-badge ' + (isAdmin ? 'role-badge-admin' : 'role-badge-readonly');
+
+      }
+
+      if (document.getElementById('prof-role')) document.getElementById('prof-role').textContent = effectiveRole;
+
+      if (document.getElementById('prof-scope')) {
+
+        document.getElementById('prof-scope').textContent = isAdmin
+
+          ? 'Accounts 001–020 (Authorized Admin)'
+
+          : 'Accounts 001–020 (Global Fleet Read-Only)';
+
+      }
+
+      if (document.getElementById('prof-mode')) {
+
+        document.getElementById('prof-mode').textContent = 'READ_ONLY (Execution Disarmed)';
+
+      }
+
+
+
+      // B. Evaluate Feed Freshness & Data Provenance
+
+      const freshness = window.StatusUtils.evaluateFeedFreshness(data, null);
+
+      const mode = window.StatusUtils.evaluateAccountMode(primaryAcc);
+
+      const isCache = freshness.isCache || (fleet.telemetry_source === 'PREFLIGHT_BOOTSTRAP_CACHE');
+
+      const timeInfo = window.StatusUtils.formatBrokerTimestamp(data.captured_at || snapshot.captured_at, isCache);
+
+
+
+      // C. Dynamic Telemetry Alert Banner
+
+      alertContainer.innerHTML = '';
+
+      if (freshness.status === 'STALE') {
+
+        alertContainer.innerHTML = `
+
+          <div class="telemetry-alert telemetry-alert-stale">
+
+            <span class="telemetry-alert-icon">⚠</span>
+
+            <div>
+
+              <strong>Feed Freshness: STALE (${escapeHtml(freshness.message)})</strong>
+
+              <div style="font-size:12px;margin-top:2px">Last verified broker update was ${escapeHtml(timeInfo.relative)} (${escapeHtml(timeInfo.utc)}). Live MT5 publisher is offline or stopped. Displaying static preflight demo cache.</div>
+
+            </div>
+
+          </div>
+
+        `;
+
+      } else if (freshness.status === 'DISCONNECTED') {
+
+        alertContainer.innerHTML = `
+
+          <div class="telemetry-alert telemetry-alert-disconnected">
+
+            <span class="telemetry-alert-icon">✕</span>
+
+            <div>
+
+              <strong>Feed Disconnected: No active broker snapshot received</strong>
+
+              <div style="font-size:12px;margin-top:2px">Serverless edge gateway is reachable but no MT5 telemetry stream is recorded in storage.</div>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }
+
+
+
+      // D. KPI Grid: Strict Numeric Validation & Null-Aware Values (No false defaults)
+
+      // 1. Registered Fleet Capacity
+
+      const registeredCap = accounts.length || fleet.registered_capacity || fleet.total_accounts || 20;
+
+      document.getElementById('kpi-total-accounts').textContent = String(registeredCap);
+
+
+
+      // 2. Verified Connected Accounts: Count only fresh, verified live broker connections
+
+      const verifiedConnectedCount = (freshness.status === 'CONNECTED' && typeof fleet.connected_count === 'number')
+
+        ? fleet.connected_count
+
+        : 0;
+
+      document.getElementById('kpi-connected-accounts').textContent = `${verifiedConnectedCount} / ${registeredCap}`;
+
+      const connSub = document.getElementById('kpi-connected-sub');
+
+      if (connSub) {
+
+        connSub.textContent = verifiedConnectedCount > 0
+
+          ? 'account_003 (Other: Awaiting Telemetry)'
+
+          : 'No active broker feed';
+
+      }
+
+
+
+      // 3. Verified DEMO Balance: Null-aware; distinction between live total and preflight cache
+
+      const totalBalEl = document.getElementById('kpi-total-balance');
+
+      const totalBalSub = document.getElementById('kpi-balance-sub');
+
+      if (freshness.status === 'CONNECTED' && typeof fleet.total_balance === 'number' && Number.isFinite(fleet.total_balance)) {
+
+        totalBalEl.textContent = `$${fleet.total_balance.toFixed(2)}`;
+
+        if (totalBalSub) totalBalSub.textContent = 'Verified Live Telemetry (Other: Awaiting Telemetry)';
+
+      } else if (fleet.total_balance === 0) {
+
+        totalBalEl.textContent = '$0.00';
+
+        if (totalBalSub) totalBalSub.textContent = 'Verified Zero Balance';
+
+      } else {
+
+        totalBalEl.textContent = 'Unavailable (Stale)';
+
+        const cacheBal = (typeof fleet.historical_preflight_balance === 'number' && Number.isFinite(fleet.historical_preflight_balance))
+
+          ? `$${fleet.historical_preflight_balance.toFixed(2)}`
+
+          : 'Unavailable';
+
+        if (totalBalSub) totalBalSub.textContent = `Historical Cache: ${cacheBal}`;
+
+      }
+
+
+
+      // 4. Verified DEMO Equity: Null-aware; distinction between live total and preflight cache
+
+      const totalEqEl = document.getElementById('kpi-total-equity');
+
+      const totalEqSub = document.getElementById('kpi-equity-sub');
+
+      if (freshness.status === 'CONNECTED' && typeof fleet.total_equity === 'number' && Number.isFinite(fleet.total_equity)) {
+
+        totalEqEl.textContent = `$${fleet.total_equity.toFixed(2)}`;
+
+        if (totalEqSub) totalEqSub.textContent = `Margin: $0.00 · Free: $${fleet.total_equity.toFixed(2)}`;
+
+      } else if (fleet.total_equity === 0) {
+
+        totalEqEl.textContent = '$0.00';
+
+        if (totalEqSub) totalEqSub.textContent = 'Verified Zero Equity';
+
+      } else {
+
+        totalEqEl.textContent = 'Unavailable (Stale)';
+
+        const cacheEq = (typeof fleet.historical_preflight_equity === 'number' && Number.isFinite(fleet.historical_preflight_equity))
+
+          ? `$${fleet.historical_preflight_equity.toFixed(2)}`
+
+          : 'Unavailable';
+
+        if (totalEqSub) totalEqSub.textContent = `Historical Cache: ${cacheEq}`;
+
+      }
+
+
+
+      // E. Primary Account 003 Card
+
+      const acc003Badges = document.getElementById('account-003-badges');
+
+      if (acc003Badges) {
+
+        acc003Badges.innerHTML = `
+
+          <span class="status-badge ${freshness.badgeClass}" id="acc003-feed-badge">${freshness.icon} ${escapeHtml(freshness.label)}</span>
+
+          <span class="mode-badge ${mode.badgeClass}" id="acc003-mode-badge">${escapeHtml(mode.label)}</span>
+
+          <span class="prov-badge ${isCache ? 'prov-badge-cache' : 'prov-badge-verified'}" id="acc003-prov-badge">${isCache ? 'PREFLIGHT BOOTSTRAP CACHE' : 'VERIFIED STREAM'}</span>
+
+        `;
+
+      }
+
+      document.getElementById('acc003-mode-text').textContent = `${mode.label} (Broker-Verified Metadata)`;
+
+      document.getElementById('acc003-update-time').textContent = timeInfo.utc;
+
+      document.getElementById('acc003-relative-time').textContent = timeInfo.relative;
+      const balEqEl = document.getElementById('acc003-balance-equity');
+      if (balEqEl && primaryAcc) {
+        const b = (typeof primaryAcc.balance === 'number') ? primaryAcc.balance : (fleet.total_balance || 0);
+        const e = (typeof primaryAcc.equity === 'number') ? primaryAcc.equity : (fleet.total_equity || 0);
+        balEqEl.textContent = `$${Number(b).toFixed(2)} / $${Number(e).toFixed(2)}`;
+      }
+
+
+
+      // F. 20 Accounts Fleet Matrix Table
+
+      const tbody = document.getElementById('accounts-table-body');
+
+      if (tbody) {
+
+        tbody.innerHTML = '';
+
+        if (accounts.length === 0) {
+
+          tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--muted)">No accounts found in fleet registry.</td></tr>';
+
+        } else {
+
+          accounts.forEach(acc => {
+
+            const tr = document.createElement('tr');
+
+            const isAcc003 = (acc.account_id === 'account_003');
+
+            const accMode = window.StatusUtils.evaluateAccountMode(acc);
+
+
+
+            let accFeedClass = 'status-badge-disconnected';
+
+            let accFeedText = 'DISCONNECTED';
+
+            if (isAcc003) {
+
+              accFeedClass = freshness.badgeClass;
+
+              accFeedText = freshness.label;
+
+            }
+
+
+
+            let accProv = acc.status || 'AWAITING_CREDENTIALS';
+
+            let accProvClass = 'prov-badge-cache';
+
+            if (isAcc003) {
+
+              accProv = isCache ? 'PREFLIGHT CACHE' : 'VERIFIED STREAM';
+
+              accProvClass = isCache ? 'prov-badge-cache' : 'prov-badge-verified';
+
+            } else if (acc.status === 'AUTH_FAILED_ERROR_6') {
+
+              accProv = 'AUTH_FAILED_ERROR_6';
+
+            } else if (acc.status === 'AWAITING_CREDENTIALS') {
+
+              accProv = 'AWAITING_CREDENTIALS';
+
+            }
+
+
+
+            // Null-aware Balance & Equity formatting
+
+            let balanceDisplay = '—';
+
+            if (acc.balance !== null && acc.balance !== undefined && Number.isFinite(Number(acc.balance))) {
+
+              balanceDisplay = `$${Number(acc.balance).toFixed(2)}`;
+
+            }
+
+            let equityDisplay = '—';
+
+            if (acc.equity !== null && acc.equity !== undefined && Number.isFinite(Number(acc.equity))) {
+
+              equityDisplay = `$${Number(acc.equity).toFixed(2)}`;
+
+            }
+
+
+
+            // Broker Server: never default to VantageMarkets-Demo if absent
+
+            const serverDisplay = (acc.server && acc.server.trim()) ? acc.server.trim() : 'Not configured';
+
+
+
+            // Login
+
+            const loginDisplay = (acc.login && Number(acc.login) > 0) ? '#' + acc.login : '—';
+
+
+
+            tr.innerHTML = `
+
+              <td><strong>${escapeHtml(acc.account_id)}</strong></td>
+
+              <td>${escapeHtml(loginDisplay)}</td>
+
+              <td>${escapeHtml(serverDisplay)}</td>
+
+              <td><span class="mode-badge ${accMode.badgeClass}">${escapeHtml(accMode.label)}</span></td>
+
+              <td>${escapeHtml(balanceDisplay)}</td>
+
+              <td>${escapeHtml(equityDisplay)}</td>
+
+              <td><span class="status-badge ${accFeedClass}" style="font-size:10px">${escapeHtml(accFeedText)}</span></td>
+
+              <td><span class="prov-badge ${accProvClass}">${escapeHtml(accProv)}</span></td>
+
+              <td>${isAcc003 && acc.demo_trading_enabled ? '<span style="color:var(--teal);font-weight:700">DEMO ARMED (DEMO ONLY)</span>' : '<span style="color:var(--amber);font-weight:650">DISABLED / HARD DISARMED</span>'}</td>
+
+              <td><button class="btn-sm inspect-btn" data-id="${escapeHtml(acc.account_id)}" type="button">Inspect</button></td>
+
+            `;
+
+            tbody.appendChild(tr);
+
+          });
+
+
+
+          tbody.querySelectorAll('.inspect-btn').forEach(btn => {
+
+            btn.addEventListener('click', () => inspectAccount(btn.dataset.id));
+
+          });
+
+        }
+
+      }
+
+
+
+      // G. Positions Count & Table
+
+      const posCountEl = document.getElementById('tab-positions-count');
+
+      if (posCountEl) posCountEl.textContent = String(positions.length);
+
+      const posBody = document.getElementById('positions-table-body');
+
+      if (posBody) {
+
+        posBody.innerHTML = '';
+
+        if (positions.length === 0) {
+
+          posBody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--muted)">0 open positions. System operating under HARD DISARMED safety controls.</td></tr>';
+
+        } else {
+
+          positions.forEach(p => {
+
+            const tr = document.createElement('tr');
+
+            const profit = Number(p.profit || 0);
+
+            tr.innerHTML = `
+
+              <td><code>${escapeHtml(p.ticket || '—')}</code></td>
+
+              <td>${escapeHtml(p.account_id || 'primary')}</td>
+
+              <td><strong>${escapeHtml(p.symbol)}</strong></td>
+
+              <td><span style="color:${p.side === 'buy' ? 'var(--teal)' : 'var(--red)'}">${escapeHtml((p.side || '').toUpperCase())}</span></td>
+
+              <td>${escapeHtml(String(p.volume))}</td>
+
+              <td>${Number(p.entry_price || 0).toFixed(5)}</td>
+
+              <td>${Number(p.current_price || 0).toFixed(5)}</td>
+
+              <td>${Number(p.sl || 0).toFixed(5)}</td>
+
+              <td>${Number(p.tp || 0).toFixed(5)}</td>
+
+              <td style="color:${profit >= 0 ? 'var(--teal)' : 'var(--red)'};font-weight:700">$${profit.toFixed(2)}</td>
+
+            `;
+
+            posBody.appendChild(tr);
+
+          });
+
+        }
+
+      }
+
+
+
+      // H. Closed Deals Table
+
+      const dealsBody = document.getElementById('trades-table-body');
+
+      if (dealsBody) {
+
+        dealsBody.innerHTML = '';
+
+        if (deals.length === 0) {
+
+          dealsBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">No trade records found in database. System operating under HARD DISARMED safety controls.</td></tr>';
+
+        } else {
+
+          deals.forEach(d => {
+
+            const tr = document.createElement('tr');
+
+            const pnl = Number(d.net_profit || d.profit || 0);
+
+            const sideUpper = (d.side || '').toUpperCase();
+            const sideColor = sideUpper === 'BUY' ? 'var(--teal)' : (sideUpper === 'SELL' ? 'var(--red)' : 'inherit');
+            const rawTime = d.time || '—';
+            const formattedTime = (rawTime !== '—') ? escapeHtml(rawTime.replace('T', ' ').replace('.000Z', ' UTC').replace('+00:00', ' UTC')) : '—';
+
+            tr.innerHTML = `
+
+              <td><code>${escapeHtml(d.ticket || '—')}</code></td>
+
+              <td>${escapeHtml(d.account_id || 'account_003')}</td>
+
+              <td><strong>${escapeHtml(d.symbol)}</strong></td>
+
+              <td><span style="color:${sideColor};font-weight:700">${escapeHtml(sideUpper || '—')}</span></td>
+
+              <td>${escapeHtml(d.entry || '—')}</td>
+
+              <td>${escapeHtml(String(d.volume))}</td>
+
+              <td>${Number(d.price || 0).toFixed(5)}</td>
+
+              <td style="color:${pnl >= 0 ? 'var(--teal)' : 'var(--red)'};font-weight:700">$${pnl.toFixed(2)}</td>
+
+              <td><span style="font-size:11px;color:var(--muted)">${formattedTime}</span></td>
+
+            `;
+
+            dealsBody.appendChild(tr);
+
+          });
+
+        }
+
+      }
+
+
+
+      // I. Phase 81 & 97 Broker-Reconciled Complete Closed Trades & Pagination Engine
+      const closedTrades = Array.isArray(snapshot.closed_trades) ? snapshot.closed_trades : [];
+      window._allClosedTrades = closedTrades;
+
+      const closedCountEl = document.getElementById('tab-closed-trades-count');
+      if (closedCountEl) closedCountEl.textContent = String(closedTrades.length);
+
+      // Populate Symbols in dropdown if not already populated
+      const symbolSelect = document.getElementById('closed-filter-symbol');
+      if (symbolSelect && symbolSelect.options.length <= 1) {
+        const symCounts = {};
+        closedTrades.forEach(t => {
+          if (t.symbol) symCounts[t.symbol] = (symCounts[t.symbol] || 0) + 1;
+        });
+        Object.keys(symCounts).sort().forEach(sym => {
+          const opt = document.createElement('option');
+          opt.value = sym;
+          opt.textContent = `${sym} (${symCounts[sym]})`;
+          symbolSelect.appendChild(opt);
+        });
+      }
+
+      // Initialize filter state if not present
+      if (!window._closedState) {
+        window._closedState = {
+          symbol: 'ALL',
+          result: 'ALL',
+          dateQuery: '',
+          page: 1,
+          pageSize: 25,
+          displayLimit: 25
+        };
+
+        // Hook event listeners
+        if (symbolSelect) {
+          symbolSelect.addEventListener('change', e => {
+            window._closedState.symbol = e.target.value;
+            window._closedState.page = 1;
+            window._closedState.displayLimit = window._closedState.pageSize === 'ALL' ? 999999 : Number(window._closedState.pageSize);
+            renderClosedTradesTable();
+          });
+        }
+        const resSelect = document.getElementById('closed-filter-result');
+        if (resSelect) {
+          resSelect.addEventListener('change', e => {
+            window._closedState.result = e.target.value;
+            window._closedState.page = 1;
+            window._closedState.displayLimit = window._closedState.pageSize === 'ALL' ? 999999 : Number(window._closedState.pageSize);
+            renderClosedTradesTable();
+          });
+        }
+        const dateInput = document.getElementById('closed-filter-date');
+        if (dateInput) {
+          dateInput.addEventListener('input', e => {
+            window._closedState.dateQuery = e.target.value.trim().toLowerCase();
+            window._closedState.page = 1;
+            window._closedState.displayLimit = window._closedState.pageSize === 'ALL' ? 999999 : Number(window._closedState.pageSize);
+            renderClosedTradesTable();
+          });
+        }
+        const sizeSelect = document.getElementById('closed-page-size');
+        if (sizeSelect) {
+          sizeSelect.addEventListener('change', e => {
+            window._closedState.pageSize = e.target.value;
+            window._closedState.page = 1;
+            window._closedState.displayLimit = e.target.value === 'ALL' ? 999999 : Number(e.target.value);
+            renderClosedTradesTable();
+          });
+        }
+        const btnPrev = document.getElementById('closed-btn-prev');
+        if (btnPrev) {
+          btnPrev.addEventListener('click', () => {
+            if (window._closedState.page > 1) {
+              window._closedState.page--;
+              renderClosedTradesTable();
+            }
+          });
+        }
+        const btnNext = document.getElementById('closed-btn-next');
+        if (btnNext) {
+          btnNext.addEventListener('click', () => {
+            window._closedState.page++;
+            renderClosedTradesTable();
+          });
+        }
+        const btnLoadMore = document.getElementById('closed-btn-load-more');
+        if (btnLoadMore) {
+          btnLoadMore.addEventListener('click', () => {
+            const step = window._closedState.pageSize === 'ALL' ? 50 : Number(window._closedState.pageSize);
+            window._closedState.displayLimit += step;
+            renderClosedTradesTable();
+          });
+        }
+      }
+
+      function renderClosedTradesTable() {
+        const all = window._allClosedTrades || [];
+        const state = window._closedState || { symbol: 'ALL', result: 'ALL', dateQuery: '', page: 1, pageSize: 25, displayLimit: 25 };
+
+        // 1. Filter
+        let filtered = all.filter(t => {
+          if (state.symbol !== 'ALL' && t.symbol !== state.symbol) return false;
+          if (state.result !== 'ALL' && t.result !== state.result) return false;
+          if (state.dateQuery) {
+            const dt = (t.exit_time || t.entry_time || '').toLowerCase();
+            if (!dt.includes(state.dateQuery)) return false;
+          }
+          return true;
+        });
+
+        // 2. Metrics calculation for filtered set
+        let winCount = 0, lossCount = 0, grossWin = 0, grossLoss = 0, totalNet = 0;
+        filtered.forEach(t => {
+          const p = Number(t.net_profit || 0);
+          totalNet += p;
+          if (p > 0.005) { winCount++; grossWin += p; }
+          else if (p < -0.005) { lossCount++; grossLoss += Math.abs(p); }
+        });
+        const winRate = filtered.length > 0 ? (winCount / filtered.length) * 100.0 : 0.0;
+        const profitFactor = grossLoss > 0 ? (grossWin / grossLoss) : (grossWin > 0 ? 99.99 : 0.0);
+        const avgWin = winCount > 0 ? (grossWin / winCount) : 0.0;
+        const avgLoss = lossCount > 0 ? (grossLoss / lossCount) : 0.0;
+
+        // Update cards
+        const totalTradesEl = document.getElementById('closed-total-trades');
+        if (totalTradesEl) totalTradesEl.textContent = `${filtered.length} Trades`;
+        const splitEl = document.getElementById('closed-win-loss-split');
+        if (splitEl) splitEl.textContent = `${winCount} Wins / ${lossCount} Losses`;
+        const netPnlEl = document.getElementById('closed-net-pnl');
+        if (netPnlEl) {
+          netPnlEl.textContent = `${totalNet >= 0 ? '+' : ''}$${totalNet.toFixed(2)}`;
+          netPnlEl.style.color = totalNet >= 0 ? 'var(--teal)' : 'var(--red)';
+        }
+        const winRateCard = document.getElementById('closed-win-rate');
+        if (winRateCard) winRateCard.textContent = `${winRate.toFixed(1)}%`;
+        const pfCard = document.getElementById('closed-profit-factor');
+        if (pfCard) pfCard.textContent = profitFactor.toFixed(2);
+        const pfSplit = document.getElementById('closed-pf-split');
+        if (pfSplit) pfSplit.textContent = `$${grossWin.toFixed(2)} / $${grossLoss.toFixed(2)}`;
+        const avgCard = document.getElementById('closed-avg-win-loss');
+        if (avgCard) avgCard.textContent = `+$${avgWin.toFixed(2)} / -$${avgLoss.toFixed(2)}`;
+
+        // Also update performance tab if present
+        const winRateEl = document.getElementById('perf-win-rate');
+        if (winRateEl) winRateEl.textContent = `${winRate.toFixed(1)}% (${winCount}/${filtered.length})`;
+        const pfEl = document.getElementById('perf-profit-factor');
+        if (pfEl) pfEl.textContent = profitFactor.toFixed(2);
+        const totalPnlEl = document.getElementById('perf-total-pnl');
+        if (totalPnlEl) {
+          totalPnlEl.textContent = `$${totalNet.toFixed(2)}`;
+          totalPnlEl.style.color = totalNet >= 0 ? 'var(--teal)' : 'var(--red)';
+        }
+
+        // 3. Pagination slicing
+        let pagedTrades = [];
+        let totalPages = 1;
+        if (state.pageSize === 'ALL') {
+          pagedTrades = filtered.slice(0, state.displayLimit);
+          totalPages = 1;
+        } else {
+          const sz = Number(state.pageSize);
+          totalPages = Math.max(1, Math.ceil(filtered.length / sz));
+          if (state.page > totalPages) state.page = totalPages;
+          if (state.page < 1) state.page = 1;
+
+          if (state.displayLimit > sz) {
+            pagedTrades = filtered.slice(0, state.displayLimit);
+          } else {
+            const start = (state.page - 1) * sz;
+            pagedTrades = filtered.slice(start, start + sz);
+          }
+        }
+
+        // Update pagination controls UI
+        const infoEl = document.getElementById('closed-page-info');
+        if (infoEl) {
+          const showingCount = pagedTrades.length;
+          infoEl.textContent = `Showing ${showingCount} of ${filtered.length} (Page ${state.page}/${totalPages})`;
+        }
+        const btnPrev = document.getElementById('closed-btn-prev');
+        if (btnPrev) btnPrev.disabled = state.page <= 1;
+        const btnNext = document.getElementById('closed-btn-next');
+        if (btnNext) btnNext.disabled = state.page >= totalPages;
+        const btnLoadMore = document.getElementById('closed-btn-load-more');
+        if (btnLoadMore) btnLoadMore.style.display = pagedTrades.length >= filtered.length ? 'none' : 'inline-block';
+
+        // 4. Render Table Rows
+        const closedBody = document.getElementById('closed-trades-table-body');
+        if (!closedBody) return;
+        closedBody.innerHTML = '';
+
+        if (filtered.length === 0) {
+          closedBody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:24px;color:var(--muted)">No reconciled closed trades match the selected filters.</td></tr>';
+          return;
+        }
+
+        pagedTrades.forEach(ct => {
+          const tr = document.createElement('tr');
+          const netPnl = Number(ct.net_profit || 0);
+          const isWin = (ct.result === 'WIN' || netPnl > 0.005);
+          const resColor = isWin ? 'var(--teal)' : (netPnl < -0.005 ? 'var(--red)' : '#94a3b8');
+          const resBadge = `<span style="background:${isWin ? '#0d2720' : (netPnl < -0.005 ? '#2b1010' : '#1e293b')};color:${resColor};border:1px solid ${isWin ? '#1f473b' : (netPnl < -0.005 ? '#571c1c' : '#475569')};padding:2px 7px;border-radius:4px;font-size:10px;font-weight:750">${escapeHtml(ct.result || (isWin ? 'WIN' : 'LOSS'))}</span>`;
+
+          const dir = (ct.side || ct.direction || '').toUpperCase();
+          const isBuy = (dir === 'BUY' || dir === 'LONG');
+          const dirColor = isBuy ? 'var(--teal)' : 'var(--red)';
+          const rawTime = ct.exit_time || ct.close_time || ct.entry_time || ct.open_time || '—';
+          const formattedCloseTime = (rawTime !== '—') ? escapeHtml(rawTime.replace('T', ' ').replace('.000Z', ' UTC').replace('+00:00', ' UTC')) : '—';
+
+          const slVal = Number(ct.sl || ct.stop_loss || 0);
+          const tpVal = Number(ct.tp || ct.take_profit || 0);
+          const commVal = Number(ct.commission || 0);
+          const swapVal = Number(ct.swap || 0);
+
+          tr.innerHTML = `
+            <td><code>#${escapeHtml(String(ct.position_id || ''))}</code></td>
+            <td><span style="font-size:11px;color:var(--muted)">${formattedCloseTime}</span></td>
+            <td><strong>${escapeHtml(ct.symbol)}</strong></td>
+            <td><span style="color:${dirColor};font-weight:700">${escapeHtml(isBuy ? 'BUY' : 'SELL')}</span></td>
+            <td>${escapeHtml(String(ct.volume || '0.01'))}</td>
+            <td>${Number(ct.entry_price || 0).toFixed(5)}</td>
+            <td>${Number(ct.exit_price || 0).toFixed(5)}</td>
+            <td style="color:${slVal > 0 ? '#f87171' : 'var(--muted)'}">${slVal > 0 ? slVal.toFixed(5) : '—'}</td>
+            <td style="color:${tpVal > 0 ? '#34d399' : 'var(--muted)'}">${tpVal > 0 ? tpVal.toFixed(5) : '—'}</td>
+            <td>$${commVal.toFixed(2)}</td>
+            <td>$${swapVal.toFixed(2)}</td>
+            <td style="color:${resColor};font-weight:700">${netPnl >= 0 ? '+' : ''}$${netPnl.toFixed(2)}</td>
+            <td>${resBadge}</td>
+          `;
+          closedBody.appendChild(tr);
+        });
+      }
+
+      renderClosedTradesTable();
+
+      // K. AI/ML Ensemble Metadata Rendering (Phase 82 Live Telemetry)
+      const aiMeta = snapshot.ai_ml_models;
+      if (aiMeta && aiMeta.models) {
+        const globStatusEl = document.getElementById('ai-ensemble-global-status');
+        if (globStatusEl) globStatusEl.textContent = aiMeta.status || 'OPERATIONAL';
+
+        // 1. Supervised ML
+        const supModel = aiMeta.models.supervised_ml;
+        if (supModel) {
+          const brierEl = document.getElementById('ml-brier-score');
+          if (brierEl && supModel.brier_score !== undefined && supModel.brier_score !== null) {
+            brierEl.textContent = `${supModel.brier_score} (Calibrated)`;
+          }
+          const mlBadge = document.getElementById('ml-model-badge');
+          if (mlBadge) mlBadge.textContent = supModel.model_health || supModel.status || 'OPERATIONAL';
+
+          const mlCountEl = document.getElementById('ml-inference-count');
+          if (mlCountEl) {
+            const infCount = supModel.model_inference_count !== undefined ? supModel.model_inference_count : (supModel.inference_count || 0);
+            const succCount = supModel.model_inference_success_count || infCount;
+            mlCountEl.textContent = `${infCount} evals (${succCount} ok)`;
+          }
+
+          const mlLastEl = document.getElementById('ml-last-inference');
+          if (mlLastEl && (supModel.last_inference_at || supModel.last_inference)) {
+            const dt = (supModel.last_inference_at || supModel.last_inference || '').replace('T', ' ').slice(0, 19);
+            const sym = supModel.last_inference_symbol ? ` [${supModel.last_inference_symbol}]` : '';
+            mlLastEl.textContent = `${dt}${sym}`;
+          }
+
+          const mlPredEl = document.getElementById('ml-last-pred');
+          if (mlPredEl && supModel.last_prediction) {
+            mlPredEl.textContent = supModel.last_prediction;
+            mlPredEl.style.color = supModel.last_prediction === 'APPROVED' ? 'var(--teal)' : 'var(--amber)';
+          }
+        }
+
+        // 2. Market Regime
+        const regModel = aiMeta.models.regime_classifier;
+        if (regModel) {
+          const regEl = document.getElementById('current-market-regime');
+          const regVal = regModel.current_regime || regModel.last_regime || 'NORMAL';
+          if (regEl) regEl.textContent = regVal;
+
+          const regBadge = document.getElementById('regime-model-badge');
+          if (regBadge) regBadge.textContent = regModel.model_health || regModel.status || 'ACTIVE';
+
+          const regCountEl = document.getElementById('regime-inference-count');
+          if (regCountEl) {
+            const count = regModel.model_inference_count !== undefined ? regModel.model_inference_count : (regModel.inference_count || 0);
+            regCountEl.textContent = `${count} evals`;
+          }
+
+          const regLastEl = document.getElementById('regime-last-inference');
+          if (regLastEl && (regModel.last_inference_at || regModel.last_inference)) {
+            const dt = (regModel.last_inference_at || regModel.last_inference || '').replace('T', ' ').slice(0, 19);
+            const sym = regModel.last_inference_symbol ? ` [${regModel.last_inference_symbol}]` : '';
+            regLastEl.textContent = `${dt}${sym}`;
+          }
+        }
+
+        // 3. Market Anomaly Filter
+        const anomModel = aiMeta.models.anomaly_filter;
+        if (anomModel) {
+          const anomBadge = document.getElementById('anomaly-model-badge');
+          if (anomBadge) anomBadge.textContent = anomModel.model_health || anomModel.status || 'ACTIVE';
+
+          const anomCountEl = document.getElementById('anomaly-inference-count');
+          if (anomCountEl) {
+            const count = anomModel.model_inference_count !== undefined ? anomModel.model_inference_count : (anomModel.inference_count || 0);
+            anomCountEl.textContent = `${count} evals`;
+          }
+
+          const anomLastEl = document.getElementById('anomaly-last-inference');
+          if (anomLastEl && (anomModel.last_inference_at || anomModel.last_inference)) {
+            const dt = (anomModel.last_inference_at || anomModel.last_inference || '').replace('T', ' ').slice(0, 19);
+            const sym = anomModel.last_inference_symbol ? ` [${anomModel.last_inference_symbol}]` : '';
+            anomLastEl.textContent = `${dt}${sym}`;
+          }
+        }
+
+        // 4. Ensemble Decision Engine
+        const ensModel = aiMeta.models.ensemble_decision_engine;
+        if (ensModel) {
+          const totalEl = document.getElementById('ensemble-total-evals');
+          if (totalEl) totalEl.textContent = `${ensModel.total_evaluations || 0} evaluations`;
+
+          const decCountEl = document.getElementById('ensemble-decisions-count');
+          if (decCountEl) {
+            decCountEl.textContent = `Appr: ${ensModel.approved_count || 0} | Rej: ${ensModel.rejected_count || 0}`;
+          }
+
+          const decReasonEl = document.getElementById('ensemble-last-reason');
+          if (decReasonEl && (ensModel.last_decision_reason || ensModel.last_evaluation_at)) {
+            const r = ensModel.last_decision_reason || (ensModel.last_decision ? ensModel.last_decision.decision : 'None');
+            decReasonEl.textContent = r;
+          }
+        }
+      }
+
+      // L. Market Intelligence Rendering (Phase 94)
+      const marketIntel = snapshot.market_intelligence || null;
+      renderMarketIntelligence(marketIntel);
+
+      syncIndicator.textContent = `Last sync: ${new Date().toLocaleTimeString()} (Active)`;
+
+    } catch (err) {
+
+      failureCount++;
+
+      pollBackoffMs = Math.min(Math.round(pollBackoffMs * 1.5), 30000);
+
+      syncIndicator.textContent = `Sync failed: ${err.message} (Retry in ${Math.round(pollBackoffMs / 1000)}s)`;
+
+
+
+      alertContainer.innerHTML = `
+
+        <div class="error-box">
+
+          <div>
+
+            <strong>Gateway Telemetry Error:</strong> ${escapeHtml(err.message)}
+
+            <div style="font-size:12px;margin-top:2px">Unable to reach Vercel Preview telemetry edge. Attempting automatic reconnection...</div>
+
+          </div>
+
+          <button class="btn-sm" onclick="window.retryDashboard()" type="button" style="background:#4a1212;border-color:#ff7575">Retry Now</button>
+
+        </div>
+
+      `;
+
+    }
+
+  }
+
+
+
+  // 7. Inspect Account Modal
+
+  function inspectAccount(accId) {
+
+    const acc = latestAccounts.find(a => a.account_id === accId) || {
+
+      account_id: accId,
+
+      login: 0,
+
+      server: '',
+
+      trade_mode: 'UNKNOWN',
+
+      balance: null,
+
+      equity: null,
+
+      status: 'AWAITING_CREDENTIALS'
+
+    };
+
+
+
+    const modeInfo = window.StatusUtils.evaluateAccountMode(acc);
+
+    document.getElementById('modal-title').textContent = `Fleet Inspection: ${acc.account_id}`;
+
+
+
+    const balanceStr = (acc.balance !== null && acc.balance !== undefined && Number.isFinite(Number(acc.balance)))
+
+      ? '$' + Number(acc.balance).toFixed(2)
+
+      : '—';
+
+    const equityStr = (acc.equity !== null && acc.equity !== undefined && Number.isFinite(Number(acc.equity)))
+
+      ? '$' + Number(acc.equity).toFixed(2)
+
+      : '—';
+
+    const serverStr = (acc.server && acc.server.trim()) ? acc.server.trim() : 'Not configured';
+
+    const loginStr = (acc.login && Number(acc.login) > 0) ? '#' + acc.login : 'Unprovisioned Demo Placeholder';
+
+    const provStr = (acc.account_id === 'account_003')
+
+      ? 'Broker Demo Telemetry'
+
+      : (acc.status === 'AUTH_FAILED_ERROR_6' ? 'Historical Auth Error (Preflight)' : 'Unprovisioned Placeholder');
+
+
+
+    document.getElementById('modal-content').innerHTML = `
+
+      <div style="margin-bottom:10px"><strong>Account Identifier:</strong> <code>${escapeHtml(acc.account_id)}</code></div>
+
+      <div style="margin-bottom:10px"><strong>Broker Login:</strong> ${escapeHtml(loginStr)}</div>
+
+      <div style="margin-bottom:10px"><strong>Broker Server:</strong> ${escapeHtml(serverStr)}</div>
+
+      <div style="margin-bottom:10px"><strong>Authoritative Trade Mode:</strong> <span class="mode-badge ${modeInfo.badgeClass}">${escapeHtml(modeInfo.label)}</span> (${escapeHtml(modeInfo.description)})</div>
+
+      <div style="margin-bottom:10px"><strong>Balance / Equity:</strong> ${escapeHtml(balanceStr)} / ${escapeHtml(equityStr)}</div>
+
+      <div style="margin-bottom:10px"><strong>Broker Observation Time (UTC):</strong> <code>${escapeHtml(acc.broker_captured_at || 'UNAVAILABLE')}</code></div>
+
+      <div style="margin-bottom:10px"><strong>Telemetry Source:</strong> <code>${escapeHtml(acc.telemetry_source || 'UNAVAILABLE')}</code></div>
+
+      <div style="margin-bottom:10px"><strong>Account Connection Status:</strong> <span class="status-badge ${acc.status === 'CONNECTED_VERIFIED' ? 'status-badge-live' : 'status-badge-disconnected'}">${escapeHtml(acc.connection_status || acc.status || 'AWAITING_CREDENTIALS')}</span></div>
+
+      <div style="margin-bottom:10px"><strong>Trading Execution Gate:</strong> <span style="color:var(--amber);font-weight:700">DISABLED (HARD DISARMED)</span></div>
+
+      <div><strong>Data Provenance:</strong> ${escapeHtml(provStr)}</div>
+
+    `;
+
+    document.getElementById('modal-container').hidden = false;
+
+  }
+
+
+
+  // 8. Controlled Polling Loop with Exponential Backoff
+
+  async function pollLoop() {
+
+    if (isFetching) return;
+
+    isFetching = true;
+
+    try {
+
+      await updateDashboard();
+
+    } catch (_) {
+
+      // Handled inside updateDashboard
+
+    } finally {
+
+      isFetching = false;
+
+      if (pollTimer) clearTimeout(pollTimer);
+
+      pollTimer = setTimeout(pollLoop, pollBackoffMs);
+
+    }
+
+  }
+
+
+
+  window.retryDashboard = function() {
+
+    if (pollTimer) clearTimeout(pollTimer);
+
+    pollBackoffMs = 5000;
+
+    pollLoop();
+
+  };
+
+
+
+  // Initial fetch and start loop
+
+  window.updateDashboard = updateDashboard;
+
+  await pollLoop();
+
 })();
+
 </script>
+
 <script src="/assistant.js?v=1" defer></script>
-</body></html>
+</body>
+
+</html>
+
