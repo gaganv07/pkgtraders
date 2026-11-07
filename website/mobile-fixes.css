@@ -1,0 +1,481 @@
+/* VORTEX AI — mobile layout corrections
+   Loaded last, after page-specific styles. Desktop rules are intentionally untouched. */
+
+@media (max-width: 850px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  img,
+  svg,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+  }
+
+  .wrap,
+  main,
+  main > *,
+  section,
+  article,
+  footer,
+  header {
+    min-width: 0;
+  }
+
+  .wrap {
+    width: calc(100% - 24px);
+    max-width: 100%;
+  }
+
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  li,
+  a,
+  button,
+  td,
+  th,
+  code {
+    overflow-wrap: anywhere;
+  }
+
+  /* Shared public-site navigation */
+  header nav {
+    width: 100%;
+    min-width: 0;
+    height: 76px;
+    min-height: 76px;
+    gap: 10px;
+  }
+
+  header .brand {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  header .brand > a {
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+
+  header .logo {
+    display: block;
+    width: min(126px, 38vw);
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .brand-pill,
+  .brand-badge,
+  .brand-tag {
+    max-width: 32vw;
+    padding: 3px 6px;
+    font-size: 9px;
+    line-height: 1.25;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .nav-desktop-links {
+    display: none !important;
+  }
+
+  .nav-toggle {
+    display: inline-flex !important;
+    flex: 0 0 44px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-menu {
+    top: 76px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - 76px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 16px 12px calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .mobile-nav-link {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .mobile-menu-footer {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* Data tables stay inside their cards; swipe horizontally to inspect columns. */
+  .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .table-wrap table {
+    width: max-content;
+    min-width: 100%;
+    table-layout: auto;
+  }
+
+  .table-wrap th,
+  .table-wrap td {
+    white-space: nowrap;
+  }
+
+  pre,
+  code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Dashboard header: stack operator controls instead of letting them collide. */
+  .header-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-top > .brand {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .header-actions {
+    display: grid;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "alerts support"
+      "operator operator"
+      "menu menu";
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-actions .btn-notif {
+    grid-area: alerts;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .header-actions > a.btn-sm {
+    grid-area: support;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .header-actions .user-menu {
+    grid-area: operator;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .header-actions .user-name {
+    flex: 1 1 120px;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .header-actions .role-badge {
+    flex: 0 1 auto;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .header-actions .user-menu .btn-sm {
+    flex: 0 0 auto;
+    max-width: 100%;
+  }
+
+  .header-actions .nav-toggle {
+    grid-area: menu;
+    justify-self: end;
+  }
+
+  .nav-tabs {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    gap: 2px;
+  }
+
+  .nav-tabs .tab-link {
+    flex: 0 0 auto;
+    max-width: 82vw;
+    white-space: nowrap;
+  }
+
+  .card,
+  .kpi-card,
+  .faq-card,
+  .step-card,
+  .legal-card,
+  .callout,
+  .access,
+  .brand-card,
+  .contact-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .card-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .card-title,
+  .card-meta {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .modal-overlay {
+    padding: 12px;
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .modal-content,
+  .modal-card,
+  .modal-dialog {
+    width: min(100%, 620px);
+    max-width: 100%;
+    max-height: calc(100dvh - 24px);
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .contact-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .contact-action {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .wrap {
+    width: calc(100% - 24px);
+  }
+
+  main {
+    padding-top: 28px;
+    padding-bottom: 40px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 8.5vw, 38px);
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+  }
+
+  h2 {
+    overflow-wrap: anywhere;
+  }
+
+  .lead {
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    padding: 30px 0 36px;
+  }
+
+  .cards,
+  .split,
+  .access,
+  .security-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .access {
+    padding: 18px;
+    align-items: stretch;
+  }
+
+  .actions {
+    gap: 10px;
+  }
+
+  .actions .btn,
+  .actions .nav-cta {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .faq-card,
+  .step-card,
+  .legal-card,
+  .card {
+    padding: 18px;
+    border-radius: 15px;
+  }
+
+  details {
+    padding: 13px 14px;
+  }
+
+  summary {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .header-actions .user-menu {
+    justify-content: flex-start;
+  }
+
+  .header-actions .user-name {
+    flex-basis: 120px;
+  }
+
+  .header-actions .user-menu .btn-sm {
+    min-height: 40px;
+  }
+
+  .kpi-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .card-header {
+    flex-direction: column;
+  }
+
+  .foot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footlinks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    max-width: 100%;
+  }
+
+  /* The chat launcher moves to the left, leaving the homepage back-to-top
+     control in the lower-right corner. The open chat fits above phone UI. */
+  #vortex-help-launcher {
+    left: calc(12px + env(safe-area-inset-left));
+    right: auto;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    max-width: calc(100vw - 24px);
+  }
+
+  #vortex-help-panel {
+    left: 8px;
+    right: 8px;
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    width: auto;
+    max-width: none;
+    height: min(620px, calc(100dvh - 92px - env(safe-area-inset-bottom)));
+    max-height: calc(100dvh - 92px - env(safe-area-inset-bottom));
+    min-height: 330px;
+  }
+
+  .vh-composer {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 380px) {
+  .wrap {
+    width: calc(100% - 20px);
+  }
+
+  .brand-pill,
+  .brand-badge,
+  .brand-tag {
+    display: none;
+  }
+
+  header .logo {
+    width: min(116px, 42vw);
+  }
+
+  .header-actions .user-menu {
+    gap: 7px;
+  }
+
+  .header-actions .user-menu .btn-sm {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .status-pill-lg {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .modal-overlay {
+    padding: 8px;
+  }
+
+  .modal-content,
+  .modal-card,
+  .modal-dialog {
+    max-height: calc(100dvh - 16px);
+  }
+}
