@@ -1,212 +1,700 @@
 <!doctype html>
+
 <html lang="en">
+
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#050b09"><title>Sign in · VORTEX AI</title>
+
+<meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="theme-color" content="#050b09">
+
+<meta name="description" content="Secure operator sign-in for VORTEX AI multi-account institutional trading operations console.">
+
+<meta property="og:title" content="Sign In · VORTEX AI">
+
+<meta property="og:description" content="Secure platform authentication with Supabase Cloud SSO and passwordless magic links.">
+
+<meta property="og:image" content="/vortex-ai-logo.webp?v=20261028-1">
+
+<meta property="og:type" content="website">
+
+<link rel="canonical" href="https://vortexbot.ai/login.html">
+
+<title>Sign in · VORTEX AI</title>
+
+<link rel="stylesheet" href="/nav.css">
+
 <style>
-:root{color-scheme:dark;--bg:#050b09;--panel:#0c1513;--panel2:#101d1a;--line:#203c34;--text:#f2faf7;--muted:#a1b9b0;--teal:#00e6ad;--cyan:#bfffea;--amber:#ffd58a}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0,#123d32 0,transparent 48%),var(--bg);color:var(--text);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:grid;grid-template-rows:auto 1fr auto}
-a{color:var(--cyan);text-decoration:none}.wrap{width:min(1100px,calc(100% - 32px));margin:auto}
-header{padding:18px 0;border-bottom:1px solid #17372d}header .row,footer .row{display:flex;justify-content:space-between;align-items:center;gap:16px}
-.logo{width:176px;max-width:42vw;height:auto;display:block;object-fit:contain;image-rendering:auto}.back{color:var(--muted);font-size:13px}
-main{display:grid;place-items:center;padding:40px 16px 52px}.panel{width:min(100%,450px);background:#0b1412ef;border:1px solid #244b3e;border-radius:22px;padding:30px;box-shadow:0 28px 80px #0007}
-.eyebrow{color:var(--teal);text-transform:uppercase;letter-spacing:.17em;font-size:11px;font-weight:800;margin-bottom:8px}h1{font-size:30px;letter-spacing:-.04em;line-height:1.12;margin:0 0 10px}p{color:var(--muted);margin:0 0 22px}
-.providers{display:grid;gap:12px}.provider{width:100%;min-height:52px;padding:0 16px;display:flex;align-items:center;justify-content:center;border:1px solid #46665a;border-radius:12px;background:#12221d;color:var(--text);font-weight:650;font-size:14px;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s ease}.provider:hover:not(:disabled){border-color:var(--teal);background:#163026}.provider:focus-visible{outline:2px solid var(--teal);outline-offset:3px}.provider:disabled{opacity:.86;cursor:not-allowed}.provider span{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:24px;line-height:1.2}.provider svg{width:24px;height:24px;flex:0 0 24px;display:block;overflow:visible}
-.or{display:flex;align-items:center;gap:14px;color:#799389;font-size:12px;margin:20px 0}.or:before,.or:after{content:"";height:1px;background:#244238;flex:1}
-label{display:block;color:#d5e8e1;font-size:12px;font-weight:650;margin-bottom:7px}input{width:100%;height:46px;border:1px solid #35564b;border-radius:10px;background:#07100d;color:var(--text);padding:0 13px;font:inherit;outline:none}input:focus{border-color:var(--teal);box-shadow:0 0 0 3px #00e6ad20}.email-row{display:grid;grid-template-columns:1fr;gap:10px}.submit{width:100%;height:46px;border:1px solid var(--teal);border-radius:10px;background:var(--teal);color:#062018;font-size:14px;font-weight:800;cursor:pointer}.submit:disabled{opacity:.56;cursor:not-allowed}
-.notice{display:none;border:1px solid #3b6254;border-radius:10px;padding:11px 12px;margin:14px 0 0;color:#d6f7e9;font-size:12px;overflow-wrap:anywhere}.notice.show{display:block}.notice.warn{border-color:#76592b;background:#211a0d;color:#ffdfaa}.legal{font-size:11px;color:#829b91;margin-top:20px}.legal a{color:#c4f6e3;text-decoration:underline}.tiny{font-size:11px;color:#789085;margin-top:13px}
-footer{padding:18px 0;border-top:1px solid #17372d;color:#80978e;font-size:11px}
-@media(max-width:480px){.panel{padding:23px 19px}h1{font-size:27px}.logo{width:136px;max-width:40vw}.provider{min-height:50px}}
-.back-to-top{position:fixed;right:16px;bottom:18px;z-index:20;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid #00e6ad;background:#00e6ad;color:#052019;font-size:25px;font-weight:850;line-height:1;box-shadow:0 8px 28px #0006;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease,visibility .18s ease;cursor:pointer}.back-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}.back-to-top:hover{background:#bfffea;border-color:#bfffea}.back-to-top:focus-visible{outline:3px solid #bfffea;outline-offset:4px}@media(prefers-reduced-motion:reduce){.back-to-top{transition:none}}
 
-/* VORTEX responsive sign-in safeguards */
-html,body{width:100%;max-width:100%;overflow-x:hidden}
-img,svg{max-width:100%}
-.wrap,main,.panel,.providers,.email-row,form{min-width:0}
-header .row,footer .row{min-width:0;flex-wrap:wrap;gap:12px}
-.logo{height:auto;max-width:100%;object-fit:contain;image-rendering:auto}
-.panel{width:min(100%,450px);min-width:0}
-.providers{width:100%;min-width:0}
-.provider,.submit{display:flex;width:100%;min-width:0;max-width:100%;min-height:48px;height:auto;padding:12px 14px;align-items:center;justify-content:center;line-height:1.3;white-space:normal;overflow-wrap:anywhere;text-align:center}
-.provider span{width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;flex-wrap:wrap;justify-content:center;gap:10px}
-input{display:block;width:100%;min-width:0;max-width:100%;height:48px;padding-inline:13px;font-size:16px;line-height:1.3}
-.email-row{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
-form{width:100%}
-.notice,.legal,.tiny{overflow-wrap:anywhere}
-@media(max-width:480px){
- .wrap{width:calc(100% - 24px)}
- header{padding:12px 0}
- main{padding:24px 12px 36px}
- .panel{width:100%;padding:22px 16px;border-radius:18px}
- .logo{width:132px;max-width:44vw}
- h1{font-size:clamp(25px,7vw,29px)}
- .provider,.submit{font-size:14px}
+:root{
+
+  color-scheme:dark;
+
+  --bg:#050b09;
+
+  --panel:#0c1513;
+
+  --panel2:#101d1a;
+
+  --line:#203c34;
+
+  --text:#f2faf7;
+
+  --muted:#a1b9b0;
+
+  --teal:#00e6ad;
+
+  --cyan:#bfffea;
+
+  --amber:#ffd58a;
+
+  --danger:#ff5252;
+
 }
 
-header .row{min-width:0;flex-wrap:wrap}
-header .row>a:first-child{margin-right:auto}
-header .row>.back{white-space:nowrap;min-height:40px;display:inline-flex;align-items:center}
-img,svg,video{max-width:100%;height:auto}
-.panel{min-width:0;max-width:100%}
-p,h1,h2{overflow-wrap:anywhere}
-input,button{max-width:100%;min-width:0}
-@media(max-width:480px){
- header{padding:12px 0}
- header .row{row-gap:8px}
- .logo{width:132px;max-width:40vw}
- header .row>.back{font-size:12px}
+*{box-sizing:border-box}
+
+body{
+
+  margin:0;
+
+  min-height:100vh;
+
+  background:radial-gradient(ellipse at 50% 0,#123d32 0,transparent 48%),var(--bg);
+
+  color:var(--text);
+
+  font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+
+  display:grid;
+
+  grid-template-rows:auto 1fr auto;
+
+  overflow-x:hidden;
+
 }
+
+a{color:var(--cyan);text-decoration:none}
+
+.wrap{width:min(1100px,calc(100% - 32px));margin:auto}
+
+
+
+header{
+
+  padding:14px 0;
+
+  border-bottom:1px solid #17372d;
+
+  background:#050b09ea;
+
+  backdrop-filter:blur(12px);
+
+  position:sticky;
+
+  top:0;
+
+  z-index:100;
+
+}
+
+header .row, footer .row{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  gap:16px;
+
+  flex-wrap:wrap;
+
+}
+
+.brand{display:flex;align-items:center;gap:12px}
+
+.logo{width:160px;max-width:38vw;height:auto;display:block;object-fit:contain}
+
+.nav-desktop-links{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:20px;
+
+  color:var(--muted);
+
+  font-size:13px;
+
+  font-weight:650;
+
+}
+
+.nav-desktop-links a:hover{color:var(--teal)}
+
+
+
+main{display:grid;place-items:center;padding:40px 16px 52px}
+
+.panel{
+
+  width:min(100%,460px);
+
+  background:#0b1412ef;
+
+  border:1px solid #244b3e;
+
+  border-radius:22px;
+
+  padding:32px;
+
+  box-shadow:0 28px 80px rgba(0,0,0,0.5);
+
+}
+
+.eyebrow{color:var(--teal);text-transform:uppercase;letter-spacing:.17em;font-size:11px;font-weight:800;margin-bottom:8px}
+
+h1{font-size:28px;letter-spacing:-.04em;line-height:1.15;margin:0 0 10px}
+
+p{color:var(--muted);margin:0 0 20px;font-size:14px}
+
+.field{margin-bottom:16px}
+
+label{display:block;color:#d5e8e1;font-size:12px;font-weight:650;margin-bottom:7px}
+
+input{width:100%;height:46px;border:1px solid #35564b;border-radius:10px;background:#07100d;color:var(--text);padding:0 13px;font:inherit;outline:none}
+
+input:focus{border-color:var(--teal);box-shadow:0 0 0 3px #00e6ad20}
+
+.submit{width:100%;min-height:46px;border:1px solid var(--teal);border-radius:10px;background:var(--teal);color:#062018;font-size:14px;font-weight:800;cursor:pointer;margin-top:6px;transition:opacity .15s}
+
+.submit:disabled{opacity:.56;cursor:not-allowed}
+
+.divider{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  margin:20px 0;
+
+  color:#739488;
+
+  font-size:11.5px;
+
+  font-weight:650;
+
+  text-transform:uppercase;
+
+  letter-spacing:.06em;
+
+}
+
+.divider::before, .divider::after{
+
+  content:"";
+
+  flex:1;
+
+  height:1px;
+
+  background:#1a382f;
+
+}
+
+.providers{display:grid;gap:10px}
+
+.provider{width:100%;min-height:48px;padding:0 16px;display:flex;align-items:center;justify-content:center;border:1px solid #46665a;border-radius:10px;background:#12221d;color:var(--text);font-weight:650;font-size:13px;cursor:pointer;transition:border-color .15s, background .15s}
+
+.provider:hover:not(:disabled){border-color:var(--teal);background:#163026}
+
+.provider:disabled{opacity:.5;cursor:not-allowed;border-color:#2a3d36;background:#0d1815}
+
+.provider span{display:inline-flex;align-items:center;gap:10px}
+
+.provider svg{width:20px;height:20px;flex:0 0 20px}
+
+.provider-note{
+
+  display:none;
+
+  align-items:flex-start;
+
+  gap:9px;
+
+  background:#1a1508;
+
+  border:1px solid #5a431c;
+
+  border-radius:10px;
+
+  padding:10px 12px;
+
+  font-size:12px;
+
+  line-height:1.45;
+
+  color:#fed58a;
+
+  margin-top:4px;
+
+  word-break:break-word;
+
+}
+
+.provider-note.show{display:flex}
+
+.provider-note svg{flex:0 0 16px;width:16px;height:16px;fill:currentColor;margin-top:1px}
+
+.notice{display:none;border:1px solid #3b6254;border-radius:10px;padding:11px 12px;margin:16px 0 0;color:#d6f7e9;font-size:12px;overflow-wrap:anywhere}
+
+.notice.show{display:block}
+
+.notice.warn{border-color:#76592b;background:#211a0d;color:#ffdfaa}
+
+.notice.danger{border-color:var(--danger);background:#240c0c;color:#ff9e9e}
+
+.notice.success{border-color:#1b5742;background:#0d261d;color:#a3ffd9}
+
+.legal{font-size:11.5px;color:#829b91;margin-top:22px;border-top:1px solid #1a362d;padding-top:16px;line-height:1.6}
+
+.legal a{color:#c4f6e3;text-decoration:underline}
+
+.tiny{font-size:11.5px;color:#789085;margin-top:12px;text-align:center}
+
+
+
+footer{padding:24px 0;border-top:1px solid #17372d;color:#80978e;font-size:12px;background:#040907}
+
+.footlinks{display:flex;gap:16px;flex-wrap:wrap}
+
+.footlinks a{color:#80978e;text-decoration:none}
+
+.footlinks a:hover{color:var(--teal)}
+
 </style>
+
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261031-1">
+
 <link rel="shortcut icon" href="/favicon.svg?v=20261031-1">
+
 <link rel="stylesheet" href="/assistant.css?v=1">
+<link rel="stylesheet" href="/mobile-fixes.css?v=1">
 </head>
+
 <body>
-<header><div class="wrap row"><a href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortext-ai-logo.webp?v=20261101-2" alt="VORTEX AI"></a><a class="back" href="/contact.html">Contact</a><a class="back" href="/">← Back to home</a></div></header>
-<main><section class="panel" aria-labelledby="heading">
-<div class="eyebrow">Secure dashboard access</div><h1 id="heading">Sign in to VORTEX AI</h1>
-<p>Sign in to view your authorized trading dashboard. Your MT5 password is never requested here.</p>
-<div id="status" class="notice show" role="status">Checking sign-in configuration…</div>
-<div class="providers" style="margin-top:16px" aria-label="Social sign-in options">
-<button class="provider" id="google" type="button" disabled title="Checking Google sign-in availability"><span><svg viewBox="0 0 48 48" focusable="false" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.96 46.98 31.87 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.75 24c0-1.59.27-3.13.75-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.86.92 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.43-4.89 2.28-8.18 2.28-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 43.62 14.62 48 24 48z"/></svg>Continue with Google</span></button>
-<button class="provider" id="apple" type="button" disabled title="Checking Apple sign-in availability"><span><svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path fill="currentColor" d="M16.37 12.23c.02 2.09 1.83 2.78 1.85 2.79-.02.05-.29 1-.96 1.98-.58.84-1.18 1.67-2.13 1.69-.93.02-1.23-.54-2.3-.54-1.06 0-1.4.52-2.28.56-.91.03-1.6-.91-2.18-1.75-1.19-1.72-2.1-4.86-.88-6.98.6-1.05 1.68-1.72 2.85-1.74.9-.02 1.75.61 2.3.61.54 0 1.55-.76 2.61-.65.44.02 1.69.18 2.49 1.35-.06.04-1.49.87-1.47 2.68ZM14.68 6.7c.48-.58.8-1.39.71-2.2-.69.03-1.53.46-2.03 1.04-.45.52-.84 1.34-.73 2.13.77.06 1.56-.39 2.05-.97Z"/></svg>Continue with Apple</span></button>
+
+
+
+<header>
+
+  <div class="wrap row">
+
+    <div class="brand">
+
+      <a href="/" aria-label="VORTEX AI home"><img class="logo" src="/vortex-ai-logo.webp?v=20261028-1" alt="VORTEX AI"></a>
+
+    </div>
+
+    <div class="nav-desktop-links">
+
+      <a href="/">← Back to Home</a>
+
+      <a href="/getting-started.html">Getting Started</a>
+
+      <a href="/status.html">Status</a>
+
+      <a href="/faq.html">FAQ</a>
+      <a href="mailto:supportvortexbot@gmail.com">Support</a>
+
+    </div>
+
+    <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu" type="button">
+
+      <svg class="icon-bars" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
+
+      <svg class="icon-close" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+
+    </button>
+
+  </div>
+
+</header>
+
+
+
+<!-- Mobile Navigation Drawer -->
+
+<div id="mobile-menu" class="mobile-menu" hidden aria-label="Mobile navigation">
+
+  <a class="mobile-nav-link" href="/">Home Overview <span>→</span></a>
+
+  <a class="mobile-nav-link" href="/getting-started.html">Getting Started <span>→</span></a>
+
+  <a class="mobile-nav-link" href="/status.html">Platform Status <span>→</span></a>
+
+  <a class="mobile-nav-link" href="/faq.html">FAQ & Help <span>→</span></a>
+
+  <a class="mobile-nav-link" href="mailto:supportvortexbot@gmail.com">Customer Support (supportvortexbot@gmail.com) <span>✉</span></a>
+  <a class="mobile-nav-link" href="/#risk">Risk Disclosure <span>→</span></a>
+
 </div>
-<div class="or">OR CONTINUE WITH EMAIL</div>
-<form id="email-form"><label for="email">Email address</label><div class="email-row"><input id="email" name="email" type="email" autocomplete="email" placeholder="name@example.com" required><button class="submit" id="email-submit" type="submit" disabled>Send secure sign-in link</button></div></form>
-<div class="legal">By continuing, you agree to use this service in accordance with our <a href="/#risk">risk disclosure</a>. Automated trading can result in losses.</div>
-<div class="tiny">Email-link delivery requires a configured outbound SMTP sender. Google and Apple sign-in are available when enabled in Production Supabase. Demo trading dashboard · Read-only website · No MT5 password collection</div>
-</section></main>
-<footer><div class="wrap row"><span>© VORTEX AI</span><div class="row"><a href="/">Home</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/contact.html">Support</a></div></div></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
+
+
+
+<main>
+
+  <section class="panel" aria-labelledby="heading">
+
+    <div class="eyebrow">Authoritative Operator Access</div>
+
+    <h1 id="heading">Sign in to VORTEX AI</h1>
+
+    <p>Sign in using Supabase Cloud authentication. Platform execution controls remain strictly <strong>HARD DISARMED</strong>.</p>
+
+
+
+    <!-- PRIMARY SUPABASE SIGN-IN -->
+
+    <div id="auth-pane">
+
+      <form id="magic-link-form">
+
+        <div class="field">
+
+          <label for="email">Authorized Operator Email</label>
+
+          <input id="email" type="email" autocomplete="email" placeholder="name@organization.com" required>
+
+        </div>
+
+        <button class="submit" id="magic-submit" type="submit">Send One-Time Magic Link</button>
+
+      </form>
+
+
+
+      <div class="divider">or continue with</div>
+
+
+
+      <div class="providers">
+
+        <button class="provider" id="btn-google" type="button" aria-describedby="google-note">
+
+          <span>
+
+            <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.96 46.98 31.87 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.75 24c0-1.59.27-3.13.75-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.86.92 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.43-4.89 2.28-8.18 2.28-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 43.62 14.62 48 24 48z"/></svg>
+
+            <span id="google-label">Continue with Google SSO</span>
+
+          </span>
+
+        </button>
+
+        <div id="google-note" class="provider-note" role="note">
+
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+
+          <span id="google-note-text">Google Sign-In is pending Supabase configuration on this environment. Please sign in using your authorized email above.</span>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="tiny">Protected by Supabase PKCE & JWT Authentication</div>
+
+    </div>
+
+
+
+    <div id="status" class="notice" role="status"></div>
+
+
+
+        <!-- CUSTOMER SUPPORT ASSISTANCE -->
+    <div class="auth-support" style="margin-top:20px;padding:14px 16px;background:#0d1c17;border:1px solid #1a382e;border-radius:12px;text-align:center;font-size:12.5px;color:var(--muted)">
+      <div>Need help accessing your account? Contact our support team.</div>
+      <div style="margin-top:8px">
+        <a href="mailto:supportvortexbot@gmail.com" style="color:var(--teal);text-decoration:none;font-weight:650;display:inline-flex;align-items:center;gap:6px;user-select:all">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+          <span>supportvortexbot@gmail.com</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="legal">
+
+      Protected institutional environment. Unauthorized access prohibited. Review our <a href="/getting-started.html">Getting Started guide</a> and <a href="/#risk">Risk Disclosure</a>.
+
+    </div>
+
+  </section>
+
+</main>
+
+
+
+<footer>
+  <div class="wrap row">
+    <div>
+      <span>© 2026 VORTEX AI · Educational &amp; Research Platform</span>
+      <span style="margin-left:14px;color:var(--muted)">Customer Support: <a href="mailto:supportvortexbot@gmail.com" style="color:var(--teal);text-decoration:none;font-weight:600;user-select:all">supportvortexbot@gmail.com</a></span>
+    </div>
+    <div class="footlinks">
+      <a href="/">Home</a>
+      <a href="/getting-started.html">Getting Started</a>
+      <a href="/status.html">Status</a>
+      <a href="/faq.html">FAQ</a>
+      <a href="mailto:supportvortexbot@gmail.com">Contact Support</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+    </div>
+  </div>
+</footer>
+
+
+
+<script src="/nav.js"></script>
+
+<script src="/api-config.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="/auth.js"></script>
+
 <script>
-(function () {
+
+(async function() {
+
   const $ = (id) => document.getElementById(id);
-  const status = $("status");
-  const googleButton = $("google");
-  const appleButton = $("apple");
-  const emailButton = $("email-submit");
-  let client = null;
-  let googleEnabled = false;
-  let appleEnabled = false;
-  let emailEnabled = false;
-  const requestedNext = new URLSearchParams(window.location.search).get("next");
-  const nextPage = ["dashboard.html", "account.html"].includes(requestedNext) ? requestedNext : "dashboard.html";
-  // Always complete authentication on the canonical production site. A localhost-origin
-  // here would embed localhost:3000 into the Supabase magic link and strand the user.
-  const target = "https://vortexbot.ai/dashboard.html";
-  function show(message, warning = false) {
-    status.textContent = message;
-    status.className = "notice show" + (warning ? " warn" : "");
+
+  const statusEl = $("status");
+
+  const form = $("magic-link-form");
+
+  const submitBtn = $("magic-submit");
+
+  const googleBtn = $("btn-google");
+
+  const googleLabel = $("google-label");
+
+  const googleNote = $("google-note");
+
+  const googleNoteText = $("google-note-text");
+
+
+
+  function show(msg, type = "info") {
+
+    statusEl.textContent = msg;
+
+    statusEl.className = "notice show " + (type === "warn" ? "warn" : (type === "danger" ? "danger" : (type === "success" ? "success" : "")));
+
   }
-  function setBusy(busy) {
-    googleButton.disabled = busy || !googleEnabled;
-    appleButton.disabled = busy || !appleEnabled;
-    emailButton.disabled = busy || !emailEnabled;
-  }
-  async function init() {
+
+
+
+  try {
+
+    // 0. Surface any OAuth callback redirect errors from query or hash
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const hashStr = (window.location.hash || "").replace(/^#/, "");
+
+    const hashParams = new URLSearchParams(hashStr);
+
+    const authErrDesc = urlParams.get("error_description") || hashParams.get("error_description") || urlParams.get("error") || hashParams.get("error");
+
+    if (authErrDesc) {
+
+      show("Authentication notice: " + decodeURIComponent(authErrDesc.replace(/\+/g, " ")), "warn");
+
+    }
+
+
+
+    // 1. Initialize Auth and handle any incoming callback
+
+    await window.VortexAuth.init();
+
+    const existingSession = await window.VortexAuth.handleCallback();
+
+    if (existingSession && existingSession.access_token) {
+
+      show("Authenticated. Redirecting to operations console...", "success");
+
+      window.location.replace("/dashboard.html");
+
+      return;
+
+    }
+
+
+
+    // 2. Dynamic Provider Status Inspection
+
     try {
-      setBusy(true);
-      const response = await fetch("/api/auth-config", { cache: "no-store" });
-      const config = await response.json();
-      if (!response.ok || !config.configured) {
-        show("Login setup is not complete. The dashboard remains private until authentication is configured.", true);
-        return;
-      }
-      if (!window.supabase || !window.supabase.createClient) throw new Error("Auth library unavailable");
-      client = window.supabase.createClient(config.supabaseUrl, config.publishableKey);
-      const { data } = await client.auth.getSession();
-      if (data.session) { window.location.replace("/" + nextPage); return; }
 
-      // Ask Supabase Auth which providers are enabled before exposing their actions.
-      const settingsResponse = await fetch(config.supabaseUrl.replace(/\/+$/, "") + "/auth/v1/settings", {
-        method: "GET",
-        headers: { apikey: config.publishableKey },
-        cache: "no-store"
-      });
-      if (!settingsResponse.ok) throw new Error("Could not verify enabled sign-in providers");
-      const settings = await settingsResponse.json();
-      googleEnabled = settings.external?.google === true;
-      appleEnabled = settings.external?.apple === true;
-      emailEnabled = settings.external?.email === true;
-      setBusy(false);
+      const settings = await window.VortexAuth.getProviderSettings();
 
-      const activeProviders = [
-        googleEnabled ? "Google" : null,
-        appleEnabled ? "Apple" : null,
-        emailEnabled ? "email link" : null
-      ].filter(Boolean);
-      if (activeProviders.length) {
-        show(activeProviders.join(", ") + " sign-in available. Access is limited to pre-approved accounts.");
+      if (settings && settings.google) {
+
+        googleBtn.disabled = false;
+
+        googleBtn.removeAttribute("aria-disabled");
+
+        googleBtn.title = "Sign in using your Google account";
+
+        if (googleLabel) googleLabel.textContent = "Continue with Google SSO";
+
+        if (googleNote) googleNote.classList.remove("show");
+
       } else {
-        show("No sign-in provider is currently enabled. Contact the VORTEX AI administrator to complete authentication setup.", true);
+
+        googleBtn.disabled = true;
+
+        googleBtn.setAttribute("aria-disabled", "true");
+
+        googleBtn.title = "Google sign-in is not enabled in Supabase on this environment.";
+
+        if (googleLabel) googleLabel.textContent = "Google SSO (Not Configured)";
+
+        if (googleNote) {
+
+          googleNote.classList.add("show");
+
+          if (googleNoteText) {
+
+            googleNoteText.textContent = "Google Sign-In is pending Supabase configuration on this environment. Please use authorized Email Magic Link above.";
+
+          }
+
+        }
+
       }
-      googleButton.title = googleEnabled ? "Continue with Google" : "Google sign-in is not enabled in Production Supabase";
-      appleButton.title = appleEnabled ? "Continue with Apple" : "Apple sign-in is not configured in Production Supabase";
-    } catch (error) {
-      setBusy(true);
-      show("Could not verify the sign-in provider configuration. No OAuth redirect will be attempted. Please try again later.", true);
+
+    } catch (settingsErr) {
+
+      console.warn("Provider settings check notice:", settingsErr.message || settingsErr);
+
+      googleBtn.disabled = true;
+
+      googleBtn.setAttribute("aria-disabled", "true");
+
+      if (googleLabel) googleLabel.textContent = "Google SSO (Unavailable)";
+
+      if (googleNote) {
+
+        googleNote.classList.add("show");
+
+        if (googleNoteText) {
+
+          googleNoteText.textContent = "OAuth provider detection unavailable. Please use authorized Email Magic Link above.";
+
+        }
+
+      }
+
     }
-  }
-  async function oauth(provider) {
-    const enabled = provider === "google" ? googleEnabled : provider === "apple" ? appleEnabled : false;
-    const label = provider === "apple" ? "Apple" : "Google";
-    if (!client || !enabled) {
-      show(label + " sign-in is not enabled in Production Supabase. The provider must be configured before it can authenticate accounts.", true);
-      return;
-    }
-    setBusy(true);
-    show("Redirecting to " + label + "…");
-    const { error } = await client.auth.signInWithOAuth({ provider, options: { redirectTo: target } });
-    if (error) {
-      setBusy(false);
-      show(error.message || "Could not start " + label + " sign-in.", true);
-    }
-  }
-  googleButton.addEventListener("click", () => oauth("google"));
-  appleButton.addEventListener("click", () => oauth("apple"));
-  $("email-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    if (!client || !emailEnabled) {
-      show("Email sign-in is not enabled in Supabase.", true);
-      return;
-    }
-    const email = $("email").value.trim();
-    setBusy(true);
-    show("Sending a one-time sign-in link…");
-    const { error } = await client.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: target, shouldCreateUser: false }
+
+
+
+    // 3. Magic Link form submission
+
+    form.addEventListener("submit", async (e) => {
+
+      e.preventDefault();
+
+      const email = $("email").value.trim();
+
+      if (!email) return;
+
+
+
+      submitBtn.disabled = true;
+
+      show("Dispatching one-time magic link to " + email + "...", "info");
+
+
+
+      try {
+
+        const { error } = await window.VortexAuth.signInWithOtp(email);
+
+        if (error) throw error;
+
+        show("Magic link requested. If authorized in Supabase, an access link has been dispatched via the auth mailer.", "success");
+
+      } catch (err) {
+
+        show(err.message || "Failed to dispatch magic link", "danger");
+
+        submitBtn.disabled = false;
+
+      }
+
     });
-    if (error) {
-      show("Could not start email sign-in. Confirm that this address is approved and try again.", true);
-    } else {
-      show("If this is an approved VORTEX AI account, a secure sign-in link has been requested. Check your inbox.");
-    }
-    setBusy(false);
-  });
-  init();
-})();
-</script>
-<button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
-<script>
-(function(){
-  const button=document.getElementById("back-to-top");
-  if(!button)return;
-  let queued=false;
-  function sync(){
-    button.classList.toggle("is-visible",window.scrollY>320);
-    queued=false;
+
+
+
+    // 4. Google OAuth submission
+
+    googleBtn.addEventListener("click", async () => {
+
+      if (googleBtn.disabled || googleBtn.getAttribute("aria-disabled") === "true") {
+
+        return;
+
+      }
+
+      googleBtn.disabled = true;
+
+      show("Connecting to Google authentication...", "info");
+
+      try {
+
+        const res = await window.VortexAuth.signInWithOAuth("google");
+
+        if (res && res.error) throw res.error;
+
+        if (res && res.data && res.data.url) {
+
+          window.location.assign(res.data.url);
+
+        }
+
+      } catch (err) {
+
+        show(err.message || "OAuth redirection failed", "danger");
+
+        googleBtn.disabled = false;
+
+      }
+
+    });
+
+  } catch (err) {
+
+    show("Authentication subsystem initialization notice: " + (err.message || "Check network connection"), "warn");
+
   }
-  window.addEventListener("scroll",function(){
-    if(!queued){queued=true;window.requestAnimationFrame(sync);}
-  },{passive:true});
-  button.addEventListener("click",function(){
-    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({top:0,behavior:reduced?"auto":"smooth"});
-  });
-  sync();
+
 })();
+
 </script>
+
 <script src="/assistant.js?v=1" defer></script>
 </body>
+
 </html>
+
